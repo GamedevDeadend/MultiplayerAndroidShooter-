@@ -2,6 +2,7 @@
 #include "MPPlayer.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 AMPPlayer::AMPPlayer()
 {
@@ -16,6 +17,10 @@ AMPPlayer::AMPPlayer()
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
 	FollowCamera->bUsePawnControlRotation = false;
+
+	bUseControllerRotationYaw = false;
+	GetCharacterMovement()->bOrientRotationToMovement = true;
+
 
 }
 
@@ -41,7 +46,6 @@ void AMPPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	PlayerInputComponent->BindAxis("MoveRight", this, &AMPPlayer::MoveRight);
 	PlayerInputComponent->BindAxis("LookUp", this, &AMPPlayer::LookUp);
 	PlayerInputComponent->BindAxis("LookRight", this, &AMPPlayer::LookRight);
-
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
 
 }
@@ -51,7 +55,10 @@ void AMPPlayer::MoveForward(float Value)
 {
 	if (Controller != nullptr && Value != 0.0f)
 	{
+		//Instead of characterMesh Rotation we are getting controller rotation
 		const FRotator YawRotation(0.f, Controller->GetControlRotation().Yaw, 0.0f);
+
+		//Mathematics to get forward vector of controller
 		const FVector Direction(FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X));
 		AddMovementInput(Direction, Value);
 	}

@@ -17,10 +17,10 @@ class MULTIPLAYERTPP_API UMPPAnimInstance : public UAnimInstance
 private:
 
 	UPROPERTY(BlueprintReadOnly, Category = Character, meta = (AllowPrivateAccess = "true"))
-		class MPPlayer* OurPlayer;
+		class AMPPlayer* OurPlayer;
 
 	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
-		float speed;
+		float Speed;
 
 	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
 		bool bIsInAir;
