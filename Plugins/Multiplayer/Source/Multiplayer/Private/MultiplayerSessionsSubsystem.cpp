@@ -57,7 +57,7 @@ void UMultiplayerSessionsSubsystem::CreateSession(int32 NumPublicConnections, FS
 	bool bIsCreated = SessionInterface->CreateSession(*LocalPlayer->GetPreferredUniqueNetId(), NAME_GameSession, *LastSessionSettings);
 	if (bIsCreated)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, FString("Session has been created 1007"));
+		/*GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, FString(printf("Session has been created 1007 SessionName: %s")));*/
 	}
 	if (bIsCreated == false)
 	{

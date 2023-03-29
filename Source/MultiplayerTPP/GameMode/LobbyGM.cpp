@@ -12,15 +12,15 @@ void ALobbyGM::PostLogin(APlayerController* NewPlayer)
 
 	int32 PlayerCount = GameState.Get()->PlayerArray.Num();
 
-	if (PlayerCount > 0)
+	if (PlayerCount > 2)
 	{
-		UWorld* WorldPt = GetWorld();
+		UWorld* World = GetWorld();
 		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString("Our dunction worked"));
-		//if (WorldPt != nullptr)
-		//{
+		if (World != nullptr)
+		{
 			bUseSeamlessTravel = true;
-			WorldPt->ServerTravel(FString("/Game/Maps/StartLvl?listen"));
-
-		//}
+			World->ServerTravel(FString("/Game/Maps/StartLvl?listen"));
+			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Cyan, FString("Our dunction worked 2"));
+		}
 	}
 }

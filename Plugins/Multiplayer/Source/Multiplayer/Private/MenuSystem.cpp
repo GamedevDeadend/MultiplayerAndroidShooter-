@@ -173,13 +173,13 @@ void UMenuSystem::OnJoinSession(EOnJoinSessionCompleteResult::Type Result)
                 PlayerController->ClientTravel(IPAddress, ETravelType::TRAVEL_Absolute);
                 if (GEngine)
                 {
-                    GEngine->AddOnScreenDebugMessage
-                    (
-                        -1,
-                        15.0f,
-                        FColor::Green,
-                        FString::Printf(TEXT("Connected to IP : %s"), *IPAddress)
-                    );
+                    //GEngine->AddOnScreenDebugMessage
+                    //(
+                    //    -1,
+                    //    15.0f,
+                    //    FColor::Green,
+                    //    FString::Printf(TEXT("Connected to IP : %s"), *IPAddress)
+                    //);
                 }
 
             }
