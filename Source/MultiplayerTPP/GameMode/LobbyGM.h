@@ -13,9 +13,13 @@ UCLASS()
 class MULTIPLAYERTPP_API ALobbyGM : public AGameMode
 {
 	GENERATED_BODY()
+private:
+	UPROPERTY()
+		FTimerHandle LoadDelayHandler;
 
 protected:
 
 	virtual void PostLogin(APlayerController* NewPlayer) override;
+	void StartLvlTravel();
 	
 };
