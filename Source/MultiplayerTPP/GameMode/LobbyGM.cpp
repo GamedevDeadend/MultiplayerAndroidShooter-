@@ -12,7 +12,7 @@ void ALobbyGM::PostLogin(APlayerController* NewPlayer)
 
 	int32 PlayerCount = GameState.Get()->PlayerArray.Num();
 
-	if (PlayerCount > 0)
+	if (PlayerCount > 2)
 	{
 		
 		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString("Our dunction worked"));

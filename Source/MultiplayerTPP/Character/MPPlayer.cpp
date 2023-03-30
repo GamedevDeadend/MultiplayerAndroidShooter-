@@ -3,6 +3,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include"Components/WidgetComponent.h"
 
 AMPPlayer::AMPPlayer()
 {
@@ -20,8 +21,9 @@ AMPPlayer::AMPPlayer()
 
 	bUseControllerRotationYaw = false;
 	GetCharacterMovement()->bOrientRotationToMovement = true;
-
-
+	
+	OverHead = CreateDefaultSubobject<UWidgetComponent>(TEXT("OverHead Widget"));
+	OverHead->SetupAttachment(RootComponent);
 }
 
 void AMPPlayer::Tick(float DeltaTime)

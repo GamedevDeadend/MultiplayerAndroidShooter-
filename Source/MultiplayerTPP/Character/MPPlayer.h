@@ -30,6 +30,9 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = Camera)
 		class UCameraComponent* FollowCamera;
 
+	UPROPERTY(EditAnywhere, BlueprintReadonly, meta = (Allowprivateaccess = true))
+		class UWidgetComponent* OverHead;
+
 	void MoveForward(float Value);
 	void MoveRight(float Value);
 	void LookUp(float Value);
