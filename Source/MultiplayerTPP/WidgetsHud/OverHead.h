@@ -26,6 +26,7 @@ protected:
 
 	UFUNCTION(BlueprintCallable)
 	void ShowPlayerNetRole(APawn* PlayerPawn);
+
 public:
 
 	

@@ -4,6 +4,7 @@
 #include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include"Components/WidgetComponent.h"
+#include "GameFramework/PlayerState.h"
 
 AMPPlayer::AMPPlayer()
 {
@@ -52,6 +53,17 @@ void AMPPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 }
 
+
+FString AMPPlayer::GetPlayerName()
+{
+	APlayerState* OurPlayerState = this->GetPlayerState();
+	FString OurPlayerName;
+
+	if (OurPlayerState)
+		OurPlayerName = OurPlayerState->GetPlayerName();
+
+	return OurPlayerName;
+}
 
 void AMPPlayer::MoveForward(float Value)
 {

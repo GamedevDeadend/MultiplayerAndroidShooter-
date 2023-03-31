@@ -17,6 +17,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+
 protected:
 
 	virtual void BeginPlay() override;
@@ -33,13 +34,16 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadonly, meta = (Allowprivateaccess = true))
 		class UWidgetComponent* OverHead;
 
+
 	void MoveForward(float Value);
 	void MoveRight(float Value);
 	void LookUp(float Value);
 	void LookRight(float Value);
 
-
 // Public Section for Simple Getters and Setters
 public:
+
+	UFUNCTION(BlueprintCallable)
+		FString GetPlayerName();
 
 };

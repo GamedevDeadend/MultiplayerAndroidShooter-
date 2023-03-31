@@ -3,6 +3,7 @@
 
 #include "OverHead.h"
 #include "Components/TextBlock.h"
+#include "MultiplayerTPP/Character/MPPlayer.h"
 
 
 void UOverHead::SetDisplayText(FString TextValue)
@@ -37,7 +38,7 @@ void UOverHead::ShowPlayerNetRole(APawn* PlayerPawn)
 		break;
 	}
 
-	FString RoleDisplayText = FString::Printf(TEXT("Local Role: %s"), *Role);
+	FString RoleDisplayText = FString::Printf(TEXT("Local Role : %s"), *Role);
 	SetDisplayText(RoleDisplayText);
 }
 
