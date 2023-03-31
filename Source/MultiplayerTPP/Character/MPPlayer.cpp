@@ -24,7 +24,7 @@ AMPPlayer::AMPPlayer()
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	
 	OverHead = CreateDefaultSubobject<UWidgetComponent>(TEXT("OverHead Widget"));
-	OverHead->SetupAttachment(RootComponent);
+	OverHead->SetupAttachment(GetMesh());
 }
 
 void AMPPlayer::Tick(float DeltaTime)
