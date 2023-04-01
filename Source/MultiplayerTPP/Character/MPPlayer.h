@@ -21,9 +21,19 @@ public:
 protected:
 
 	virtual void BeginPlay() override;
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 
 private:
+
+	void MoveForward(float Value);
+	void MoveRight(float Value);
+	void LookUp(float Value);
+	void LookRight(float Value);
+
+	UFUNCTION()
+	void OnRep_OverlappedWeapon();
+
 
 	UPROPERTY(VisibleAnywhere, Category = Camera)
 		class USpringArmComponent* CameraBoom;
@@ -34,16 +44,19 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadonly, meta = (Allowprivateaccess = true))
 		class UWidgetComponent* OverHead;
 
-
-	void MoveForward(float Value);
-	void MoveRight(float Value);
-	void LookUp(float Value);
-	void LookRight(float Value);
+	//meta specifier indicating that this variable needs to be replicated
+	//UPROPERTY(Replicated)
+	
+	//Meta specifer to connect variabler to onrep function. ONrep-- will be called as soon as this variable is replicated.
+	UPROPERTY(ReplicatedUsing = OnRep_OverlappedWeapon) 
+		class AWeapons* OverlappedWeapon;
 
 // Public Section for Simple Getters and Setters
 public:
 
 	UFUNCTION(BlueprintCallable)
 		FString GetPlayerName();
+
+	FORCEINLINE void SetOverlappingWeapon(AWeapons* Weapon) { OverlappedWeapon = Weapon; }
 
 };

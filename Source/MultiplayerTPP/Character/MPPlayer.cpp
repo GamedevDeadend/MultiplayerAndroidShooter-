@@ -1,10 +1,13 @@
 
+
 #include "MPPlayer.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include"Components/WidgetComponent.h"
 #include "GameFramework/PlayerState.h"
+#include"Net/UnrealNetwork.h"
+#include"MultiplayerTPP/Weapons/Weapons.h"
 
 AMPPlayer::AMPPlayer()
 {
@@ -27,19 +30,25 @@ AMPPlayer::AMPPlayer()
 	OverHead->SetupAttachment(GetMesh());
 }
 
-void AMPPlayer::Tick(float DeltaTime)
+
+//This function is used to register replicated variable
+void AMPPlayer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
-	Super::Tick(DeltaTime);
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
+	// This will set Overlappedweapon for replication but intial value will be null
+	DOREPLIFETIME_CONDITION(AMPPlayer, OverlappedWeapon, COND_OwnerOnly); 
 }
-
 
 void AMPPlayer::BeginPlay()
 {
 	Super::BeginPlay();
-
 }
 
+void AMPPlayer::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+}
 
 void AMPPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
@@ -50,9 +59,7 @@ void AMPPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	PlayerInputComponent->BindAxis("LookUp", this, &AMPPlayer::LookUp);
 	PlayerInputComponent->BindAxis("LookRight", this, &AMPPlayer::LookRight);
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
-
 }
-
 
 FString AMPPlayer::GetPlayerName()
 {
@@ -64,6 +71,7 @@ FString AMPPlayer::GetPlayerName()
 
 	return OurPlayerName;
 }
+
 
 void AMPPlayer::MoveForward(float Value)
 {
@@ -99,6 +107,12 @@ void AMPPlayer::LookUp(float Value)
 void AMPPlayer::LookRight(float Value)
 {
 	AddControllerYawInput(Value);
+}
+
+void AMPPlayer::OnRep_OverlappedWeapon()
+{
+	if (OverlappedWeapon)
+		OverlappedWeapon->ShowPickupWidget(true);
 }
 
 

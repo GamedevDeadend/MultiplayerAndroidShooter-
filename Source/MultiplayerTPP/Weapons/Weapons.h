@@ -25,6 +25,7 @@ public:
 	// Sets default values for this actor's properties
 	AWeapons();
 	virtual void Tick(float DeltaTime) override;
+	void ShowPickupWidget(bool bShowWidget);
 
 private:
 
@@ -34,10 +35,25 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties")
 		class USphereComponent* OverlapAreaSphere;
 
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties")
 		EWeaponState WeaponState;
+
+	UPROPERTY(EditAnywhere, Category = "Weapon Properties")
+		class UWidgetComponent* PickUpWidget;
+
 
 protected:
 	virtual void BeginPlay() override;
+
+	UFUNCTION(BlueprintCallable)
+	virtual void OnSphereOverlap
+	(
+		UPrimitiveComponent* OverlappedComponent,
+		AActor* OtherActor,
+		UPrimitiveComponent* OtherComponent,
+		int32 OtherBodyIndex,
+		bool bFromSweep,
+		const FHitResult& SweepResult
+	);
 
 };

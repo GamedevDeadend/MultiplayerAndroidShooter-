@@ -3,6 +3,8 @@
 
 #include "Weapons.h"
 #include"Components/SphereComponent.h"
+#include"Components/WidgetComponent.h"
+#include"MultiplayerTPP/Character/MPPlayer.h"
 
 // Sets default values
 AWeapons::AWeapons()
@@ -11,7 +13,6 @@ AWeapons::AWeapons()
 	PrimaryActorTick.bCanEverTick = true;
 
 	Mesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Weapon Mesh"));
-	Mesh->SetupAttachment(RootComponent);
 	SetRootComponent(Mesh);
 
 	Mesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
@@ -25,7 +26,8 @@ AWeapons::AWeapons()
 	OverlapAreaSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 
-
+	PickUpWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("Pickup OverHead"));
+	PickUpWidget->SetupAttachment(RootComponent);
 
 
 }
@@ -35,10 +37,16 @@ void AWeapons::BeginPlay()
 {
 	Super::BeginPlay();
 
+	if (PickUpWidget)
+	{
+		PickUpWidget->SetVisibility(false);
+	}
+
 	if (HasAuthority())
 	{
 		OverlapAreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		OverlapAreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
+		OverlapAreaSphere->OnComponentBeginOverlap.AddDynamic(this, &AWeapons::OnSphereOverlap);
 	}
 	
 }
@@ -48,5 +56,30 @@ void AWeapons::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+}
+
+void AWeapons::OnSphereOverlap
+(
+	UPrimitiveComponent* OverlappedComponent,
+	AActor* OtherActor,
+	UPrimitiveComponent* OtherComponent,
+	int32 OtherBodyIndex,
+	bool bFromSweep,
+	const FHitResult& SweepResult
+)
+
+{
+	AMPPlayer* Player = Cast<AMPPlayer>(OtherActor);
+
+	if (Player)
+		Player->SetOverlappingWeapon(this);
+}
+
+
+
+void AWeapons::ShowPickupWidget(bool bShowWidget)
+{
+	if (PickUpWidget)
+		PickUpWidget->SetVisibility(bShowWidget);
 }
 
