@@ -10,7 +10,7 @@
 AWeapons::AWeapons()
 {
 	bReplicates = true;
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 
 	Mesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Weapon Mesh"));
 	SetRootComponent(Mesh);
@@ -42,11 +42,14 @@ void AWeapons::BeginPlay()
 		PickUpWidget->SetVisibility(false);
 	}
 
+
+	//We are binding delegates on server side only 
 	if (HasAuthority())
 	{
 		OverlapAreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		OverlapAreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
 		OverlapAreaSphere->OnComponentBeginOverlap.AddDynamic(this, &AWeapons::OnSphereOverlap);
+		OverlapAreaSphere->OnComponentEndOverlap.AddDynamic(this, &AWeapons::OnSphereEndOverlap);
 	}
 	
 }
@@ -73,6 +76,19 @@ void AWeapons::OnSphereOverlap
 
 	if (Player)
 		Player->SetOverlappingWeapon(this);
+}
+
+void AWeapons::OnSphereEndOverlap
+(
+	UPrimitiveComponent* OverlappedComponent,
+	AActor* OtherActor,
+	UPrimitiveComponent* OtherComponent,
+	int32 OtherBodyIndex
+)
+{
+	AMPPlayer* Player = Cast<AMPPlayer>(OtherActor);
+	if (Player)
+		Player->SetOverlappingWeapon(nullptr);
 }
 
 

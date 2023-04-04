@@ -32,7 +32,7 @@ private:
 	void LookRight(float Value);
 
 	UFUNCTION()
-	void OnRep_OverlappedWeapon();
+	void OnRep_OverlappedWeapon(class AWeapons* LastWeapon);
 
 
 	UPROPERTY(VisibleAnywhere, Category = Camera)
@@ -49,7 +49,7 @@ private:
 	
 	//Meta specifer to connect variabler to onrep function. ONrep-- will be called as soon as this variable is replicated.
 	UPROPERTY(ReplicatedUsing = OnRep_OverlappedWeapon) 
-		class AWeapons* OverlappedWeapon;
+		AWeapons* OverlappedWeapon;
 
 // Public Section for Simple Getters and Setters
 public:
@@ -57,6 +57,6 @@ public:
 	UFUNCTION(BlueprintCallable)
 		FString GetPlayerName();
 
-	FORCEINLINE void SetOverlappingWeapon(AWeapons* Weapon) { OverlappedWeapon = Weapon; }
+	void SetOverlappingWeapon(AWeapons* Weapon);
 
 };

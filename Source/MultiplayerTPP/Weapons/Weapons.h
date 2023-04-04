@@ -56,4 +56,13 @@ protected:
 		const FHitResult& SweepResult
 	);
 
+	UFUNCTION(BlueprintCallable)
+		virtual void OnSphereEndOverlap
+		(
+			UPrimitiveComponent* OverlappedComponent,
+			AActor* OtherActor,
+			UPrimitiveComponent* OtherComponent,
+			int32 OtherBodyIndex
+		);
+
 };

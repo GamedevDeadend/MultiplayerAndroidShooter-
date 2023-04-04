@@ -12,7 +12,7 @@
 AMPPlayer::AMPPlayer()
 {
 
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(GetMesh());
@@ -50,6 +50,36 @@ void AMPPlayer::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
+
+//THIS FUNC IS SETTING OVERLAPPEDWEAPON ON EVERY CALL WHICH IN TURN IS CALLING REP NOTIFY
+void AMPPlayer::SetOverlappingWeapon(AWeapons* Weapon)
+{
+	//THIS CONDITION IS TO HIDE PICKUP WIDGET ON SERVER SIDE PAWN
+	if (!Weapon) 
+	{
+		OverlappedWeapon->ShowPickupWidget(false);
+	}
+
+	OverlappedWeapon = Weapon;
+
+
+	//THIS CONDITION IS TO SHOW PICKUP WIDGET ON SERVER SIDE PAWN
+	if (OverlappedWeapon)
+	{
+		OverlappedWeapon->ShowPickupWidget(true);
+	}
+}
+
+
+void AMPPlayer::OnRep_OverlappedWeapon(AWeapons* LastWeapon)
+{
+	if (OverlappedWeapon)
+		OverlappedWeapon->ShowPickupWidget(true);
+
+	if (LastWeapon)
+		LastWeapon->ShowPickupWidget(false);
+}
+
 void AMPPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
@@ -60,18 +90,6 @@ void AMPPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	PlayerInputComponent->BindAxis("LookRight", this, &AMPPlayer::LookRight);
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
 }
-
-FString AMPPlayer::GetPlayerName()
-{
-	APlayerState* OurPlayerState = this->GetPlayerState();
-	FString OurPlayerName;
-
-	if (OurPlayerState)
-		OurPlayerName = OurPlayerState->GetPlayerName();
-
-	return OurPlayerName;
-}
-
 
 void AMPPlayer::MoveForward(float Value)
 {
@@ -109,10 +127,15 @@ void AMPPlayer::LookRight(float Value)
 	AddControllerYawInput(Value);
 }
 
-void AMPPlayer::OnRep_OverlappedWeapon()
+FString AMPPlayer::GetPlayerName()
 {
-	if (OverlappedWeapon)
-		OverlappedWeapon->ShowPickupWidget(true);
+	APlayerState* OurPlayerState = this->GetPlayerState();
+	FString OurPlayerName;
+
+	if (OurPlayerState)
+		OurPlayerName = OurPlayerState->GetPlayerName();
+
+	return OurPlayerName;
 }
 
 
