@@ -65,4 +65,10 @@ protected:
 			int32 OtherBodyIndex
 		);
 
+//Getters And Setters
+public:
+
+	FORCEINLINE void SetWeaponState(EWeaponState State) { WeaponState = State; }
+
+
 };

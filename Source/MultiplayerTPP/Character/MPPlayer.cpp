@@ -8,6 +8,7 @@
 #include "GameFramework/PlayerState.h"
 #include"Net/UnrealNetwork.h"
 #include"MultiplayerTPP/Weapons/Weapons.h"
+#include"MultiplayerTPP/PlayerComponents/CombatComponent.h"
 
 AMPPlayer::AMPPlayer()
 {
@@ -28,9 +29,20 @@ AMPPlayer::AMPPlayer()
 	
 	OverHead = CreateDefaultSubobject<UWidgetComponent>(TEXT("OverHead Widget"));
 	OverHead->SetupAttachment(GetMesh());
+
+	CombatComponent = CreateDefaultSubobject<UCombatComponent>(TEXT("Combat Component"));
+	CombatComponent->SetIsReplicated(true);
 }
 
+void AMPPlayer:: PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
 
+	if (CombatComponent)
+	{
+		CombatComponent->Player = this;
+	}
+}
 //This function is used to register replicated variable
 void AMPPlayer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -89,6 +101,7 @@ void AMPPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	PlayerInputComponent->BindAxis("LookUp", this, &AMPPlayer::LookUp);
 	PlayerInputComponent->BindAxis("LookRight", this, &AMPPlayer::LookRight);
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
+	PlayerInputComponent->BindAction("Equip", IE_Pressed, this, &AMPPlayer::EquipWeapon);
 }
 
 void AMPPlayer::MoveForward(float Value)
@@ -125,6 +138,14 @@ void AMPPlayer::LookUp(float Value)
 void AMPPlayer::LookRight(float Value)
 {
 	AddControllerYawInput(Value);
+}
+
+void AMPPlayer::EquipWeapon()
+{
+	if (HasAuthority() || CombatComponent)
+	{
+		CombatComponent->EquipWeapon(OverlappedWeapon);
+	}
 }
 
 FString AMPPlayer::GetPlayerName()

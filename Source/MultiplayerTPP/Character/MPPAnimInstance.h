@@ -14,6 +14,11 @@ class MULTIPLAYERTPP_API UMPPAnimInstance : public UAnimInstance
 {
 	GENERATED_BODY()
 
+public:
+
+	virtual void NativeInitializeAnimation() override;
+	virtual void NativeUpdateAnimation(float Deltatime) override;
+
 private:
 
 	UPROPERTY(BlueprintReadOnly, Category = Character, meta = (AllowPrivateAccess = "true"))
@@ -29,8 +34,4 @@ private:
 		bool bIsAccelerating;
 	
 
-public:
-
-	virtual void NativeInitializeAnimation() override;
-	virtual void NativeUpdateAnimation(float Deltatime) override;
 };
