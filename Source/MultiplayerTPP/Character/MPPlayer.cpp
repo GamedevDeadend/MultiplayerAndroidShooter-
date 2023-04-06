@@ -43,6 +43,8 @@ void AMPPlayer:: PostInitializeComponents()
 		CombatComponent->Player = this;
 	}
 }
+
+
 //This function is used to register replicated variable
 void AMPPlayer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -142,12 +144,20 @@ void AMPPlayer::LookRight(float Value)
 
 void AMPPlayer::EquipWeapon()
 {
-	if (HasAuthority() || CombatComponent)
+	if (CombatComponent)
 	{
-		CombatComponent->EquipWeapon(OverlappedWeapon);
+		if (HasAuthority())
+			CombatComponent->EquipWeapon(OverlappedWeapon);
+		else
+			ServerEquipPressed();
 	}
 }
 
+void AMPPlayer::ServerEquipPressed_Implementation()
+{
+	if (CombatComponent)
+		CombatComponent->EquipWeapon(OverlappedWeapon);
+}
 FString AMPPlayer::GetPlayerName()
 {
 	APlayerState* OurPlayerState = this->GetPlayerState();

@@ -5,6 +5,8 @@
 #include"Components/SphereComponent.h"
 #include"Components/WidgetComponent.h"
 #include"MultiplayerTPP/Character/MPPlayer.h"
+#include"Net/UnrealNetwork.h"
+
 
 // Sets default values
 AWeapons::AWeapons()
@@ -32,6 +34,7 @@ AWeapons::AWeapons()
 
 }
 
+
 void AWeapons::BeginPlay()
 {
 	Super::BeginPlay();
@@ -56,8 +59,15 @@ void AWeapons::BeginPlay()
 void AWeapons::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
 }
+
+void AWeapons::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AWeapons, WeaponState);
+}
+
 
 void AWeapons::OnSphereOverlap
 (
@@ -89,7 +99,28 @@ void AWeapons::OnSphereEndOverlap
 		Player->SetOverlappingWeapon(nullptr);
 }
 
+void AWeapons::SetWeaponState(EWeaponState State)
+{
+	WeaponState = State;
+	switch (WeaponState)
+	{
+		case EWeaponState::EWS_Equipped:
+			ShowPickupWidget(false);
+			OverlapAreaSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		break;
+	}
+}
 
+void AWeapons::OnRep_WeaponState()
+{
+	switch (WeaponState)
+	{
+		case EWeaponState::EWS_Equipped:
+			ShowPickupWidget(false);
+			//OverlapAreaSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		break;
+	}
+}
 
 void AWeapons::ShowPickupWidget(bool bShowWidget)
 {

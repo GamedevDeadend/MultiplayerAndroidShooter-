@@ -40,6 +40,6 @@ void UCombatComponent::EquipWeapon(AWeapons* WeaponToEquip)
 		HandSocket->AttachActor(EquippedWeapon, Player->GetMesh());
 	}
 	EquippedWeapon->SetOwner(Player);
-	EquippedWeapon->ShowPickupWidget(false);
 }
+
 

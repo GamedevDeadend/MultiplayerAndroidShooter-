@@ -35,15 +35,20 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties")
 		class USphereComponent* OverlapAreaSphere;
 
-	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties")
+	UPROPERTY(ReplicatedUsing = OnRep_WeaponState, VisibleAnywhere, Category = "Weapon Properties")
 		EWeaponState WeaponState;
 
 	UPROPERTY(EditAnywhere, Category = "Weapon Properties")
 		class UWidgetComponent* PickUpWidget;
 
+	UFUNCTION()
+	void OnRep_WeaponState();
+
 
 protected:
+
 	virtual void BeginPlay() override;
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	UFUNCTION(BlueprintCallable)
 	virtual void OnSphereOverlap
@@ -68,7 +73,5 @@ protected:
 //Getters And Setters
 public:
 
-	FORCEINLINE void SetWeaponState(EWeaponState State) { WeaponState = State; }
-
-
+	void SetWeaponState(EWeaponState State);
 };

@@ -37,6 +37,11 @@ private:
 	void EquipWeapon();
 	virtual void PostInitializeComponents() override;
 
+
+	// Server side rpc method are already implemneted we have to just extend implementation by using _Implementation 
+	UFUNCTION(Server, Reliable)
+		void ServerEquipPressed();
+
 	UFUNCTION()
 	void OnRep_OverlappedWeapon(class AWeapons* LastWeapon);
 
