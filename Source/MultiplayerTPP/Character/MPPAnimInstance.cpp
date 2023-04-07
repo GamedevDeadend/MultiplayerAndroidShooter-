@@ -32,4 +32,8 @@ void UMPPAnimInstance::NativeUpdateAnimation(float Deltatime)
 
 	bIsInAir = OurPlayer->GetCharacterMovement()->IsFalling();
 	bIsAccelerating = OurPlayer->GetCharacterMovement()->GetCurrentAcceleration().Size() != 0 ? true : false;
+	bWeaponEquipped = OurPlayer->IsWeaponEquipped();
+	bIsCrouch = OurPlayer->bIsCrouched;
+	bIsAiming = OurPlayer->IsAiming();
 }
+

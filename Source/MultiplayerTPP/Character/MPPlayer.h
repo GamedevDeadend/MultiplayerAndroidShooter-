@@ -35,6 +35,9 @@ private:
 	void LookUp(float Value);
 	void LookRight(float Value);
 	void EquipWeapon();
+	void CrouchAction();
+	void AimPressed();
+	void AimReleased();
 	virtual void PostInitializeComponents() override;
 
 
@@ -72,4 +75,7 @@ public:
 		FString GetPlayerName();
 
 	void SetOverlappingWeapon(AWeapons* Weapon);
+	bool IsWeaponEquipped();
+
+	bool IsAiming();
 };

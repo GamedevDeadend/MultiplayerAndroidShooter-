@@ -26,6 +26,7 @@ AWeapons::AWeapons()
 
 	OverlapAreaSphere->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 	OverlapAreaSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	OverlapAreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
 
 
 	PickUpWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("Pickup OverHead"));

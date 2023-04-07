@@ -18,17 +18,30 @@ class MULTIPLAYERTPP_API UCombatComponent : public UActorComponent
 public:	
 	
 	UCombatComponent();
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-	void EquipWeapon(AWeapons* Equipweapon);
 
 	friend class AMPPlayer;
+
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	void EquipWeapon(AWeapons* Equipweapon);
+
 
 
 private:
 
 	AMPPlayer* Player;
+
+	UPROPERTY(Replicated)
 	AWeapons* EquippedWeapon;
 
+	UPROPERTY(Replicated)
+		bool bAim;
+
+	void SetAiming(bool bIsAiming);
+
+	//Server RPC invoke from clients and execute on server
+	UFUNCTION(Server, Reliable)
+	void ServerSetAiming(bool bIsAiming);
 
 protected:
 	

@@ -26,7 +26,7 @@ AMPPlayer::AMPPlayer()
 
 	bUseControllerRotationYaw = false;
 	GetCharacterMovement()->bOrientRotationToMovement = true;
-	
+
 	OverHead = CreateDefaultSubobject<UWidgetComponent>(TEXT("OverHead Widget"));
 	OverHead->SetupAttachment(GetMesh());
 
@@ -34,7 +34,7 @@ AMPPlayer::AMPPlayer()
 	CombatComponent->SetIsReplicated(true);
 }
 
-void AMPPlayer:: PostInitializeComponents()
+void AMPPlayer::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
@@ -45,18 +45,21 @@ void AMPPlayer:: PostInitializeComponents()
 }
 
 
+
 //This function is used to register replicated variable
 void AMPPlayer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	// This will set Overlappedweapon for replication but intial value will be null
-	DOREPLIFETIME_CONDITION(AMPPlayer, OverlappedWeapon, COND_OwnerOnly); 
+	DOREPLIFETIME_CONDITION(AMPPlayer, OverlappedWeapon, COND_OwnerOnly);
 }
 
 void AMPPlayer::BeginPlay()
 {
 	Super::BeginPlay();
+
+	GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
 }
 
 void AMPPlayer::Tick(float DeltaTime)
@@ -65,25 +68,38 @@ void AMPPlayer::Tick(float DeltaTime)
 }
 
 
+
+bool AMPPlayer::IsWeaponEquipped()
+{
+	return CombatComponent && CombatComponent->EquippedWeapon;
+}
+
+bool AMPPlayer::IsAiming()
+{
+	return CombatComponent->bAim;
+}
+
 //THIS FUNC IS SETTING OVERLAPPEDWEAPON ON EVERY CALL WHICH IN TURN IS CALLING REP NOTIFY
 void AMPPlayer::SetOverlappingWeapon(AWeapons* Weapon)
 {
 	//THIS CONDITION IS TO HIDE PICKUP WIDGET ON SERVER SIDE PAWN
-	if (!Weapon) 
+
+	if (!Weapon)
 	{
 		OverlappedWeapon->ShowPickupWidget(false);
 	}
 
 	OverlappedWeapon = Weapon;
 
-
 	//THIS CONDITION IS TO SHOW PICKUP WIDGET ON SERVER SIDE PAWN
-	if (OverlappedWeapon)
+	if (IsLocallyControlled())
 	{
-		OverlappedWeapon->ShowPickupWidget(true);
+		if (OverlappedWeapon)
+		{
+			OverlappedWeapon->ShowPickupWidget(true);
+		}
 	}
 }
-
 
 void AMPPlayer::OnRep_OverlappedWeapon(AWeapons* LastWeapon)
 {
@@ -104,6 +120,30 @@ void AMPPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	PlayerInputComponent->BindAxis("LookRight", this, &AMPPlayer::LookRight);
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
 	PlayerInputComponent->BindAction("Equip", IE_Pressed, this, &AMPPlayer::EquipWeapon);
+	PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &AMPPlayer::CrouchAction);
+	PlayerInputComponent->BindAction("Aim", IE_Pressed, this, &AMPPlayer::AimPressed);
+	PlayerInputComponent->BindAction("Aim", IE_Released, this, &AMPPlayer::AimReleased);
+}
+
+void AMPPlayer::CrouchAction()
+{
+	if (bIsCrouched)
+		UnCrouch();
+
+	else
+		Crouch();
+}
+
+void AMPPlayer::AimPressed()
+{
+	if (CombatComponent)
+		CombatComponent->SetAiming(true);
+}
+
+void AMPPlayer::AimReleased()
+{
+	if (CombatComponent)
+		CombatComponent->SetAiming(false);
 }
 
 void AMPPlayer::MoveForward(float Value)
@@ -158,6 +198,7 @@ void AMPPlayer::ServerEquipPressed_Implementation()
 	if (CombatComponent)
 		CombatComponent->EquipWeapon(OverlappedWeapon);
 }
+
 FString AMPPlayer::GetPlayerName()
 {
 	APlayerState* OurPlayerState = this->GetPlayerState();
@@ -168,6 +209,4 @@ FString AMPPlayer::GetPlayerName()
 
 	return OurPlayerName;
 }
-
-
 

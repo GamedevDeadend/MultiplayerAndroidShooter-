@@ -5,12 +5,21 @@
 #include "MultiplayerTPP/Weapons/Weapons.h"
 #include "MultiplayerTPP/Character/MPPlayer.h"
 #include "Engine/SkeletalMeshSocket.h"
+#include "Net/UnrealNetwork.h"
 
 
 
 UCombatComponent::UCombatComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
+}
+
+void UCombatComponent :: GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(UCombatComponent, EquippedWeapon);
+	DOREPLIFETIME(UCombatComponent, bAim);
 }
 
 
@@ -42,4 +51,17 @@ void UCombatComponent::EquipWeapon(AWeapons* WeaponToEquip)
 	EquippedWeapon->SetOwner(Player);
 }
 
+void UCombatComponent::SetAiming(bool bIsAiming)
+{
+	bAim = bIsAiming;
+	//It is not neccessary to call server rpc on client only as calling it on server will execute on server only. 
+	// For More Info https://docs.unrealengine.com/5.1/en-US/rpcs-in-unreal-engine/
+	ServerSetAiming(bIsAiming); 
+
+}
+
+void UCombatComponent::ServerSetAiming_Implementation(bool bIsAiming)
+{
+	bAim = bIsAiming;
+}
 
