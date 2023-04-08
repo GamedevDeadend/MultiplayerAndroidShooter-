@@ -4,6 +4,7 @@
 #include "MPPAnimInstance.h"
 #include "MPPlayer.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 
 void UMPPAnimInstance::NativeInitializeAnimation()
 {
@@ -35,5 +36,19 @@ void UMPPAnimInstance::NativeUpdateAnimation(float Deltatime)
 	bWeaponEquipped = OurPlayer->IsWeaponEquipped();
 	bIsCrouch = OurPlayer->bIsCrouched;
 	bIsAiming = OurPlayer->IsAiming();
+
+	FRotator AimRotation = OurPlayer->GetBaseAimRotation();
+	FRotator MovementRotation = UKismetMathLibrary::MakeRotFromX(OurPlayer->GetVelocity());
+	FRotator DeltaRot = UKismetMathLibrary::NormalizedDeltaRotator(MovementRotation, AimRotation);
+	DeltaRotation = FMath::RInterpTo(DeltaRotation, DeltaRot, Deltatime, 6.0f);
+	YawOffset = DeltaRotation.Yaw;
+
+	PlayerRotationLastFrame = PlayerRotation;
+	PlayerRotation = OurPlayer->GetActorRotation();
+	const FRotator Delta = UKismetMathLibrary::NormalizedDeltaRotator(PlayerRotation, PlayerRotationLastFrame);
+	const float Target = Delta.Yaw/Deltatime;
+	const float Interp = FMath::FInterpTo(Lean, Target, Deltatime, 6.0f);
+	Lean = FMath::Clamp(Interp, -90.0f, 90.0f);
+
 }
 

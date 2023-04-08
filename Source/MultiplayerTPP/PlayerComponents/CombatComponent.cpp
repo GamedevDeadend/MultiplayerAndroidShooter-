@@ -6,6 +6,7 @@
 #include "MultiplayerTPP/Character/MPPlayer.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "Net/UnrealNetwork.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 
 
@@ -36,6 +37,15 @@ void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 }
 
+void UCombatComponent::OnRep_WeaponEquip()
+{
+	if (EquippedWeapon && Player)
+	{
+		Player->GetCharacterMovement()->bOrientRotationToMovement = false;
+		Player->bUseControllerRotationYaw = true;
+	}
+}
+
 void UCombatComponent::EquipWeapon(AWeapons* WeaponToEquip)
 {
 	if (!Player || !WeaponToEquip)
@@ -44,11 +54,16 @@ void UCombatComponent::EquipWeapon(AWeapons* WeaponToEquip)
 	EquippedWeapon = WeaponToEquip;
 	EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
 	const USkeletalMeshSocket* HandSocket = Player->GetMesh()->GetSocketByName(FName("RightHandSocket"));
+
 	if (HandSocket)
 	{
 		HandSocket->AttachActor(EquippedWeapon, Player->GetMesh());
 	}
+
 	EquippedWeapon->SetOwner(Player);
+
+	Player->GetCharacterMovement()->bOrientRotationToMovement = false;
+	Player->bUseControllerRotationYaw = true;
 }
 
 void UCombatComponent::SetAiming(bool bIsAiming)
@@ -59,6 +74,7 @@ void UCombatComponent::SetAiming(bool bIsAiming)
 	ServerSetAiming(bIsAiming); 
 
 }
+
 
 void UCombatComponent::ServerSetAiming_Implementation(bool bIsAiming)
 {

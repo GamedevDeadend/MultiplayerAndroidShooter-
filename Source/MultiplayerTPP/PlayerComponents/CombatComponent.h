@@ -29,9 +29,10 @@ public:
 
 private:
 
+
 	AMPPlayer* Player;
 
-	UPROPERTY(Replicated)
+	UPROPERTY( ReplicatedUsing = OnRep_WeaponEquip )
 	AWeapons* EquippedWeapon;
 
 	UPROPERTY(Replicated)
@@ -39,7 +40,11 @@ private:
 
 	void SetAiming(bool bIsAiming);
 
+	UFUNCTION()
+	void OnRep_WeaponEquip();
+
 	//Server RPC invoke from clients and execute on server
+
 	UFUNCTION(Server, Reliable)
 	void ServerSetAiming(bool bIsAiming);
 
