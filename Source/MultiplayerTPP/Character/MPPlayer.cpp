@@ -36,6 +36,7 @@ AMPPlayer::AMPPlayer()
 
 void AMPPlayer::PostInitializeComponents()
 {
+
 	Super::PostInitializeComponents();
 
 	if (CombatComponent)

@@ -18,6 +18,7 @@ public:
 
 	virtual void NativeInitializeAnimation() override;
 	virtual void NativeUpdateAnimation(float Deltatime) override;
+	virtual void AdjustJumpVelocity();
 
 private:
 

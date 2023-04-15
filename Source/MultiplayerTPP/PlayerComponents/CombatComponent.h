@@ -10,7 +10,7 @@
 class AWeapons;
 class AMPPlayer;
 
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class MULTIPLAYERTPP_API UCombatComponent : public UActorComponent
 {
 	GENERATED_BODY()
@@ -31,6 +31,18 @@ private:
 
 
 	AMPPlayer* Player;
+
+	UPROPERTY(EditAnywhere, Category = "Combat Movement", meta = (Allowprivateaccess = true))
+		float BaseJumpVelocity;
+
+	UPROPERTY(EditAnywhere, Category = "Combat Movement", meta = (Allowprivateaccess = true))
+		float EquipJumpVelociy;
+
+	UPROPERTY(EditAnywhere, Category = "Combat Movement", meta = (Allowprivateaccess = true))
+		float BaseWalkSpeed;
+
+	UPROPERTY(EditAnywhere, Category = "Combat Movement", meta = (Allowprivateaccess = true))
+		float AimWalkSpeed;
 
 	UPROPERTY( ReplicatedUsing = OnRep_WeaponEquip )
 	AWeapons* EquippedWeapon;

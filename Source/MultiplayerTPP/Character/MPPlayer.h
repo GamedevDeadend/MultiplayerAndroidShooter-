@@ -76,6 +76,5 @@ public:
 
 	void SetOverlappingWeapon(AWeapons* Weapon);
 	bool IsWeaponEquipped();
-
 	bool IsAiming();
 };
