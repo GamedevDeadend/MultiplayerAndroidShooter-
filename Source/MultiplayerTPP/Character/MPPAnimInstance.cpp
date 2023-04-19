@@ -28,11 +28,8 @@ void UMPPAnimInstance::NativeUpdateAnimation(float Deltatime)
 	if (OurPlayer == nullptr)
 		return;
 
-	AdjustJumpVelocity();
-
 	FVector Velocity = OurPlayer->GetVelocity();
 	Velocity.Z = 0.0f;
-
 	Speed = Velocity.Size(); //Returns magnitude of vector
 
 	bIsInAir = OurPlayer->GetCharacterMovement()->IsFalling();
@@ -54,17 +51,8 @@ void UMPPAnimInstance::NativeUpdateAnimation(float Deltatime)
 	const float Interp = FMath::FInterpTo(Lean, Target, Deltatime, 6.0f);
 	Lean = FMath::Clamp(Interp, -90.0f, 90.0f);
 
-}
+	AO_Yaw = OurPlayer->GetAimYaw();
+	AO_Pitch = OurPlayer->GetAimPitch();
 
-void UMPPAnimInstance::AdjustJumpVelocity()
-{
-	if (bWeaponEquipped)
-	{
-		OurPlayer->GetCharacterMovement()->JumpZVelocity = 600.0f;
-	}
-	else
-	{
-		OurPlayer->GetCharacterMovement()->JumpZVelocity = 420.0f;
-	}
 }
 

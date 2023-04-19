@@ -18,7 +18,6 @@ public:
 
 	virtual void NativeInitializeAnimation() override;
 	virtual void NativeUpdateAnimation(float Deltatime) override;
-	virtual void AdjustJumpVelocity();
 
 private:
 
@@ -49,11 +48,15 @@ private:
 	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
 		float Lean;
 
+	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
+		float AO_Yaw;
+
+	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
+		float AO_Pitch;
+
 	FRotator PlayerRotationLastFrame;
 	FRotator PlayerRotation;
 	FRotator DeltaRotation;
-
-
 
 public:
 

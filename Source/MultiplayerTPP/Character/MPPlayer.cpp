@@ -9,11 +9,13 @@
 #include"Net/UnrealNetwork.h"
 #include"MultiplayerTPP/Weapons/Weapons.h"
 #include"MultiplayerTPP/PlayerComponents/CombatComponent.h"
+#include"Kismet/KismetMathLibrary.h"
 
 AMPPlayer::AMPPlayer()
 {
 
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
+
 
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(GetMesh());
@@ -59,13 +61,15 @@ void AMPPlayer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetim
 void AMPPlayer::BeginPlay()
 {
 	Super::BeginPlay();
-
 	GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
 }
 
 void AMPPlayer::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	AimOffset(DeltaTime);
+	UE_LOG(LogTemp, Warning, TEXT("Yaw Rotation %f"), AO_Yaw);
 }
 
 
@@ -145,6 +149,36 @@ void AMPPlayer::AimReleased()
 {
 	if (CombatComponent)
 		CombatComponent->SetAiming(false);
+}
+
+void AMPPlayer::AimOffset(float DeltaTime)
+{
+
+	if (CombatComponent && CombatComponent->EquippedWeapon == nullptr) return;
+
+	FVector Velocity = GetVelocity();
+	Velocity.Z = 0.0f;
+	float Speed = Velocity.Size();
+	bool bIsInAir = GetCharacterMovement()->IsFalling();
+
+	if (Speed == 0.f && !bIsInAir) // Yaw aim offset will work only if we are moving 
+	{
+		UE_LOG(LogTemp, Error, TEXT("Yaw Rotation Static %f"), AO_Yaw);
+		FRotator CurrentAimRotation = FRotator(0.0f, GetBaseAimRotation().Yaw, 0.0f);
+		FRotator DeltaAimRotation = UKismetMathLibrary::NormalizedDeltaRotator(CurrentAimRotation, StartAimRotation);
+		AO_Yaw = DeltaAimRotation.Yaw;
+		AO_Yaw = FMath::Clamp(AO_Yaw, -90.0f, 90.0f);
+		bUseControllerRotationYaw = false;
+	}
+
+	if (Speed > 0.0f || bIsInAir)
+	{
+		StartAimRotation = FRotator(0.0f, GetBaseAimRotation().Yaw, 0.0f);
+		AO_Yaw = 0.0f;
+		bUseControllerRotationYaw = true;
+	}
+
+	AO_Pitch = GetBaseAimRotation().Pitch;
 }
 
 void AMPPlayer::MoveForward(float Value)

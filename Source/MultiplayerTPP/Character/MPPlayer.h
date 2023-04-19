@@ -19,17 +19,18 @@ class MULTIPLAYERTPP_API AMPPlayer : public ACharacter
 public:
 
 	AMPPlayer();
-	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 protected:
 
 	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaTime) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 
 private:
 
+	virtual void PostInitializeComponents() override;
 	void MoveForward(float Value);
 	void MoveRight(float Value);
 	void LookUp(float Value);
@@ -38,7 +39,7 @@ private:
 	void CrouchAction();
 	void AimPressed();
 	void AimReleased();
-	virtual void PostInitializeComponents() override;
+	void AimOffset(float DeltaTime);
 
 
 	// Server side rpc method are already implemneted we have to just extend implementation by using _Implementation 
@@ -63,6 +64,10 @@ private:
 	UPROPERTY(ReplicatedUsing = OnRep_OverlappedWeapon) 
 		AWeapons* OverlappedWeapon;
 
+	float AO_Yaw;
+	float AO_Pitch;
+	FRotator StartAimRotation;
+
 	//Meta specifier indicating that this variable needs to be replicated
 	//UPROPERTY(Replicated)
 
@@ -72,9 +77,14 @@ private:
 public:
 
 	UFUNCTION(BlueprintCallable)
-		FString GetPlayerName();
+	FString GetPlayerName();
 
 	void SetOverlappingWeapon(AWeapons* Weapon);
 	bool IsWeaponEquipped();
 	bool IsAiming();
+	FORCEINLINE void SetBaseAimRotation(FRotator AimRotation) { StartAimRotation = AimRotation; }
+
+	FORCEINLINE float GetAimYaw() const { return AO_Yaw; }
+	FORCEINLINE float GetAimPitch() const { return AO_Pitch; }
+
 };
