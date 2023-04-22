@@ -36,7 +36,7 @@ void UMPPAnimInstance::NativeUpdateAnimation(float Deltatime)
 	bIsAccelerating = OurPlayer->GetCharacterMovement()->GetCurrentAcceleration().Size() != 0 ? true : false;
 	bWeaponEquipped = OurPlayer->IsWeaponEquipped();
 	bIsCrouch = OurPlayer->bIsCrouched;
-	bIsAiming = OurPlayer->IsAiming();
+	bIsPlayerAiming = OurPlayer->IsAiming();
 
 	FRotator AimRotation = OurPlayer->GetBaseAimRotation();
 	FRotator MovementRotation = UKismetMathLibrary::MakeRotFromX(OurPlayer->GetVelocity());

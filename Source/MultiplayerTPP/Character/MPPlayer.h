@@ -66,6 +66,8 @@ private:
 
 	float AO_Yaw;
 	float AO_Pitch;
+
+	//UPROPERTY(Replicated)
 	FRotator StartAimRotation;
 
 	//Meta specifier indicating that this variable needs to be replicated

@@ -56,12 +56,14 @@ void AMPPlayer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetim
 
 	// This will set Overlappedweapon for replication but intial value will be null
 	DOREPLIFETIME_CONDITION(AMPPlayer, OverlappedWeapon, COND_OwnerOnly);
+	//DOREPLIFETIME(AMPPlayer, StartAimRotation);
 }
 
 void AMPPlayer::BeginPlay()
 {
 	Super::BeginPlay();
 	GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
+	SetBaseAimRotation(FRotator(0.0f, Player->GetBaseAimRotation().Yaw, 0.0f));
 }
 
 void AMPPlayer::Tick(float DeltaTime)
@@ -69,7 +71,9 @@ void AMPPlayer::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	AimOffset(DeltaTime);
-	UE_LOG(LogTemp, Warning, TEXT("Yaw Rotation %f"), AO_Yaw);
+
+	if( HasAuthority() && !IsLocallyControlled() )
+	UE_LOG(LogTemp, Warning, TEXT("Pitch Rotation %f"), AO_Pitch);
 }
 
 
@@ -163,7 +167,7 @@ void AMPPlayer::AimOffset(float DeltaTime)
 
 	if (Speed == 0.f && !bIsInAir) // Yaw aim offset will work only if we are moving 
 	{
-		UE_LOG(LogTemp, Error, TEXT("Yaw Rotation Static %f"), AO_Yaw);
+		//UE_LOG(LogTemp, Error, TEXT("Yaw Rotation Static %f"), AO_Yaw);
 		FRotator CurrentAimRotation = FRotator(0.0f, GetBaseAimRotation().Yaw, 0.0f);
 		FRotator DeltaAimRotation = UKismetMathLibrary::NormalizedDeltaRotator(CurrentAimRotation, StartAimRotation);
 		AO_Yaw = DeltaAimRotation.Yaw;
@@ -179,6 +183,15 @@ void AMPPlayer::AimOffset(float DeltaTime)
 	}
 
 	AO_Pitch = GetBaseAimRotation().Pitch;
+
+	if (AO_Pitch > 90.0f && !IsLocallyControlled())
+	{
+		FVector2D InRange(270.0f, 360.0f);
+		FVector2D OutRange(-90.0f, 0.0f);
+
+		AO_Pitch = FMath::GetMappedRangeValueClamped(InRange, OutRange, AO_Pitch);
+
+	}
 }
 
 void AMPPlayer::MoveForward(float Value)

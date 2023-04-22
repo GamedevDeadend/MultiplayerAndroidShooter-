@@ -40,7 +40,7 @@ private:
 		bool bIsCrouch;
 
 	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
-		bool bIsAiming;
+		bool bIsPlayerAiming;
 
 	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
 		float YawOffset;
