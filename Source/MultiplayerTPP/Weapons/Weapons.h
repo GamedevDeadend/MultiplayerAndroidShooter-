@@ -74,4 +74,5 @@ protected:
 public:
 
 	void SetWeaponState(EWeaponState State);
+	FORCEINLINE USkeletalMeshComponent* GetWeaponMesh() const { return Mesh; }
 };

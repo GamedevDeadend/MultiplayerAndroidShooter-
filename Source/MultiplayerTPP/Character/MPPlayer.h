@@ -67,11 +67,11 @@ private:
 	float AO_Yaw;
 	float AO_Pitch;
 
-	//UPROPERTY(Replicated)
+	UPROPERTY(Replicated)
 	FRotator StartAimRotation;
 
 	//Meta specifier indicating that this variable needs to be replicated
-	//UPROPERTY(Replicated)
+
 
 	
 
@@ -88,5 +88,7 @@ public:
 
 	FORCEINLINE float GetAimYaw() const { return AO_Yaw; }
 	FORCEINLINE float GetAimPitch() const { return AO_Pitch; }
+	AWeapons* GetEquippedWeapon();
+
 
 };

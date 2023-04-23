@@ -5,6 +5,7 @@
 #include "MPPlayer.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "MultiplayerTPP/Weapons/Weapons.h"
 
 void UMPPAnimInstance::NativeInitializeAnimation()
 {
@@ -32,6 +33,7 @@ void UMPPAnimInstance::NativeUpdateAnimation(float Deltatime)
 	Velocity.Z = 0.0f;
 	Speed = Velocity.Size(); //Returns magnitude of vector
 
+	EquippedWeapon = OurPlayer->GetEquippedWeapon();
 	bIsInAir = OurPlayer->GetCharacterMovement()->IsFalling();
 	bIsAccelerating = OurPlayer->GetCharacterMovement()->GetCurrentAcceleration().Size() != 0 ? true : false;
 	bWeaponEquipped = OurPlayer->IsWeaponEquipped();
@@ -53,6 +55,17 @@ void UMPPAnimInstance::NativeUpdateAnimation(float Deltatime)
 
 	AO_Yaw = OurPlayer->GetAimYaw();
 	AO_Pitch = OurPlayer->GetAimPitch();
+
+	if (bWeaponEquipped && EquippedWeapon && EquippedWeapon->GetWeaponMesh() && OurPlayer->GetMesh())
+	{
+
+		LeftHandTransform = EquippedWeapon->GetWeaponMesh()->GetSocketTransform(FName("LeftHandSocket"), ERelativeTransformSpace::RTS_World);
+		FVector OutPosition;
+		FRotator OutRotation;
+		OurPlayer->GetMesh()->TransformToBoneSpace(FName("Hand_R"), LeftHandTransform.GetLocation(), FRotator::ZeroRotator, OutPosition, OutRotation);
+		LeftHandTransform.SetLocation(OutPosition);
+		LeftHandTransform.SetRotation(FQuat(OutRotation));
+	}
 
 }
 

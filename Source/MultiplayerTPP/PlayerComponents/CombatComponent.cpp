@@ -16,7 +16,7 @@ UCombatComponent::UCombatComponent()
 
 	BaseWalkSpeed = 600.0f;
 	BaseJumpVelocity = 420.0f;
-	EquipJumpVelociy = 600.0f;
+	EquipJumpVelociy = 750.0f;
 	AimWalkSpeed = 300.0f;
 }
 
@@ -63,7 +63,7 @@ void UCombatComponent::EquipWeapon(AWeapons* WeaponToEquip)
 
 	EquippedWeapon = WeaponToEquip;
 	EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
-	//Player->SetBaseAimRotation(FRotator(0.0f, Player->GetBaseAimRotation().Yaw, 0.0f));
+	Player->SetBaseAimRotation(FRotator(0.0f, Player->GetBaseAimRotation().Yaw, 0.0f));
 	const USkeletalMeshSocket* HandSocket = Player->GetMesh()->GetSocketByName(FName("RightHandSocket"));
 
 	if (HandSocket)

@@ -56,14 +56,13 @@ void AMPPlayer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetim
 
 	// This will set Overlappedweapon for replication but intial value will be null
 	DOREPLIFETIME_CONDITION(AMPPlayer, OverlappedWeapon, COND_OwnerOnly);
-	//DOREPLIFETIME(AMPPlayer, StartAimRotation);
+	DOREPLIFETIME(AMPPlayer, StartAimRotation);
 }
 
 void AMPPlayer::BeginPlay()
 {
 	Super::BeginPlay();
 	GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
-	SetBaseAimRotation(FRotator(0.0f, Player->GetBaseAimRotation().Yaw, 0.0f));
 }
 
 void AMPPlayer::Tick(float DeltaTime)
@@ -86,6 +85,13 @@ bool AMPPlayer::IsWeaponEquipped()
 bool AMPPlayer::IsAiming()
 {
 	return CombatComponent->bAim;
+}
+
+AWeapons* AMPPlayer::GetEquippedWeapon()
+{
+	if (CombatComponent == nullptr) return nullptr;
+
+	return CombatComponent->EquippedWeapon;
 }
 
 //THIS FUNC IS SETTING OVERLAPPEDWEAPON ON EVERY CALL WHICH IN TURN IS CALLING REP NOTIFY
