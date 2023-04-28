@@ -34,6 +34,10 @@ AMPPlayer::AMPPlayer()
 
 	CombatComponent = CreateDefaultSubobject<UCombatComponent>(TEXT("Combat Component"));
 	CombatComponent->SetIsReplicated(true);
+
+	NetUpdateFrequency = 66.0f;
+	MinNetUpdateFrequency = 33.0f;
+	TurningInplace = ETurningInPlace::ETIP_NotTurning;
 }
 
 void AMPPlayer::PostInitializeComponents()
@@ -46,6 +50,7 @@ void AMPPlayer::PostInitializeComponents()
 		CombatComponent->Player = this;
 	}
 }
+
 
 
 
@@ -133,7 +138,7 @@ void AMPPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	PlayerInputComponent->BindAxis("MoveRight", this, &AMPPlayer::MoveRight);
 	PlayerInputComponent->BindAxis("LookUp", this, &AMPPlayer::LookUp);
 	PlayerInputComponent->BindAxis("LookRight", this, &AMPPlayer::LookRight);
-	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
+	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &AMPPlayer::Jump);
 	PlayerInputComponent->BindAction("Equip", IE_Pressed, this, &AMPPlayer::EquipWeapon);
 	PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &AMPPlayer::CrouchAction);
 	PlayerInputComponent->BindAction("Aim", IE_Pressed, this, &AMPPlayer::AimPressed);
@@ -173,12 +178,15 @@ void AMPPlayer::AimOffset(float DeltaTime)
 
 	if (Speed == 0.f && !bIsInAir) // Yaw aim offset will work only if we are moving 
 	{
-		//UE_LOG(LogTemp, Error, TEXT("Yaw Rotation Static %f"), AO_Yaw);
 		FRotator CurrentAimRotation = FRotator(0.0f, GetBaseAimRotation().Yaw, 0.0f);
 		FRotator DeltaAimRotation = UKismetMathLibrary::NormalizedDeltaRotator(CurrentAimRotation, StartAimRotation);
 		AO_Yaw = DeltaAimRotation.Yaw;
-		AO_Yaw = FMath::Clamp(AO_Yaw, -90.0f, 90.0f);
-		bUseControllerRotationYaw = false;
+		//AO_Yaw = FMath::Clamp(AO_Yaw, -90.0f, 90.0f);
+
+		InterpAo_Yaw = TurningInplace == ETurningInPlace::ETIP_NotTurning ? AO_Yaw : InterpAo_Yaw;
+
+		bUseControllerRotationYaw = true;
+		TurnInPlace(DeltaTime);
 	}
 
 	if (Speed > 0.0f || bIsInAir)
@@ -186,6 +194,7 @@ void AMPPlayer::AimOffset(float DeltaTime)
 		StartAimRotation = FRotator(0.0f, GetBaseAimRotation().Yaw, 0.0f);
 		AO_Yaw = 0.0f;
 		bUseControllerRotationYaw = true;
+		TurningInplace = ETurningInPlace::ETIP_NotTurning;
 	}
 
 	AO_Pitch = GetBaseAimRotation().Pitch;
@@ -197,6 +206,32 @@ void AMPPlayer::AimOffset(float DeltaTime)
 
 		AO_Pitch = FMath::GetMappedRangeValueClamped(InRange, OutRange, AO_Pitch);
 
+	}
+}
+
+void AMPPlayer::TurnInPlace(float DeltaTime)
+{
+	UE_LOG(LogTemp, Error, TEXT("Yaw Rotation Static %f"), AO_Yaw);
+	if (AO_Yaw > 90.f)
+	{
+		TurningInplace = ETurningInPlace::ETIP_Right;
+	}
+
+	else if (AO_Yaw < -90.f)
+	{
+		TurningInplace = ETurningInPlace::ETIP_Left;
+	}
+
+	if (TurningInplace != ETurningInPlace::ETIP_NotTurning)
+	{
+		InterpAo_Yaw = FMath::FInterpTo(InterpAo_Yaw, 0.0f, DeltaTime, 4.0f);
+		AO_Yaw = InterpAo_Yaw;
+
+		if (FMath::Abs(AO_Yaw) < 15.f)
+		{
+			TurningInplace = ETurningInPlace::ETIP_NotTurning;
+			StartAimRotation = FRotator(0.0f, GetBaseAimRotation().Yaw, 0.0f);
+		}
 	}
 }
 
@@ -244,6 +279,19 @@ void AMPPlayer::EquipWeapon()
 			CombatComponent->EquipWeapon(OverlappedWeapon);
 		else
 			ServerEquipPressed();
+	}
+}
+
+void AMPPlayer::Jump()
+{
+	if (bIsCrouched)
+	{
+		UnCrouch();
+	}
+
+	else
+	{
+		Super::Jump();
 	}
 }
 

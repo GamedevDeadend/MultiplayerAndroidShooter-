@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
+#include "MultiplayerTPP/Types/TurningInPlace.h"
 #include "MPPAnimInstance.generated.h"
 
 /**
@@ -59,6 +60,9 @@ private:
 
 	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
 	class AWeapons* EquippedWeapon;
+
+	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
+	ETurningInPlace TurningInplace;
 
 	FRotator PlayerRotationLastFrame;
 	FRotator PlayerRotation;

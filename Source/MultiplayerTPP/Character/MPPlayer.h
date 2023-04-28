@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "MultiplayerTPP/Types/TurningInPlace.h"
 #include "MPPlayer.generated.h"
 
 class UCombatComponent;
@@ -31,6 +32,7 @@ protected:
 private:
 
 	virtual void PostInitializeComponents() override;
+	void Jump()override;
 	void MoveForward(float Value);
 	void MoveRight(float Value);
 	void LookUp(float Value);
@@ -40,6 +42,7 @@ private:
 	void AimPressed();
 	void AimReleased();
 	void AimOffset(float DeltaTime);
+	void TurnInPlace(float DeltaTime);
 
 
 	// Server side rpc method are already implemneted we have to just extend implementation by using _Implementation 
@@ -49,6 +52,7 @@ private:
 	UFUNCTION()
 	void OnRep_OverlappedWeapon(class AWeapons* LastWeapon);
 
+	UPROPERTY(EditAnywhere, Category = Combat)
 	UCombatComponent* CombatComponent;
 
 	UPROPERTY(VisibleAnywhere, Category = Camera)
@@ -66,6 +70,8 @@ private:
 
 	float AO_Yaw;
 	float AO_Pitch;
+	float InterpAo_Yaw;
+	ETurningInPlace TurningInplace;
 
 	UPROPERTY(Replicated)
 	FRotator StartAimRotation;
@@ -88,7 +94,7 @@ public:
 
 	FORCEINLINE float GetAimYaw() const { return AO_Yaw; }
 	FORCEINLINE float GetAimPitch() const { return AO_Pitch; }
+	FORCEINLINE ETurningInPlace GetTurningState() const { return TurningInplace; }
 	AWeapons* GetEquippedWeapon();
-
 
 };

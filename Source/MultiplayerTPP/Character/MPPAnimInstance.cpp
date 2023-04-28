@@ -39,6 +39,7 @@ void UMPPAnimInstance::NativeUpdateAnimation(float Deltatime)
 	bWeaponEquipped = OurPlayer->IsWeaponEquipped();
 	bIsCrouch = OurPlayer->bIsCrouched;
 	bIsPlayerAiming = OurPlayer->IsAiming();
+	TurningInplace = OurPlayer->GetTurningState();
 
 	FRotator AimRotation = OurPlayer->GetBaseAimRotation();
 	FRotator MovementRotation = UKismetMathLibrary::MakeRotFromX(OurPlayer->GetVelocity());
