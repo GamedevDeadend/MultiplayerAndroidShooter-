@@ -138,11 +138,109 @@ void AMPPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	PlayerInputComponent->BindAxis("MoveRight", this, &AMPPlayer::MoveRight);
 	PlayerInputComponent->BindAxis("LookUp", this, &AMPPlayer::LookUp);
 	PlayerInputComponent->BindAxis("LookRight", this, &AMPPlayer::LookRight);
+
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &AMPPlayer::Jump);
 	PlayerInputComponent->BindAction("Equip", IE_Pressed, this, &AMPPlayer::EquipWeapon);
 	PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &AMPPlayer::CrouchAction);
 	PlayerInputComponent->BindAction("Aim", IE_Pressed, this, &AMPPlayer::AimPressed);
 	PlayerInputComponent->BindAction("Aim", IE_Released, this, &AMPPlayer::AimReleased);
+	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &AMPPlayer::FireButtonPressed);
+	PlayerInputComponent->BindAction("Fire", IE_Released, this, &AMPPlayer::FireButtonReleased);
+}
+
+void AMPPlayer::PlayFireMontage(bool bAiming)
+{
+	if (!CombatComponent || !CombatComponent->EquippedWeapon) return;
+	UAnimInstance* PlayerAnimInstance = GetMesh()->GetAnimInstance();
+	if (PlayerAnimInstance && FireMontage)
+	{
+		PlayerAnimInstance->Montage_Play(FireMontage);
+		FName SectionName = bAiming ? FName("RifleAim") : FName("RifleHip");
+		PlayerAnimInstance->Montage_JumpToSection(SectionName);
+	}
+}
+
+void AMPPlayer::FireButtonPressed()
+{
+	if (CombatComponent)
+	{
+		CombatComponent->FirePressed(true);
+	}
+}
+
+void AMPPlayer::FireButtonReleased()
+{
+	if (CombatComponent)
+	{
+		CombatComponent->FirePressed(false);
+	}
+
+}
+
+void AMPPlayer::MoveForward(float Value)
+{
+	if (Controller != nullptr && Value != 0.0f)
+	{
+		//Instead of characterMesh Rotation we are getting controller rotation
+		const FRotator YawRotation(0.f, Controller->GetControlRotation().Yaw, 0.0f);
+
+		//Mathematics to get forward vector of controller
+		const FVector Direction(FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X));
+		AddMovementInput(Direction, Value);
+	}
+}
+
+void AMPPlayer::MoveRight(float Value)
+{
+	if (Controller != nullptr && Value != 0)
+	{
+		//Instead of characterMesh Rotation we are getting controller rotation
+		const FRotator YawRotation(0.f, Controller->GetControlRotation().Yaw, 0.0f);
+
+		//Mathematics to get forward vector of controller
+		const FVector Direction(FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y));
+		AddMovementInput(Direction, Value);
+	}
+}
+
+void AMPPlayer::LookUp(float Value)
+{
+	AddControllerPitchInput(Value);
+}
+
+void AMPPlayer::LookRight(float Value)
+{
+	AddControllerYawInput(Value);
+}
+
+void AMPPlayer::EquipWeapon()
+{
+	if (CombatComponent)
+	{
+		if (HasAuthority())
+			CombatComponent->EquipWeapon(OverlappedWeapon);
+		else
+			ServerEquipPressed();
+	}
+}
+
+void AMPPlayer::Jump()
+{
+	if (bIsCrouched)
+	{
+		UnCrouch();
+	}
+
+	else
+	{
+		Super::Jump();
+	}
+}
+
+void AMPPlayer::ServerEquipPressed_Implementation()
+{
+	if (CombatComponent)
+		CombatComponent->EquipWeapon(OverlappedWeapon);
 }
 
 void AMPPlayer::CrouchAction()
@@ -235,71 +333,6 @@ void AMPPlayer::TurnInPlace(float DeltaTime)
 	}
 }
 
-void AMPPlayer::MoveForward(float Value)
-{
-	if (Controller != nullptr && Value != 0.0f)
-	{
-		//Instead of characterMesh Rotation we are getting controller rotation
-		const FRotator YawRotation(0.f, Controller->GetControlRotation().Yaw, 0.0f);
-
-		//Mathematics to get forward vector of controller
-		const FVector Direction(FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X));
-		AddMovementInput(Direction, Value);
-	}
-}
-
-void AMPPlayer::MoveRight(float Value)
-{
-	if (Controller != nullptr && Value != 0)
-	{
-		//Instead of characterMesh Rotation we are getting controller rotation
-		const FRotator YawRotation(0.f, Controller->GetControlRotation().Yaw, 0.0f);
-
-		//Mathematics to get forward vector of controller
-		const FVector Direction(FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y));
-		AddMovementInput(Direction, Value);
-	}
-}
-
-void AMPPlayer::LookUp(float Value)
-{
-	AddControllerPitchInput(Value);
-}
-
-void AMPPlayer::LookRight(float Value)
-{
-	AddControllerYawInput(Value);
-}
-
-void AMPPlayer::EquipWeapon()
-{
-	if (CombatComponent)
-	{
-		if (HasAuthority())
-			CombatComponent->EquipWeapon(OverlappedWeapon);
-		else
-			ServerEquipPressed();
-	}
-}
-
-void AMPPlayer::Jump()
-{
-	if (bIsCrouched)
-	{
-		UnCrouch();
-	}
-
-	else
-	{
-		Super::Jump();
-	}
-}
-
-void AMPPlayer::ServerEquipPressed_Implementation()
-{
-	if (CombatComponent)
-		CombatComponent->EquipWeapon(OverlappedWeapon);
-}
 
 FString AMPPlayer::GetPlayerName()
 {

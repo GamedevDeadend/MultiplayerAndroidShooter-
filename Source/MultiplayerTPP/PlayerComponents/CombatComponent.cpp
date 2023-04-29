@@ -7,12 +7,14 @@
 #include "Engine/SkeletalMeshSocket.h"
 #include "Net/UnrealNetwork.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "DrawDebugHelpers.h"
 
 
 
 UCombatComponent::UCombatComponent()
 {
-	PrimaryComponentTick.bCanEverTick = false;
+	PrimaryComponentTick.bCanEverTick = true;
 
 	BaseWalkSpeed = 600.0f;
 	BaseJumpVelocity = 420.0f;
@@ -27,8 +29,6 @@ void UCombatComponent :: GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 	DOREPLIFETIME(UCombatComponent, EquippedWeapon);
 	DOREPLIFETIME(UCombatComponent, bAim);
 }
-
-
 
 void UCombatComponent::BeginPlay()
 {
@@ -45,7 +45,38 @@ void UCombatComponent::BeginPlay()
 void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+	FHitResult HitResult;
+	TraceUnderCrosshairs(HitResult);
 }
+
+
+void UCombatComponent::FirePressed(bool bPressed)
+{
+	bFireButtonPressed = bPressed;
+
+	if (bFireButtonPressed)
+	{
+		ServerFire();
+	}
+}
+
+
+void UCombatComponent::ServerFire_Implementation()
+{
+	MultiCastFire();
+}
+
+void UCombatComponent::MultiCastFire_Implementation()
+{
+	if (!EquippedWeapon) return;
+	if (Player)
+	{
+		Player->PlayFireMontage(bAim);
+		EquippedWeapon->Fire(HitTarget);
+	}
+}
+
 
 void UCombatComponent::OnRep_WeaponEquip()
 {
@@ -76,6 +107,50 @@ void UCombatComponent::EquipWeapon(AWeapons* WeaponToEquip)
 	Player->GetCharacterMovement()->bOrientRotationToMovement = false;
 	Player->bUseControllerRotationYaw = true;
 	Player->GetCharacterMovement()->JumpZVelocity = Player->IsWeaponEquipped() ? EquipJumpVelociy : BaseJumpVelocity;
+}
+
+void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult)
+{
+	FVector2D ViewPortSize;
+	if (GEngine && GEngine->GameViewport)
+	{
+		GEngine->GameViewport->GetViewportSize(ViewPortSize);
+	}
+
+	FVector2D CrosshairLocation = FVector2D(ViewPortSize.X / 2, ViewPortSize.Y / 2);
+	FVector CrosshairWorldPosition;
+	FVector CrosshairWorldDirection;
+
+	//Calculation of Crossair
+	bool bLineTrace = UGameplayStatics::DeprojectScreenToWorld
+	(
+		UGameplayStatics::GetPlayerController(this, 0),
+		CrosshairLocation, CrosshairWorldPosition,
+		CrosshairWorldDirection
+	);
+
+	if (bLineTrace)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("TraceSucces"));
+		FVector Start = CrosshairWorldPosition;
+		FVector End = Start + CrosshairWorldDirection * 80000.f;
+
+		GetWorld()->LineTraceSingleByChannel(TraceHitResult, Start, End, ECollisionChannel::ECC_Visibility);
+
+		if (!TraceHitResult.bBlockingHit)
+		{
+			TraceHitResult.ImpactPoint = End;
+			UE_LOG(LogTemp, Warning, TEXT("TraceSucces2"));
+			HitTarget = End;
+		}
+
+		else
+		{
+			DrawDebugSphere(GetWorld(), TraceHitResult.ImpactPoint, 52.0f, 12, FColor::Red);
+			UE_LOG(LogTemp, Warning, TEXT("TraceSucces"));
+			HitTarget = TraceHitResult.ImpactPoint;
+		}
+	}
 }
 
 void UCombatComponent::SetAiming(bool bIsAiming)

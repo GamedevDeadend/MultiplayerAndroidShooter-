@@ -31,6 +31,8 @@ private:
 
 
 	AMPPlayer* Player;
+	bool bFireButtonPressed;
+	FVector HitTarget;
 
 	UPROPERTY(EditAnywhere, Category = "Combat Movement", meta = (Allowprivateaccess = true))
 		float BaseJumpVelocity;
@@ -59,6 +61,15 @@ private:
 
 	UFUNCTION(Server, Reliable)
 	void ServerSetAiming(bool bIsAiming);
+
+	UFUNCTION(Server, Reliable)
+		void ServerFire();
+
+	UFUNCTION(NetMulticast, Reliable)
+		void MultiCastFire();
+
+	void FirePressed(bool bPressed);
+	void TraceUnderCrosshairs(FHitResult& TraceHitResult);
 
 protected:
 	

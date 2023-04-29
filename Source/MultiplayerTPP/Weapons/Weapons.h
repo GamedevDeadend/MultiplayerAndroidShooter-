@@ -26,8 +26,12 @@ public:
 	AWeapons();
 	virtual void Tick(float DeltaTime) override;
 	void ShowPickupWidget(bool bShowWidget);
+	virtual void Fire(const FVector& HitTarget);
 
 private:
+
+	UPROPERTY(editAnywhere, Category = "Weapon Properties")
+	class UAnimationAsset* FireAnimAsset;
 
 	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties")
 		USkeletalMeshComponent* Mesh;

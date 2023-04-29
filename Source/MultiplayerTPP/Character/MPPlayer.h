@@ -21,6 +21,7 @@ public:
 
 	AMPPlayer();
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	void PlayFireMontage(bool bAiming);
 
 protected:
 
@@ -43,6 +44,8 @@ private:
 	void AimReleased();
 	void AimOffset(float DeltaTime);
 	void TurnInPlace(float DeltaTime);
+	void FireButtonPressed();
+	void FireButtonReleased();
 
 
 	// Server side rpc method are already implemneted we have to just extend implementation by using _Implementation 
@@ -67,6 +70,9 @@ private:
 	//Meta specifer to connect variabler to onrep function. ONrep-- will be called as soon as this variable is replicated.
 	UPROPERTY(ReplicatedUsing = OnRep_OverlappedWeapon) 
 		AWeapons* OverlappedWeapon;
+
+	UPROPERTY(EditAnywhere, Category = FireMontage)
+	class UAnimMontage* FireMontage;
 
 	float AO_Yaw;
 	float AO_Pitch;

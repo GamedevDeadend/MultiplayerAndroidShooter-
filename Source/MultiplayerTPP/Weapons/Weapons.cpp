@@ -6,6 +6,8 @@
 #include"Components/WidgetComponent.h"
 #include"MultiplayerTPP/Character/MPPlayer.h"
 #include"Net/UnrealNetwork.h"
+#include "Animation/AnimationAsset.h"
+#include "Components/SkeletalMeshComponent.h"
 
 
 // Sets default values
@@ -69,6 +71,15 @@ void AWeapons::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetime
 
 	DOREPLIFETIME(AWeapons, WeaponState);
 }
+
+void AWeapons::Fire(const FVector& HitTarget)
+{
+	if (FireAnimAsset)
+	{
+		Mesh->PlayAnimation(FireAnimAsset,false);
+	}
+}
+
 
 
 void AWeapons::OnSphereOverlap
