@@ -7,7 +7,7 @@
 #include "ProjectileWeapon.generated.h"
 
 /**
- * 
+ *
  */
 UCLASS()
 class MULTIPLAYERTPP_API AProjectileWeapon : public AWeapons
@@ -21,7 +21,7 @@ public:
 private:
 
 	UPROPERTY(EditAnywhere)
-	TSubclassOf<class AProjectile> ProjectileClass;
+		TSubclassOf<class AProjectile> ProjectileClass;
 
-	
+
 };

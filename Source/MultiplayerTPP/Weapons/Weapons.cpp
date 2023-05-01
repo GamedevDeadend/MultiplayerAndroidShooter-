@@ -8,6 +8,8 @@
 #include"Net/UnrealNetwork.h"
 #include "Animation/AnimationAsset.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "Casing.h"
+#include "Engine/SkeletalMeshSocket.h"
 
 
 // Sets default values
@@ -77,6 +79,25 @@ void AWeapons::Fire(const FVector& HitTarget)
 	if (FireAnimAsset)
 	{
 		Mesh->PlayAnimation(FireAnimAsset,false);
+	}
+
+	if (CasingClass)
+	{
+		const USkeletalMeshSocket* AmmoEjectSocket = Mesh->GetSocketByName(FName("AmmoEject"));
+		if (AmmoEjectSocket)
+		{
+			FTransform SocketTransform = AmmoEjectSocket->GetSocketTransform(Mesh);
+
+			UWorld* World = GetWorld();
+			if (World)
+			{
+				World->SpawnActor<ACasing>(
+					CasingClass,
+					SocketTransform.GetLocation(),
+					SocketTransform.GetRotation().Rotator()
+					);
+			}
+		}
 	}
 }
 

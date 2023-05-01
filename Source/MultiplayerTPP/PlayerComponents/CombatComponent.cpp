@@ -45,9 +45,6 @@ void UCombatComponent::BeginPlay()
 void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-	FHitResult HitResult;
-	TraceUnderCrosshairs(HitResult);
 }
 
 
@@ -57,23 +54,26 @@ void UCombatComponent::FirePressed(bool bPressed)
 
 	if (bFireButtonPressed)
 	{
-		ServerFire();
+		FHitResult HitResult;
+		TraceUnderCrosshairs(HitResult);
+		ServerFire(HitResult.ImpactPoint);
 	}
 }
 
 
-void UCombatComponent::ServerFire_Implementation()
+void UCombatComponent::ServerFire_Implementation(const FVector_NetQuantize& TraceHitTarget)
 {
-	MultiCastFire();
+	MultiCastFire(TraceHitTarget);
 }
 
-void UCombatComponent::MultiCastFire_Implementation()
+void UCombatComponent::MultiCastFire_Implementation(const FVector_NetQuantize& TraceHitTarget)
 {
 	if (!EquippedWeapon) return;
 	if (Player)
 	{
 		Player->PlayFireMontage(bAim);
-		EquippedWeapon->Fire(HitTarget);
+		EquippedWeapon->Fire(TraceHitTarget);
+		UE_LOG(LogTemp, Warning, TEXT("FireSucces"));
 	}
 }
 
@@ -131,7 +131,6 @@ void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult)
 
 	if (bLineTrace)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("TraceSucces"));
 		FVector Start = CrosshairWorldPosition;
 		FVector End = Start + CrosshairWorldDirection * 80000.f;
 

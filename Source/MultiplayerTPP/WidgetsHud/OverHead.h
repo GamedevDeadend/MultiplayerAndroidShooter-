@@ -7,7 +7,7 @@
 #include "OverHead.generated.h"
 
 /**
- * 
+ *
  */
 UCLASS()
 class MULTIPLAYERTPP_API UOverHead : public UUserWidget
@@ -16,7 +16,7 @@ class MULTIPLAYERTPP_API UOverHead : public UUserWidget
 
 public:
 
-		UPROPERTY(meta = (BindWidget))
+	UPROPERTY(meta = (BindWidget))
 		class UTextBlock* DisplayText;
 
 protected:
@@ -25,10 +25,10 @@ protected:
 	void SetDisplayText(FString TextValue);
 
 	UFUNCTION(BlueprintCallable)
-	void ShowPlayerNetRole(APawn* PlayerPawn);
+		void ShowPlayerNetRole(APawn* PlayerPawn);
 
-//Getters And Setters
+	//Getters And Setters
 public:
 
-	
+
 };

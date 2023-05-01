@@ -10,13 +10,13 @@
 class AWeapons;
 class AMPPlayer;
 
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
+UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class MULTIPLAYERTPP_API UCombatComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
-public:	
-	
+public:
+
 	UCombatComponent();
 
 	friend class AMPPlayer;
@@ -32,7 +32,7 @@ private:
 
 	AMPPlayer* Player;
 	bool bFireButtonPressed;
-	FVector HitTarget;
+	FVector_NetQuantize HitTarget;
 
 	UPROPERTY(EditAnywhere, Category = "Combat Movement", meta = (Allowprivateaccess = true))
 		float BaseJumpVelocity;
@@ -46,8 +46,8 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Combat Movement", meta = (Allowprivateaccess = true))
 		float AimWalkSpeed;
 
-	UPROPERTY( ReplicatedUsing = OnRep_WeaponEquip )
-	AWeapons* EquippedWeapon;
+	UPROPERTY(ReplicatedUsing = OnRep_WeaponEquip)
+		AWeapons* EquippedWeapon;
 
 	UPROPERTY(Replicated)
 		bool bAim;
@@ -55,30 +55,30 @@ private:
 	void SetAiming(bool bIsAiming);
 
 	UFUNCTION()
-	void OnRep_WeaponEquip();
+		void OnRep_WeaponEquip();
 
 	//Server RPC invoke from clients and execute on server
 
 	UFUNCTION(Server, Reliable)
-	void ServerSetAiming(bool bIsAiming);
+		void ServerSetAiming(bool bIsAiming);
 
 	UFUNCTION(Server, Reliable)
-		void ServerFire();
+		void ServerFire(const FVector_NetQuantize& TraceHitTarget);
 
 	UFUNCTION(NetMulticast, Reliable)
-		void MultiCastFire();
+		void MultiCastFire(const FVector_NetQuantize& TraceHitTarget);
 
 	void FirePressed(bool bPressed);
 	void TraceUnderCrosshairs(FHitResult& TraceHitResult);
 
 protected:
-	
+
 	virtual void BeginPlay() override;
 
 
-//Getters And Setters
-public:	
-	
+	//Getters And Setters
+public:
 
-		
+
+
 };

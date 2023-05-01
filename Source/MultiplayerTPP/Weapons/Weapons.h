@@ -20,8 +20,8 @@ UCLASS()
 class MULTIPLAYERTPP_API AWeapons : public AActor
 {
 	GENERATED_BODY()
-	
-public:	
+
+public:
 	// Sets default values for this actor's properties
 	AWeapons();
 	virtual void Tick(float DeltaTime) override;
@@ -30,8 +30,8 @@ public:
 
 private:
 
-	UPROPERTY(editAnywhere, Category = "Weapon Properties")
-	class UAnimationAsset* FireAnimAsset;
+	UPROPERTY(EditAnywhere, Category = "Weapon Properties")
+		class UAnimationAsset* FireAnimAsset;
 
 	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties")
 		USkeletalMeshComponent* Mesh;
@@ -45,8 +45,11 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Weapon Properties")
 		class UWidgetComponent* PickUpWidget;
 
+	UPROPERTY(EditAnywhere)
+		TSubclassOf<class ACasing> CasingClass;
+
 	UFUNCTION()
-	void OnRep_WeaponState();
+		void OnRep_WeaponState();
 
 
 protected:
@@ -55,15 +58,15 @@ protected:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	UFUNCTION(BlueprintCallable)
-	virtual void OnSphereOverlap
-	(
-		UPrimitiveComponent* OverlappedComponent,
-		AActor* OtherActor,
-		UPrimitiveComponent* OtherComponent,
-		int32 OtherBodyIndex,
-		bool bFromSweep,
-		const FHitResult& SweepResult
-	);
+		virtual void OnSphereOverlap
+		(
+			UPrimitiveComponent* OverlappedComponent,
+			AActor* OtherActor,
+			UPrimitiveComponent* OtherComponent,
+			int32 OtherBodyIndex,
+			bool bFromSweep,
+			const FHitResult& SweepResult
+		);
 
 	UFUNCTION(BlueprintCallable)
 		virtual void OnSphereEndOverlap
@@ -74,7 +77,7 @@ protected:
 			int32 OtherBodyIndex
 		);
 
-//Getters And Setters
+	//Getters And Setters
 public:
 
 	void SetWeaponState(EWeaponState State);

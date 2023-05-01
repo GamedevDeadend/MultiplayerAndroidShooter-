@@ -4,37 +4,27 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "Projectile.generated.h"
+#include "Casing.generated.h"
 
 UCLASS()
-class MULTIPLAYERTPP_API AProjectile : public AActor
+class MULTIPLAYERTPP_API ACasing : public AActor
 {
 	GENERATED_BODY()
 
 public:
 	// Sets default values for this actor's properties
-	AProjectile();
+	ACasing();
 
 private:
 
-	UPROPERTY(EditAnywhere)
-		class UBoxComponent* CollisionBox;
+	UPROPERTY(VisibleAnywhere)
+		UStaticMeshComponent* CasingMesh;
 
 	UPROPERTY(VisibleAnywhere)
-		class UProjectileMovementComponent* ProjectileMovement;
+		float ImpulseScale;
 
 	UPROPERTY(EditAnywhere)
-		class UParticleSystem* Tracer;
-
-	class UParticleSystemComponent* TracerComponent;
-
-	UPROPERTY(EditAnywhere)
-		UParticleSystem* ImpactParticles;
-
-	UPROPERTY(EditAnywhere)
-		class USoundCue* ImpactSound;
-
-
+		class USoundCue* ShellHitSound;
 
 protected:
 	// Called when the game starts or when spawned
@@ -51,6 +41,5 @@ protected:
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-	virtual void Destroyed() override;
 
 };

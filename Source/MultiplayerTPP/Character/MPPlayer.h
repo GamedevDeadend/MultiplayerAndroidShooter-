@@ -53,26 +53,26 @@ private:
 		void ServerEquipPressed();
 
 	UFUNCTION()
-	void OnRep_OverlappedWeapon(class AWeapons* LastWeapon);
+		void OnRep_OverlappedWeapon(class AWeapons* LastWeapon);
 
 	UPROPERTY(EditAnywhere, Category = Combat)
-	UCombatComponent* CombatComponent;
+		UCombatComponent* CombatComponent;
 
 	UPROPERTY(VisibleAnywhere, Category = Camera)
-		 USpringArmComponent* CameraBoom;
+		USpringArmComponent* CameraBoom;
 
 	UPROPERTY(VisibleAnywhere, Category = Camera)
-		 UCameraComponent* FollowCamera;
+		UCameraComponent* FollowCamera;
 
 	UPROPERTY(EditAnywhere, BlueprintReadonly, meta = (Allowprivateaccess = true))
-		 UWidgetComponent* OverHead;
+		UWidgetComponent* OverHead;
 
 	//Meta specifer to connect variabler to onrep function. ONrep-- will be called as soon as this variable is replicated.
-	UPROPERTY(ReplicatedUsing = OnRep_OverlappedWeapon) 
+	UPROPERTY(ReplicatedUsing = OnRep_OverlappedWeapon)
 		AWeapons* OverlappedWeapon;
 
 	UPROPERTY(EditAnywhere, Category = FireMontage)
-	class UAnimMontage* FireMontage;
+		class UAnimMontage* FireMontage;
 
 	float AO_Yaw;
 	float AO_Pitch;
@@ -80,18 +80,18 @@ private:
 	ETurningInPlace TurningInplace;
 
 	UPROPERTY(Replicated)
-	FRotator StartAimRotation;
+		FRotator StartAimRotation;
 
 	//Meta specifier indicating that this variable needs to be replicated
 
 
-	
+
 
 //Getters And Setters
 public:
 
 	UFUNCTION(BlueprintCallable)
-	FString GetPlayerName();
+		FString GetPlayerName();
 
 	void SetOverlappingWeapon(AWeapons* Weapon);
 	bool IsWeaponEquipped();

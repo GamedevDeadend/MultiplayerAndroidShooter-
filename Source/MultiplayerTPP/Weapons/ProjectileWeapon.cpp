@@ -11,6 +11,8 @@ void AProjectileWeapon:: Fire(const FVector& HitTarget)
 
 	UE_LOG(LogTemp, Warning, TEXT("FireSuccess"));
 
+	if (!HasAuthority()) return;
+
 	const USkeletalMeshSocket* MuzzleFlashSocket = GetWeaponMesh()->GetSocketByName("MuzzleFlash");
 	APawn* ProjectileInstigator = Cast<APawn>(GetOwner());
 

@@ -8,7 +8,7 @@
 #include "MPPAnimInstance.generated.h"
 
 /**
- * 
+ *
  */
 UCLASS()
 class MULTIPLAYERTPP_API UMPPAnimInstance : public UAnimInstance
@@ -56,13 +56,13 @@ private:
 		float AO_Pitch;
 
 	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
-	FTransform LeftHandTransform;
+		FTransform LeftHandTransform;
 
 	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
-	class AWeapons* EquippedWeapon;
+		class AWeapons* EquippedWeapon;
 
 	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
-	ETurningInPlace TurningInplace;
+		ETurningInPlace TurningInplace;
 
 	FRotator PlayerRotationLastFrame;
 	FRotator PlayerRotation;
