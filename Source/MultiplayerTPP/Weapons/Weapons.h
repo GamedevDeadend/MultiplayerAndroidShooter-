@@ -28,6 +28,26 @@ public:
 	void ShowPickupWidget(bool bShowWidget);
 	virtual void Fire(const FVector& HitTarget);
 
+	//Crosshairs
+
+	UPROPERTY(EditAnywhere, Category = "Crosshairs")
+		class UTexture2D* CrosshairsCenter;
+
+	UPROPERTY(EditAnywhere, Category = "Crosshairs")
+		UTexture2D* CrosshairsTop;
+
+	UPROPERTY(EditAnywhere, Category = "Crosshairs")
+		UTexture2D* CrosshairsBottom;
+
+	UPROPERTY(EditAnywhere, Category = "Crosshairs")
+		UTexture2D* CrosshairsLeft;
+
+	UPROPERTY(EditAnywhere, Category = "Crosshairs")
+		UTexture2D* CrosshairsRight;
+
+	UPROPERTY(EditAnywhere, Category = "Crosshairs", meta = (ClampMin = "-30.0", ClampMax = "30.0"))
+		float CrosshairsScale;
+
 private:
 
 	UPROPERTY(EditAnywhere, Category = "Weapon Properties")
@@ -50,6 +70,14 @@ private:
 
 	UFUNCTION()
 		void OnRep_WeaponState();
+
+	//Zooming Attributes
+
+	UPROPERTY(EditAnywhere, Category = "Zoom")
+		float ZoomFOV = 30.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Zoom")
+		float ZoomInterpSpeed = 20.0f;
 
 
 protected:
@@ -82,4 +110,6 @@ public:
 
 	void SetWeaponState(EWeaponState State);
 	FORCEINLINE USkeletalMeshComponent* GetWeaponMesh() const { return Mesh; }
+	FORCEINLINE float GetZoomedFOV()const { return ZoomFOV; }
+	FORCEINLINE float GetZoomInterpSpeed()const { return ZoomInterpSpeed; }
 };

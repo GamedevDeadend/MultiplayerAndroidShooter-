@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "MultiplayerTPP/Types/TurningInPlace.h"
+#include "MultiplayerTPP/Interfaces/InteractWithCrosshairs.h"
 #include "MPPlayer.generated.h"
 
 class UCombatComponent;
@@ -13,7 +14,7 @@ class UCameraComponent;
 class UWidgetComponent;
 
 UCLASS()
-class MULTIPLAYERTPP_API AMPPlayer : public ACharacter
+class MULTIPLAYERTPP_API AMPPlayer : public ACharacter, public IInteractWithCrosshairs
 {
 	GENERATED_BODY()
 
@@ -101,6 +102,7 @@ public:
 	FORCEINLINE float GetAimYaw() const { return AO_Yaw; }
 	FORCEINLINE float GetAimPitch() const { return AO_Pitch; }
 	FORCEINLINE ETurningInPlace GetTurningState() const { return TurningInplace; }
+	FORCEINLINE UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 	AWeapons* GetEquippedWeapon();
-
+	FVector GetHitTarget()const;
 };

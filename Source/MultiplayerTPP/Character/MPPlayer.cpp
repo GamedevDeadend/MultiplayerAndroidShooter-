@@ -35,6 +35,9 @@ AMPPlayer::AMPPlayer()
 	CombatComponent = CreateDefaultSubobject<UCombatComponent>(TEXT("Combat Component"));
 	CombatComponent->SetIsReplicated(true);
 
+	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
+	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
+
 	NetUpdateFrequency = 66.0f;
 	MinNetUpdateFrequency = 33.0f;
 	TurningInplace = ETurningInPlace::ETIP_NotTurning;
@@ -76,8 +79,10 @@ void AMPPlayer::Tick(float DeltaTime)
 
 	AimOffset(DeltaTime);
 
-	if( HasAuthority() && !IsLocallyControlled() )
-	UE_LOG(LogTemp, Warning, TEXT("Pitch Rotation %f"), AO_Pitch);
+	//if( HasAuthority() && !IsLocallyControlled() )
+	//UE_LOG(LogTemp, Warning, TEXT("Pitch Rotation %f"), AO_Pitch);
+
+	//UE_LOG(LogTemp, Error, TEXT("Walk Speed %f"), GetCharacterMovement()->MaxWalkSpeed);
 }
 
 
@@ -97,6 +102,11 @@ AWeapons* AMPPlayer::GetEquippedWeapon()
 	if (CombatComponent == nullptr) return nullptr;
 
 	return CombatComponent->EquippedWeapon;
+}
+
+FVector AMPPlayer::GetHitTarget() const
+{
+	return CombatComponent == nullptr ? FVector() : CombatComponent->HitTarget;
 }
 
 //THIS FUNC IS SETTING OVERLAPPEDWEAPON ON EVERY CALL WHICH IN TURN IS CALLING REP NOTIFY

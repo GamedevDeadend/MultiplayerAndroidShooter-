@@ -10,6 +10,8 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "Casing.h"
 #include "Engine/SkeletalMeshSocket.h"
+#include "Engine/Texture2D.h"
+#include "Math/UnrealMathUtility.h"
 
 
 // Sets default values
@@ -35,8 +37,6 @@ AWeapons::AWeapons()
 
 	PickUpWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("Pickup OverHead"));
 	PickUpWidget->SetupAttachment(RootComponent);
-
-
 }
 
 
@@ -57,8 +57,7 @@ void AWeapons::BeginPlay()
 		OverlapAreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
 		OverlapAreaSphere->OnComponentBeginOverlap.AddDynamic(this, &AWeapons::OnSphereOverlap);
 		OverlapAreaSphere->OnComponentEndOverlap.AddDynamic(this, &AWeapons::OnSphereEndOverlap);
-	}
-	
+	}	
 }
 
 void AWeapons::Tick(float DeltaTime)

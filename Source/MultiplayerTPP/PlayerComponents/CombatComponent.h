@@ -4,11 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "MultiplayerTPP/WidgetsHud/Hud/MPPlayerHUD.h"
 #include "CombatComponent.generated.h"
 
-
 class AWeapons;
-class AMPPlayer;
 
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class MULTIPLAYERTPP_API UCombatComponent : public UActorComponent
@@ -30,9 +29,16 @@ public:
 private:
 
 
-	AMPPlayer* Player;
+	class AMPPlayer* Player;
+	class AMPPlayerController* PlayerController;
+	class AMPPlayerHUD* HUD;
 	bool bFireButtonPressed;
 	FVector_NetQuantize HitTarget;
+	float VelocityFactor;
+	float JumpFactor;
+	float AimFactor;
+	float ShootingFactor;
+	FHUDPackage HUDPackage;
 
 	UPROPERTY(EditAnywhere, Category = "Combat Movement", meta = (Allowprivateaccess = true))
 		float BaseJumpVelocity;
@@ -45,6 +51,17 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "Combat Movement", meta = (Allowprivateaccess = true))
 		float AimWalkSpeed;
+
+	//Zooming Parameters
+
+	float DefaultFOV, CurrentFOV;
+
+	UPROPERTY(EditAnywhere, Category = "Zoom", meta = (Allowprivateaccess = true))
+		float ZoomFOV;
+
+	UPROPERTY(EditAnywhere, Category = "Zoom", meta = (Allowprivateaccess = true))
+		float ZoomOutInterp = 30.0f;
+
 
 	UPROPERTY(ReplicatedUsing = OnRep_WeaponEquip)
 		AWeapons* EquippedWeapon;
@@ -70,6 +87,8 @@ private:
 
 	void FirePressed(bool bPressed);
 	void TraceUnderCrosshairs(FHitResult& TraceHitResult);
+	void SetHUD(float DeltaTime);
+	void InterpFOV(float DeltaTime);
 
 protected:
 
@@ -78,7 +97,4 @@ protected:
 
 	//Getters And Setters
 public:
-
-
-
 };

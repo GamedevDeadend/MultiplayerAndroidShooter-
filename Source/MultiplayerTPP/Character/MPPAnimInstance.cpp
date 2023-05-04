@@ -60,13 +60,27 @@ void UMPPAnimInstance::NativeUpdateAnimation(float Deltatime)
 	if (bWeaponEquipped && EquippedWeapon && EquippedWeapon->GetWeaponMesh() && OurPlayer->GetMesh())
 	{
 
+		//Setting LeftHandTransform for FABRIK
 		LeftHandTransform = EquippedWeapon->GetWeaponMesh()->GetSocketTransform(FName("LeftHandSocket"), ERelativeTransformSpace::RTS_World);
 		FVector OutPosition;
 		FRotator OutRotation;
 		OurPlayer->GetMesh()->TransformToBoneSpace(FName("Hand_R"), LeftHandTransform.GetLocation(), FRotator::ZeroRotator, OutPosition, OutRotation);
 		LeftHandTransform.SetLocation(OutPosition);
 		LeftHandTransform.SetRotation(FQuat(OutRotation));
-	}
 
+		//Calculating difference between gun pointing and projectile travel(Also RHand rotation to fix that)
+
+		if (OurPlayer->IsLocallyControlled())
+		{
+			bIsLocallyControlled = true;
+			FTransform RightHandTransform = OurPlayer->GetMesh()->GetSocketTransform(FName("Hand_R"), ERelativeTransformSpace::RTS_World);
+			RightHandRotation = UKismetMathLibrary::FindLookAtRotation(RightHandTransform.GetLocation(), RightHandTransform.GetLocation() + ( RightHandTransform.GetLocation() - OurPlayer->GetHitTarget()) );
+		}
+	}
 }
 
+//***********DEBUG**********************************
+		//FTransform MuzzleFlashTransform = EquippedWeapon->GetWeaponMesh()->GetSocketTransform(FName("MuzzleFlash"), ERelativeTransformSpace::RTS_World);
+		//FVector MuzzleX(FRotationMatrix(MuzzleFlashTransform.GetRotation().Rotator()).GetUnitAxis(EAxis::X));
+		//DrawDebugLine(GetWorld(), MuzzleFlashTransform.GetLocation(), MuzzleFlashTransform.GetLocation() + MuzzleX * 10000.0f, FColor::Green);
+		//DrawDebugLine(GetWorld(), MuzzleFlashTransform.GetLocation(), OurPlayer->GetHitTarget(), FColor::Orange);
