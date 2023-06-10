@@ -11,7 +11,7 @@ void UMPPAnimInstance::NativeInitializeAnimation()
 {
 	Super:: NativeInitializeAnimation();
 
-	OurPlayer = Cast<AMPPlayer>(TryGetPawnOwner());
+	MPPlayer = Cast<AMPPlayer>(TryGetPawnOwner());
 
 }
 
@@ -21,60 +21,62 @@ void UMPPAnimInstance::NativeUpdateAnimation(float Deltatime)
 
 	Super::NativeUpdateAnimation(Deltatime);
 
-	if (OurPlayer == nullptr)
+	if (MPPlayer == nullptr)
 	{
-		OurPlayer = Cast<AMPPlayer>(TryGetPawnOwner());
+		MPPlayer = Cast<AMPPlayer>(TryGetPawnOwner());
 	}
 
-	if (OurPlayer == nullptr)
+	if (MPPlayer == nullptr)
 		return;
 
-	FVector Velocity = OurPlayer->GetVelocity();
+	FVector Velocity = MPPlayer->GetVelocity();
 	Velocity.Z = 0.0f;
 	Speed = Velocity.Size(); //Returns magnitude of vector
 
-	EquippedWeapon = OurPlayer->GetEquippedWeapon();
-	bIsInAir = OurPlayer->GetCharacterMovement()->IsFalling();
-	bIsAccelerating = OurPlayer->GetCharacterMovement()->GetCurrentAcceleration().Size() != 0 ? true : false;
-	bWeaponEquipped = OurPlayer->IsWeaponEquipped();
-	bIsCrouch = OurPlayer->bIsCrouched;
-	bIsPlayerAiming = OurPlayer->IsAiming();
-	TurningInplace = OurPlayer->GetTurningState();
+	EquippedWeapon = MPPlayer->GetEquippedWeapon();
+	bIsInAir = MPPlayer->GetCharacterMovement()->IsFalling();
+	bIsAccelerating = MPPlayer->GetCharacterMovement()->GetCurrentAcceleration().Size() != 0 ? true : false;
+	bWeaponEquipped = MPPlayer->IsWeaponEquipped();
+	bIsCrouch = MPPlayer->bIsCrouched;
+	bIsPlayerAiming = MPPlayer->IsAiming();
+	TurningInplace = MPPlayer->GetTurningState();
 
-	FRotator AimRotation = OurPlayer->GetBaseAimRotation();
-	FRotator MovementRotation = UKismetMathLibrary::MakeRotFromX(OurPlayer->GetVelocity());
+	FRotator AimRotation = MPPlayer->GetBaseAimRotation();
+	FRotator MovementRotation = UKismetMathLibrary::MakeRotFromX(MPPlayer->GetVelocity());
 	FRotator DeltaRot = UKismetMathLibrary::NormalizedDeltaRotator(MovementRotation, AimRotation);
 	DeltaRotation = FMath::RInterpTo(DeltaRotation, DeltaRot, Deltatime, 6.0f);
 	YawOffset = DeltaRotation.Yaw;
 
+	//Lean Calculation
 	PlayerRotationLastFrame = PlayerRotation;
-	PlayerRotation = OurPlayer->GetActorRotation();
+	PlayerRotation = MPPlayer->GetActorRotation();
 	const FRotator Delta = UKismetMathLibrary::NormalizedDeltaRotator(PlayerRotation, PlayerRotationLastFrame);
 	const float Target = Delta.Yaw/Deltatime;
 	const float Interp = FMath::FInterpTo(Lean, Target, Deltatime, 6.0f);
 	Lean = FMath::Clamp(Interp, -90.0f, 90.0f);
 
-	AO_Yaw = OurPlayer->GetAimYaw();
-	AO_Pitch = OurPlayer->GetAimPitch();
+	AO_Yaw = MPPlayer->GetAimYaw();
+	AO_Pitch = MPPlayer->GetAimPitch();
 
-	if (bWeaponEquipped && EquippedWeapon && EquippedWeapon->GetWeaponMesh() && OurPlayer->GetMesh())
+	if (bWeaponEquipped && EquippedWeapon && EquippedWeapon->GetWeaponMesh() && MPPlayer->GetMesh())
 	{
 
 		//Setting LeftHandTransform for FABRIK
 		LeftHandTransform = EquippedWeapon->GetWeaponMesh()->GetSocketTransform(FName("LeftHandSocket"), ERelativeTransformSpace::RTS_World);
 		FVector OutPosition;
 		FRotator OutRotation;
-		OurPlayer->GetMesh()->TransformToBoneSpace(FName("Hand_R"), LeftHandTransform.GetLocation(), FRotator::ZeroRotator, OutPosition, OutRotation);
+		MPPlayer->GetMesh()->TransformToBoneSpace(FName("Hand_R"), LeftHandTransform.GetLocation(), FRotator::ZeroRotator, OutPosition, OutRotation);
 		LeftHandTransform.SetLocation(OutPosition);
 		LeftHandTransform.SetRotation(FQuat(OutRotation));
 
 		//Calculating difference between gun pointing and projectile travel(Also RHand rotation to fix that)
 
-		if (OurPlayer->IsLocallyControlled())
+		if (MPPlayer->IsLocallyControlled())
 		{
 			bIsLocallyControlled = true;
-			FTransform RightHandTransform = OurPlayer->GetMesh()->GetSocketTransform(FName("Hand_R"), ERelativeTransformSpace::RTS_World);
-			RightHandRotation = UKismetMathLibrary::FindLookAtRotation(RightHandTransform.GetLocation(), RightHandTransform.GetLocation() + ( RightHandTransform.GetLocation() - OurPlayer->GetHitTarget()) );
+			FTransform RightHandTransform = MPPlayer->GetMesh()->GetSocketTransform(FName("Hand_R"), ERelativeTransformSpace::RTS_World);
+			FRotator LookAtRotation = UKismetMathLibrary::FindLookAtRotation(RightHandTransform.GetLocation(), RightHandTransform.GetLocation() + (RightHandTransform.GetLocation() - MPPlayer->GetHitTarget()));
+			RightHandRotation = FMath::RInterpTo(RightHandRotation, LookAtRotation, Deltatime, 20.0f);
 		}
 	}
 }
@@ -83,4 +85,4 @@ void UMPPAnimInstance::NativeUpdateAnimation(float Deltatime)
 		//FTransform MuzzleFlashTransform = EquippedWeapon->GetWeaponMesh()->GetSocketTransform(FName("MuzzleFlash"), ERelativeTransformSpace::RTS_World);
 		//FVector MuzzleX(FRotationMatrix(MuzzleFlashTransform.GetRotation().Rotator()).GetUnitAxis(EAxis::X));
 		//DrawDebugLine(GetWorld(), MuzzleFlashTransform.GetLocation(), MuzzleFlashTransform.GetLocation() + MuzzleX * 10000.0f, FColor::Green);
-		//DrawDebugLine(GetWorld(), MuzzleFlashTransform.GetLocation(), OurPlayer->GetHitTarget(), FColor::Orange);
+		//DrawDebugLine(GetWorld(), MuzzleFlashTransform.GetLocation(), MPPlayer->GetHitTarget(), FColor::Orange);

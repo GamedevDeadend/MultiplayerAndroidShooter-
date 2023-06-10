@@ -63,6 +63,6 @@ void AMPPlayerHUD::DrawCrosshair(UTexture2D* Texture, FVector2D ViewportCenter, 
 		0.f,
 		1.f,
 		1.f,
-		FLinearColor::Yellow
+		Color
 	);
 }

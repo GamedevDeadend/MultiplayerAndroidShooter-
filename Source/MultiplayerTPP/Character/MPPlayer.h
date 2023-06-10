@@ -57,7 +57,7 @@ private:
 		void OnRep_OverlappedWeapon(class AWeapons* LastWeapon);
 
 	UPROPERTY(EditAnywhere, Category = Combat)
-		UCombatComponent* CombatComponent;
+		UCombatComponent* PlayerCombatComponent;
 
 	UPROPERTY(VisibleAnywhere, Category = Camera)
 		USpringArmComponent* CameraBoom;
@@ -84,8 +84,6 @@ private:
 		FRotator StartAimRotation;
 
 	//Meta specifier indicating that this variable needs to be replicated
-
-
 
 
 //Getters And Setters

@@ -23,7 +23,7 @@ public:
 private:
 
 	UPROPERTY(BlueprintReadOnly, Category = Character, meta = (AllowPrivateAccess = "true"))
-		class AMPPlayer* OurPlayer;
+		class AMPPlayer* MPPlayer;
 
 	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
 		float Speed;

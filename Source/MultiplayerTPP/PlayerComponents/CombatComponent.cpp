@@ -37,15 +37,15 @@ void UCombatComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (Player)
+	if (MPPlayer)
 	{
-		Player->GetCharacterMovement()->JumpZVelocity = BaseJumpVelocity;
-		Player->GetCharacterMovement()->MaxWalkSpeed = BaseWalkSpeed;
+		MPPlayer->GetCharacterMovement()->JumpZVelocity = BaseJumpVelocity;
+		MPPlayer->GetCharacterMovement()->MaxWalkSpeed = BaseWalkSpeed;
 	}
 
-	if (Player->GetFollowCamera())
+	if (MPPlayer->GetFollowCamera())
 	{
-		DefaultFOV = Player->GetFollowCamera()->FieldOfView;
+		DefaultFOV = MPPlayer->GetFollowCamera()->FieldOfView;
 		CurrentFOV = DefaultFOV;
 	}
 }
@@ -55,10 +55,12 @@ void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	FHitResult HitResult;
-	if (Player && Player->IsLocallyControlled())
+	if (MPPlayer && MPPlayer->IsLocallyControlled())
 	{
+		FHitResult HitResult;
 		TraceUnderCrosshairs(HitResult);
+		HitTarget = HitResult.ImpactPoint;
+
 		SetHUD(DeltaTime);
 		InterpFOV(DeltaTime);
 
@@ -67,32 +69,32 @@ void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 
 void UCombatComponent::SetHUD(float DeltaTime)
 {
-	if (Player == nullptr || Player->Controller == nullptr) return;
+	if (MPPlayer == nullptr || MPPlayer->Controller == nullptr) return;
 
-	PlayerController = PlayerController == nullptr ? Cast<AMPPlayerController>(Player->Controller) : PlayerController;
-	if (PlayerController)
+	MPPlayerController = MPPlayerController == nullptr ? Cast<AMPPlayerController>(MPPlayer->Controller) : MPPlayerController;
+	if (MPPlayerController)
 	{
-		HUD = HUD == nullptr ? Cast<AMPPlayerHUD>(PlayerController->GetHUD()) : HUD;
+		HUD = HUD == nullptr ? Cast<AMPPlayerHUD>(MPPlayerController->GetHUD()) : HUD;
 		if (HUD)
 		{
 			
 			if (EquippedWeapon)
 			{
-				HUDPackage.CrosshairsCenter = EquippedWeapon->CrosshairsCenter;
-				HUDPackage.CrosshairsLeft = EquippedWeapon->CrosshairsLeft;
-				HUDPackage.CrosshairsRight = EquippedWeapon->CrosshairsRight;
-				HUDPackage.CrosshairsBottom = EquippedWeapon->CrosshairsBottom;
-				HUDPackage.CrosshairsTop = EquippedWeapon->CrosshairsTop;
-				HUDPackage.Scale = EquippedWeapon->CrosshairsScale;
+				MPPlayerHUDPackage.CrosshairsCenter = EquippedWeapon->CrosshairsCenter;
+				MPPlayerHUDPackage.CrosshairsLeft = EquippedWeapon->CrosshairsLeft;
+				MPPlayerHUDPackage.CrosshairsRight = EquippedWeapon->CrosshairsRight;
+				MPPlayerHUDPackage.CrosshairsBottom = EquippedWeapon->CrosshairsBottom;
+				MPPlayerHUDPackage.CrosshairsTop = EquippedWeapon->CrosshairsTop;
+				MPPlayerHUDPackage.Scale = EquippedWeapon->CrosshairsScale;
 			}
 			else
 			{
-				HUDPackage.CrosshairsCenter = nullptr;
-				HUDPackage.CrosshairsLeft = nullptr;
-				HUDPackage.CrosshairsRight = nullptr;
-				HUDPackage.CrosshairsBottom = nullptr;
-				HUDPackage.CrosshairsTop = nullptr;
-				HUDPackage.Scale = 0.0f;
+				MPPlayerHUDPackage.CrosshairsCenter = nullptr;
+				MPPlayerHUDPackage.CrosshairsLeft = nullptr;
+				MPPlayerHUDPackage.CrosshairsRight = nullptr;
+				MPPlayerHUDPackage.CrosshairsBottom = nullptr;
+				MPPlayerHUDPackage.CrosshairsTop = nullptr;
+				MPPlayerHUDPackage.Scale = 0.0f;
 			}
 
 			if (bAim)
@@ -105,17 +107,17 @@ void UCombatComponent::SetHUD(float DeltaTime)
 			}
 
 			FVector2D VelocityFactorRange(0.0f, 0.5f);
-			FVector2D WalkSpeedRange = FVector2D(0.0f, Player->GetCharacterMovement()->MaxWalkSpeed);
-			FVector2D CrouchWalkSpeedRange = FVector2D(0.0f, Player->GetCharacterMovement()->MaxWalkSpeedCrouched);
-			FVector Velocity = Player->GetVelocity();
+			FVector2D WalkSpeedRange = FVector2D(0.0f, MPPlayer->GetCharacterMovement()->MaxWalkSpeed);
+			FVector2D CrouchWalkSpeedRange = FVector2D(0.0f, MPPlayer->GetCharacterMovement()->MaxWalkSpeedCrouched);
+			FVector Velocity = MPPlayer->GetVelocity();
 			Velocity.Z = 0.0f;
 
-			VelocityFactor = Player->bIsCrouched ? FMath::GetMappedRangeValueClamped(CrouchWalkSpeedRange, VelocityFactorRange, Velocity.Size()) : FMath::GetMappedRangeValueClamped(WalkSpeedRange, VelocityFactorRange, Velocity.Size());
-			JumpFactor = Player->GetCharacterMovement()->IsFalling() ? FMath::FInterpTo(JumpFactor, 1.0f, DeltaTime, 10.0f) : FMath::FInterpTo(JumpFactor, 0.0f, DeltaTime, 50.0f);
+			VelocityFactor = MPPlayer->bIsCrouched ? FMath::GetMappedRangeValueClamped(CrouchWalkSpeedRange, VelocityFactorRange, Velocity.Size()) : FMath::GetMappedRangeValueClamped(WalkSpeedRange, VelocityFactorRange, Velocity.Size());
+			JumpFactor = MPPlayer->GetCharacterMovement()->IsFalling() ? FMath::FInterpTo(JumpFactor, 1.0f, DeltaTime, 10.0f) : FMath::FInterpTo(JumpFactor, 0.0f, DeltaTime, 50.0f);
 			ShootingFactor = FMath::FInterpTo(ShootingFactor, 0.0f, DeltaTime, 50.0f);
 
-			HUDPackage.CrosshairSpread = 0.5f + VelocityFactor + JumpFactor + AimFactor + ShootingFactor;
-			HUD->SetHUD(HUDPackage);
+			MPPlayerHUDPackage.CrosshairSpread = 0.5f + VelocityFactor + JumpFactor + AimFactor + ShootingFactor;
+			HUD->SetHUD(MPPlayerHUDPackage);
 		}
 	}
 
@@ -151,24 +153,25 @@ void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult)
 
 		if (TraceHitResult.GetActor() && TraceHitResult.GetActor()->Implements<UInteractWithCrosshairs>())
 		{
-			HUDPackage.CrosshairsColor = FLinearColor::Red;
+			//UE_LOG(LogTemp, Warning, TEXT(" Crosshairs Color"));
+			MPPlayerHUDPackage.CrosshairsColor = EnemyAimColor;
 		}
 
 		else
 		{
-			HUDPackage.CrosshairsColor = FLinearColor::Yellow;
+			MPPlayerHUDPackage.CrosshairsColor = NormalAimColor;
 		}
 
 		if (!TraceHitResult.bBlockingHit)
 		{
 			TraceHitResult.ImpactPoint = End;
-			UE_LOG(LogTemp, Warning, TEXT("TraceSucces2"));
+			//UE_LOG(LogTemp, Warning, TEXT("TraceSucces2"));
 			HitTarget = End;
 		}
 
 		else
 		{
-			UE_LOG(LogTemp, Warning, TEXT("TraceSucces"));
+			//UE_LOG(LogTemp, Warning, TEXT("TraceSucces"));
 			HitTarget = TraceHitResult.ImpactPoint;
 		}
 	}
@@ -200,44 +203,44 @@ void UCombatComponent::ServerFire_Implementation(const FVector_NetQuantize& Trac
 void UCombatComponent::MultiCastFire_Implementation(const FVector_NetQuantize& TraceHitTarget)
 {
 	if (!EquippedWeapon) return;
-	if (Player)
+	if (MPPlayer)
 	{
-		Player->PlayFireMontage(bAim);
+		MPPlayer->PlayFireMontage(bAim);
 		EquippedWeapon->Fire(TraceHitTarget);
-		UE_LOG(LogTemp, Warning, TEXT("FireSucces"));
+		//UE_LOG(LogTemp, Warning, TEXT("FireSucces"));
 	}
 }
 
 
 void UCombatComponent::OnRep_WeaponEquip()
 {
-	if (EquippedWeapon && Player)
+	if (EquippedWeapon && MPPlayer)
 	{
-		Player->GetCharacterMovement()->bOrientRotationToMovement = false;
-		Player->bUseControllerRotationYaw = true;
+		MPPlayer->GetCharacterMovement()->bOrientRotationToMovement = false;
+		MPPlayer->bUseControllerRotationYaw = true;
 	}
 }
 
 void UCombatComponent::EquipWeapon(AWeapons* WeaponToEquip)
 {
-	if (!Player || !WeaponToEquip)
+	if (!MPPlayer || !WeaponToEquip)
 		return;
 
 	EquippedWeapon = WeaponToEquip;
 	EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
-	Player->SetBaseAimRotation(FRotator(0.0f, Player->GetBaseAimRotation().Yaw, 0.0f));
-	const USkeletalMeshSocket* HandSocket = Player->GetMesh()->GetSocketByName(FName("RightHandSocket"));
+	MPPlayer->SetBaseAimRotation(FRotator(0.0f, MPPlayer->GetBaseAimRotation().Yaw, 0.0f));
+	const USkeletalMeshSocket* HandSocket = MPPlayer->GetMesh()->GetSocketByName(FName("RightHandSocket"));
 
 	if (HandSocket)
 	{
-		HandSocket->AttachActor(EquippedWeapon, Player->GetMesh());
+		HandSocket->AttachActor(EquippedWeapon, MPPlayer->GetMesh());
 	}
 
-	EquippedWeapon->SetOwner(Player);
+	EquippedWeapon->SetOwner(MPPlayer);
 
-	Player->GetCharacterMovement()->bOrientRotationToMovement = false;
-	Player->bUseControllerRotationYaw = true;
-	Player->GetCharacterMovement()->JumpZVelocity = Player->IsWeaponEquipped() ? EquipJumpVelociy : BaseJumpVelocity;
+	MPPlayer->GetCharacterMovement()->bOrientRotationToMovement = false;
+	MPPlayer->bUseControllerRotationYaw = true;
+	MPPlayer->GetCharacterMovement()->JumpZVelocity = MPPlayer->IsWeaponEquipped() ? EquipJumpVelociy : BaseJumpVelocity;
 }
 
 void UCombatComponent::InterpFOV(float DeltaTime)
@@ -254,9 +257,9 @@ void UCombatComponent::InterpFOV(float DeltaTime)
 	{
 		CurrentFOV = FMath::FInterpTo(CurrentFOV, DefaultFOV, DeltaTime, ZoomOutInterp);
 	}
-	if (Player && Player->GetFollowCamera())
+	if (MPPlayer && MPPlayer->GetFollowCamera())
 	{
-		Player->GetFollowCamera()->SetFieldOfView(CurrentFOV);
+		MPPlayer->GetFollowCamera()->SetFieldOfView(CurrentFOV);
 	}
 }
 
@@ -275,6 +278,6 @@ void UCombatComponent::ServerSetAiming_Implementation(bool bIsAiming)
 {
 	bAim = bIsAiming;
 
-	Player->GetCharacterMovement()->MaxWalkSpeed = bIsAiming && Player->IsWeaponEquipped() ? AimWalkSpeed : BaseWalkSpeed;
+	MPPlayer->GetCharacterMovement()->MaxWalkSpeed = bIsAiming && MPPlayer->IsWeaponEquipped() ? AimWalkSpeed : BaseWalkSpeed;
 }
 

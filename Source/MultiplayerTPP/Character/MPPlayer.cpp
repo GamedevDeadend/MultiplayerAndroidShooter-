@@ -10,6 +10,7 @@
 #include"MultiplayerTPP/Weapons/Weapons.h"
 #include"MultiplayerTPP/PlayerComponents/CombatComponent.h"
 #include"Kismet/KismetMathLibrary.h"
+#include "Components/CapsuleComponent.h"
 
 AMPPlayer::AMPPlayer()
 {
@@ -32,9 +33,10 @@ AMPPlayer::AMPPlayer()
 	OverHead = CreateDefaultSubobject<UWidgetComponent>(TEXT("OverHead Widget"));
 	OverHead->SetupAttachment(GetMesh());
 
-	CombatComponent = CreateDefaultSubobject<UCombatComponent>(TEXT("Combat Component"));
-	CombatComponent->SetIsReplicated(true);
+	PlayerCombatComponent = CreateDefaultSubobject<UCombatComponent>(TEXT("Player Combat Component"));
+	PlayerCombatComponent->SetIsReplicated(true);
 
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
 
@@ -48,9 +50,9 @@ void AMPPlayer::PostInitializeComponents()
 
 	Super::PostInitializeComponents();
 
-	if (CombatComponent)
+	if (PlayerCombatComponent)
 	{
-		CombatComponent->Player = this;
+		PlayerCombatComponent->MPPlayer = this;
 	}
 }
 
@@ -89,24 +91,24 @@ void AMPPlayer::Tick(float DeltaTime)
 
 bool AMPPlayer::IsWeaponEquipped()
 {
-	return CombatComponent && CombatComponent->EquippedWeapon;
+	return PlayerCombatComponent && PlayerCombatComponent->EquippedWeapon;
 }
 
 bool AMPPlayer::IsAiming()
 {
-	return CombatComponent->bAim;
+	return PlayerCombatComponent->bAim;
 }
 
 AWeapons* AMPPlayer::GetEquippedWeapon()
 {
-	if (CombatComponent == nullptr) return nullptr;
+	if (PlayerCombatComponent == nullptr) return nullptr;
 
-	return CombatComponent->EquippedWeapon;
+	return PlayerCombatComponent->EquippedWeapon;
 }
 
 FVector AMPPlayer::GetHitTarget() const
 {
-	return CombatComponent == nullptr ? FVector() : CombatComponent->HitTarget;
+	return PlayerCombatComponent == nullptr ? FVector() : PlayerCombatComponent->HitTarget;
 }
 
 //THIS FUNC IS SETTING OVERLAPPEDWEAPON ON EVERY CALL WHICH IN TURN IS CALLING REP NOTIFY
@@ -160,7 +162,7 @@ void AMPPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 void AMPPlayer::PlayFireMontage(bool bAiming)
 {
-	if (!CombatComponent || !CombatComponent->EquippedWeapon) return;
+	if (!PlayerCombatComponent || !PlayerCombatComponent->EquippedWeapon) return;
 	UAnimInstance* PlayerAnimInstance = GetMesh()->GetAnimInstance();
 	if (PlayerAnimInstance && FireMontage)
 	{
@@ -172,17 +174,17 @@ void AMPPlayer::PlayFireMontage(bool bAiming)
 
 void AMPPlayer::FireButtonPressed()
 {
-	if (CombatComponent)
+	if (PlayerCombatComponent)
 	{
-		CombatComponent->FirePressed(true);
+		PlayerCombatComponent->FirePressed(true);
 	}
 }
 
 void AMPPlayer::FireButtonReleased()
 {
-	if (CombatComponent)
+	if (PlayerCombatComponent)
 	{
-		CombatComponent->FirePressed(false);
+		PlayerCombatComponent->FirePressed(false);
 	}
 
 }
@@ -225,10 +227,10 @@ void AMPPlayer::LookRight(float Value)
 
 void AMPPlayer::EquipWeapon()
 {
-	if (CombatComponent)
+	if (PlayerCombatComponent)
 	{
 		if (HasAuthority())
-			CombatComponent->EquipWeapon(OverlappedWeapon);
+			PlayerCombatComponent->EquipWeapon(OverlappedWeapon);
 		else
 			ServerEquipPressed();
 	}
@@ -249,8 +251,8 @@ void AMPPlayer::Jump()
 
 void AMPPlayer::ServerEquipPressed_Implementation()
 {
-	if (CombatComponent)
-		CombatComponent->EquipWeapon(OverlappedWeapon);
+	if (PlayerCombatComponent)
+		PlayerCombatComponent->EquipWeapon(OverlappedWeapon);
 }
 
 void AMPPlayer::CrouchAction()
@@ -264,20 +266,20 @@ void AMPPlayer::CrouchAction()
 
 void AMPPlayer::AimPressed()
 {
-	if (CombatComponent)
-		CombatComponent->SetAiming(true);
+	if (PlayerCombatComponent)
+		PlayerCombatComponent->SetAiming(true);
 }
 
 void AMPPlayer::AimReleased()
 {
-	if (CombatComponent)
-		CombatComponent->SetAiming(false);
+	if (PlayerCombatComponent)
+		PlayerCombatComponent->SetAiming(false);
 }
 
 void AMPPlayer::AimOffset(float DeltaTime)
 {
 
-	if (CombatComponent && CombatComponent->EquippedWeapon == nullptr) return;
+	if (PlayerCombatComponent && PlayerCombatComponent->EquippedWeapon == nullptr) return;
 
 	FVector Velocity = GetVelocity();
 	Velocity.Z = 0.0f;
