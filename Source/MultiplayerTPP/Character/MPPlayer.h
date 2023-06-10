@@ -47,6 +47,7 @@ private:
 	void TurnInPlace(float DeltaTime);
 	void FireButtonPressed();
 	void FireButtonReleased();
+	void HidePlayerIfCameraTooClose();
 
 
 	// Server side rpc method are already implemneted we have to just extend implementation by using _Implementation 
@@ -64,6 +65,9 @@ private:
 
 	UPROPERTY(VisibleAnywhere, Category = Camera)
 		UCameraComponent* FollowCamera;
+
+	UPROPERTY(EditAnywhere, Category = Camera)
+	float CameraThreshold = 200.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadonly, meta = (Allowprivateaccess = true))
 		UWidgetComponent* OverHead;

@@ -80,6 +80,7 @@ void AMPPlayer::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	AimOffset(DeltaTime);
+	HidePlayerIfCameraTooClose();
 
 	//if( HasAuthority() && !IsLocallyControlled() )
 	//UE_LOG(LogTemp, Warning, TEXT("Pitch Rotation %f"), AO_Pitch);
@@ -185,6 +186,33 @@ void AMPPlayer::FireButtonReleased()
 	if (PlayerCombatComponent)
 	{
 		PlayerCombatComponent->FirePressed(false);
+	}
+
+}
+
+void AMPPlayer::HidePlayerIfCameraTooClose()
+{
+	if (!IsLocallyControlled()) return;
+
+	if ( (FollowCamera->GetComponentLocation() - GetActorLocation()).Size() < AMPPlayer::CameraThreshold)
+	{
+		GetMesh()->SetVisibility(false);
+
+		if (PlayerCombatComponent && PlayerCombatComponent->EquippedWeapon && PlayerCombatComponent->EquippedWeapon->GetWeaponMesh())
+		{
+			PlayerCombatComponent->EquippedWeapon->GetWeaponMesh()->bOwnerNoSee = true;
+		}
+	}
+
+	else
+	{
+		GetMesh()->SetVisibility(true);
+
+		if (PlayerCombatComponent && PlayerCombatComponent->EquippedWeapon && PlayerCombatComponent->EquippedWeapon->GetWeaponMesh())
+		{
+			PlayerCombatComponent->EquippedWeapon->GetWeaponMesh()->bOwnerNoSee = false;
+		}
+
 	}
 
 }
