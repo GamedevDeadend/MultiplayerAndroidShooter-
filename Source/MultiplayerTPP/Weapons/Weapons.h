@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "MultiplayerTPP/Types/WeaponType.h"
 #include "Weapons.generated.h"
 
 UENUM(BlueprintType)
@@ -28,6 +29,10 @@ public:
 	void ShowPickupWidget(bool bShowWidget);
 	virtual void Fire(const FVector& HitTarget);
 
+	// Weapon Type
+	UPROPERTY(EditAnywhere, Category = " Weapon Type")
+		EWeaponType WeaponType;
+
 	//Crosshairs
 
 	UPROPERTY(EditAnywhere, Category = "Crosshairs")
@@ -44,6 +49,7 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Crosshairs")
 		UTexture2D* CrosshairsRight;
+
 
 	UPROPERTY(EditAnywhere, Category = "Crosshairs", meta = (ClampMin = "-30.0", ClampMax = "30.0"))
 		float CrosshairsScale;
@@ -112,4 +118,5 @@ public:
 	FORCEINLINE USkeletalMeshComponent* GetWeaponMesh() const { return Mesh; }
 	FORCEINLINE float GetZoomedFOV()const { return ZoomFOV; }
 	FORCEINLINE float GetZoomInterpSpeed()const { return ZoomInterpSpeed; }
+
 };

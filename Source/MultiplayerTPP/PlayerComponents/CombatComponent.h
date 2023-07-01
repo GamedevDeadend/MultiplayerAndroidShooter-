@@ -41,6 +41,10 @@ protected:
 
 	void FirePressed(bool bPressed);
 
+	void Fire();
+
+	void BurstFire();
+
 	UFUNCTION(Server, Reliable)
 		void ServerFire(const FVector_NetQuantize& TraceHitTarget);
 
@@ -65,6 +69,9 @@ private:
 	float JumpFactor;
 	float AimFactor;
 	float ShootingFactor;
+	int BurstFireCount = 0;
+	FTimerHandle AutoFireTimerHandle;
+	FTimerHandle BurstFireTimerHandle;
 
 	FHUDPackage MPPlayerHUDPackage;
 
@@ -81,10 +88,10 @@ private:
 		float AimWalkSpeed;
 
 	UPROPERTY(EditAnywhere, Category = "Combat Crosshairs Color", meta = (Allowprivateaccess = true))
-	FLinearColor EnemyAimColor;
+		FLinearColor EnemyAimColor;
 
 	UPROPERTY(EditAnywhere, Category = "Combat Crosshairs Color", meta = (Allowprivateaccess = true))
-	FLinearColor NormalAimColor;
+		FLinearColor NormalAimColor;
 
 	UPROPERTY(ReplicatedUsing = OnRep_WeaponEquip)
 		AWeapons* EquippedWeapon;

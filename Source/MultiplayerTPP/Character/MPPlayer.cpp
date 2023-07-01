@@ -11,6 +11,8 @@
 #include"MultiplayerTPP/PlayerComponents/CombatComponent.h"
 #include"Kismet/KismetMathLibrary.h"
 #include "Components/CapsuleComponent.h"
+#include "Components/SpotLightComponent.h"
+#include "MultiplayerTPP/MultiplayerTPP.h"
 
 AMPPlayer::AMPPlayer()
 {
@@ -33,10 +35,14 @@ AMPPlayer::AMPPlayer()
 	OverHead = CreateDefaultSubobject<UWidgetComponent>(TEXT("OverHead Widget"));
 	OverHead->SetupAttachment(GetMesh());
 
-	PlayerCombatComponent = CreateDefaultSubobject<UCombatComponent>(TEXT("Player Combat Component"));
-	PlayerCombatComponent->SetIsReplicated(true);
+	CombatComponent = CreateDefaultSubobject<UCombatComponent>(TEXT("Combat Component"));
+	CombatComponent->SetIsReplicated(true);
+
+	HeadLight = CreateDefaultSubobject<USpotLightComponent>(TEXT("Head Light"));
+	HeadLight->SetupAttachment(GetCapsuleComponent());
 
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
+	GetMesh()->SetCollisionObjectType(ECC_SkeletalMesh);
 	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
 
@@ -50,9 +56,9 @@ void AMPPlayer::PostInitializeComponents()
 
 	Super::PostInitializeComponents();
 
-	if (PlayerCombatComponent)
+	if (CombatComponent)
 	{
-		PlayerCombatComponent->MPPlayer = this;
+		CombatComponent->MPPlayer = this;
 	}
 }
 
@@ -79,6 +85,18 @@ void AMPPlayer::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	float PreviousInterval = PrimaryActorTick.TickInterval;
+
+	if (ENetRole::ROLE_SimulatedProxy && !IsLocallyControlled())
+	{
+
+		PrimaryActorTick.TickInterval = 10.0f;
+	}
+	else
+	{
+		PrimaryActorTick.TickInterval = PreviousInterval;
+	}
+
 	AimOffset(DeltaTime);
 	HidePlayerIfCameraTooClose();
 
@@ -92,24 +110,24 @@ void AMPPlayer::Tick(float DeltaTime)
 
 bool AMPPlayer::IsWeaponEquipped()
 {
-	return PlayerCombatComponent && PlayerCombatComponent->EquippedWeapon;
+	return CombatComponent && CombatComponent->EquippedWeapon;
 }
 
 bool AMPPlayer::IsAiming()
 {
-	return PlayerCombatComponent->bAim;
+	return CombatComponent->bAim;
 }
 
 AWeapons* AMPPlayer::GetEquippedWeapon()
 {
-	if (PlayerCombatComponent == nullptr) return nullptr;
+	if (CombatComponent == nullptr) return nullptr;
 
-	return PlayerCombatComponent->EquippedWeapon;
+	return CombatComponent->EquippedWeapon;
 }
 
 FVector AMPPlayer::GetHitTarget() const
 {
-	return PlayerCombatComponent == nullptr ? FVector() : PlayerCombatComponent->HitTarget;
+	return CombatComponent == nullptr ? FVector() : CombatComponent->HitTarget;
 }
 
 //THIS FUNC IS SETTING OVERLAPPEDWEAPON ON EVERY CALL WHICH IN TURN IS CALLING REP NOTIFY
@@ -132,6 +150,11 @@ void AMPPlayer::SetOverlappingWeapon(AWeapons* Weapon)
 			OverlappedWeapon->ShowPickupWidget(true);
 		}
 	}
+}
+
+void AMPPlayer::MulticastHitMontage_Implementation()
+{
+	PlayHitReactMontage();
 }
 
 void AMPPlayer::OnRep_OverlappedWeapon(AWeapons* LastWeapon)
@@ -163,7 +186,7 @@ void AMPPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 void AMPPlayer::PlayFireMontage(bool bAiming)
 {
-	if (!PlayerCombatComponent || !PlayerCombatComponent->EquippedWeapon) return;
+	if (!CombatComponent || !CombatComponent->EquippedWeapon) return;
 	UAnimInstance* PlayerAnimInstance = GetMesh()->GetAnimInstance();
 	if (PlayerAnimInstance && FireMontage)
 	{
@@ -173,19 +196,33 @@ void AMPPlayer::PlayFireMontage(bool bAiming)
 	}
 }
 
+void AMPPlayer::PlayHitReactMontage()
+{
+	if (!CombatComponent || !CombatComponent->EquippedWeapon) return;
+	UAnimInstance* PlayerAnimInstance = GetMesh()->GetAnimInstance();
+	if (PlayerAnimInstance && HitReactMontage)
+	{
+		PlayerAnimInstance->Montage_Play(HitReactMontage);
+		FName SectionName("From Front");
+		PlayerAnimInstance->Montage_JumpToSection(SectionName);
+	}
+}
+
+
+
 void AMPPlayer::FireButtonPressed()
 {
-	if (PlayerCombatComponent)
+	if (CombatComponent)
 	{
-		PlayerCombatComponent->FirePressed(true);
+		CombatComponent->FirePressed(true);
 	}
 }
 
 void AMPPlayer::FireButtonReleased()
 {
-	if (PlayerCombatComponent)
+	if (CombatComponent)
 	{
-		PlayerCombatComponent->FirePressed(false);
+		CombatComponent->FirePressed(false);
 	}
 
 }
@@ -198,9 +235,9 @@ void AMPPlayer::HidePlayerIfCameraTooClose()
 	{
 		GetMesh()->SetVisibility(false);
 
-		if (PlayerCombatComponent && PlayerCombatComponent->EquippedWeapon && PlayerCombatComponent->EquippedWeapon->GetWeaponMesh())
+		if (CombatComponent && CombatComponent->EquippedWeapon && CombatComponent->EquippedWeapon->GetWeaponMesh())
 		{
-			PlayerCombatComponent->EquippedWeapon->GetWeaponMesh()->bOwnerNoSee = true;
+			CombatComponent->EquippedWeapon->GetWeaponMesh()->bOwnerNoSee = true;
 		}
 	}
 
@@ -208,9 +245,9 @@ void AMPPlayer::HidePlayerIfCameraTooClose()
 	{
 		GetMesh()->SetVisibility(true);
 
-		if (PlayerCombatComponent && PlayerCombatComponent->EquippedWeapon && PlayerCombatComponent->EquippedWeapon->GetWeaponMesh())
+		if (CombatComponent && CombatComponent->EquippedWeapon && CombatComponent->EquippedWeapon->GetWeaponMesh())
 		{
-			PlayerCombatComponent->EquippedWeapon->GetWeaponMesh()->bOwnerNoSee = false;
+			CombatComponent->EquippedWeapon->GetWeaponMesh()->bOwnerNoSee = false;
 		}
 
 	}
@@ -255,10 +292,10 @@ void AMPPlayer::LookRight(float Value)
 
 void AMPPlayer::EquipWeapon()
 {
-	if (PlayerCombatComponent)
+	if (CombatComponent)
 	{
 		if (HasAuthority())
-			PlayerCombatComponent->EquipWeapon(OverlappedWeapon);
+			CombatComponent->EquipWeapon(OverlappedWeapon);
 		else
 			ServerEquipPressed();
 	}
@@ -279,8 +316,8 @@ void AMPPlayer::Jump()
 
 void AMPPlayer::ServerEquipPressed_Implementation()
 {
-	if (PlayerCombatComponent)
-		PlayerCombatComponent->EquipWeapon(OverlappedWeapon);
+	if (CombatComponent)
+		CombatComponent->EquipWeapon(OverlappedWeapon);
 }
 
 void AMPPlayer::CrouchAction()
@@ -294,20 +331,20 @@ void AMPPlayer::CrouchAction()
 
 void AMPPlayer::AimPressed()
 {
-	if (PlayerCombatComponent)
-		PlayerCombatComponent->SetAiming(true);
+	if (CombatComponent)
+		CombatComponent->SetAiming(true);
 }
 
 void AMPPlayer::AimReleased()
 {
-	if (PlayerCombatComponent)
-		PlayerCombatComponent->SetAiming(false);
+	if (CombatComponent)
+		CombatComponent->SetAiming(false);
 }
 
 void AMPPlayer::AimOffset(float DeltaTime)
 {
 
-	if (PlayerCombatComponent && PlayerCombatComponent->EquippedWeapon == nullptr) return;
+	if (CombatComponent && CombatComponent->EquippedWeapon == nullptr) return;
 
 	FVector Velocity = GetVelocity();
 	Velocity.Z = 0.0f;
@@ -384,4 +421,5 @@ FString AMPPlayer::GetPlayerName()
 
 	return OurPlayerName;
 }
+
 

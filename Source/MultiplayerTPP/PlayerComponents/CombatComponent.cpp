@@ -12,6 +12,8 @@
 #include "MultiplayerTPP/Controllers/MPPlayerController.h"
 #include "Camera/CameraComponent.h"
 #include "MultiplayerTPP/Interfaces/InteractWithCrosshairs.h"
+#include "Components/SpotLightComponent.h"
+#include "MultiplayerTPP/Types/WeaponType.h"
 
 
 
@@ -189,17 +191,51 @@ void UCombatComponent::FirePressed(bool bPressed)
 {
 	bFireButtonPressed = bPressed;
 
-	if (bFireButtonPressed)
+	if (!EquippedWeapon) return;
+
+	if (bPressed)
 	{
-		FHitResult HitResult;
-		TraceUnderCrosshairs(HitResult);
-		ServerFire(HitResult.ImpactPoint);
+		switch (EquippedWeapon->WeaponType)
+		{
+			case EWeaponType::EWT_Single:
+				Fire();
+				break;
+
+			case EWeaponType::EWT_Auto:
+				MPPlayer->GetWorldTimerManager().SetTimer(AutoFireTimerHandle, this, &UCombatComponent::Fire, 0.1f, true);
+				break;
+
+			case EWeaponType::EWT_Burst:
+				MPPlayer->GetWorldTimerManager().SetTimer(BurstFireTimerHandle, this, &UCombatComponent::BurstFire, 0.1f, true);
+				break;
+		}
+	}
+	else
+	{
+		MPPlayer->GetWorldTimerManager().ClearTimer(AutoFireTimerHandle);
 	}
 
 	if (EquippedWeapon)
 	{
 		ShootingFactor = 0.5f;
 	}
+}
+
+void UCombatComponent::Fire()
+{
+	ServerFire(HitTarget);
+}
+
+void UCombatComponent::BurstFire()
+{
+	BurstFireCount++;
+	if (BurstFireCount == 3)
+	{
+		MPPlayer->GetWorldTimerManager().ClearTimer(BurstFireTimerHandle);
+		BurstFireCount = 0;
+	}
+
+	ServerFire(HitTarget);
 }
 
 

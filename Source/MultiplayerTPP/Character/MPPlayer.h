@@ -12,6 +12,7 @@ class UCombatComponent;
 class USpringArmComponent;
 class UCameraComponent;
 class UWidgetComponent;
+class USpotLightComponent;
 
 UCLASS()
 class MULTIPLAYERTPP_API AMPPlayer : public ACharacter, public IInteractWithCrosshairs
@@ -23,6 +24,11 @@ public:
 	AMPPlayer();
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	void PlayFireMontage(bool bAiming);
+	void PlayHitReactMontage();
+
+	UFUNCTION(NetMulticast, Unreliable)
+		void MulticastHitMontage();
+
 
 protected:
 
@@ -58,10 +64,13 @@ private:
 		void OnRep_OverlappedWeapon(class AWeapons* LastWeapon);
 
 	UPROPERTY(EditAnywhere, Category = Combat)
-		UCombatComponent* PlayerCombatComponent;
+		UCombatComponent* CombatComponent;
 
 	UPROPERTY(VisibleAnywhere, Category = Camera)
 		USpringArmComponent* CameraBoom;
+
+	UPROPERTY(VisibleAnywhere, Category = Light)
+		USpotLightComponent* HeadLight;
 
 	UPROPERTY(VisibleAnywhere, Category = Camera)
 		UCameraComponent* FollowCamera;
@@ -76,8 +85,11 @@ private:
 	UPROPERTY(ReplicatedUsing = OnRep_OverlappedWeapon)
 		AWeapons* OverlappedWeapon;
 
-	UPROPERTY(EditAnywhere, Category = FireMontage)
+	UPROPERTY(EditAnywhere, Category = Combat)
 		class UAnimMontage* FireMontage;
+
+	UPROPERTY(EditAnywhere, Category = Combat)
+		class UAnimMontage*	HitReactMontage;
 
 	float AO_Yaw;
 	float AO_Pitch;
