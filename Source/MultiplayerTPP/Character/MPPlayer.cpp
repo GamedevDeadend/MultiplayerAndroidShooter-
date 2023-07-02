@@ -85,6 +85,10 @@ void AMPPlayer::BeginPlay()
 		MPPlayerController->SetHUDHealth(MaxHealth, CurrentHealth);
 	}
 
+	if (HasAuthority())
+	{
+		OnTakeAnyDamage.AddDynamic(this, &AMPPlayer::TakeDamage);
+	}
 }
 
 void AMPPlayer::Tick(float DeltaTime)
@@ -289,11 +293,6 @@ void AMPPlayer::SetOverlappingWeapon(AWeapons* Weapon)
 	}
 }
 
-void AMPPlayer::MulticastHitMontage_Implementation()
-{
-	PlayHitReactMontage();
-}
-
 void AMPPlayer::OnRep_OverlappedWeapon(AWeapons* LastWeapon)
 {
 	if (OverlappedWeapon)
@@ -305,7 +304,8 @@ void AMPPlayer::OnRep_OverlappedWeapon(AWeapons* LastWeapon)
 
 void AMPPlayer::OnRep_HealthChange()
 {
-
+	PlayHitReactMontage();
+	UpdateHealthHUD();
 }
 
 void AMPPlayer::PlayFireMontage(bool bAiming)
@@ -356,6 +356,23 @@ void AMPPlayer::HidePlayerIfCameraTooClose()
 		}
 
 	}
+
+}
+
+void AMPPlayer::UpdateHealthHUD()
+{
+	MPPlayerController = MPPlayerController == nullptr ? Cast < AMPPlayerController>(Controller) : MPPlayerController;
+	if (MPPlayerController)
+	{
+		MPPlayerController->SetHUDHealth(MaxHealth, CurrentHealth);
+	}
+}
+
+void AMPPlayer::TakeDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, class AController* InstigatorController, AActor* DamageCauser)
+{
+	CurrentHealth = FMath::Clamp(CurrentHealth - Damage, 0.0f, MaxHealth);
+	PlayHitReactMontage();
+	UpdateHealthHUD();
 
 }
 

@@ -26,9 +26,6 @@ public:
 	void PlayFireMontage(bool bAiming);
 	void PlayHitReactMontage();
 
-	UFUNCTION(NetMulticast, Unreliable)
-		void MulticastHitMontage();
-
 
 protected:
 
@@ -54,7 +51,10 @@ private:
 	void FireButtonPressed();
 	void FireButtonReleased();
 	void HidePlayerIfCameraTooClose();
+	void UpdateHealthHUD();
 
+	UFUNCTION()
+	void TakeDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, class AController* InstigatorController, AActor* DamageCauser);
 
 	// Server side rpc method are already implemneted we have to just extend implementation by using _Implementation 
 	UFUNCTION(Server, Reliable)

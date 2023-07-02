@@ -75,7 +75,6 @@ void AProjectile::OnHit
 
 	if (Player)
 	{
-		Player->MulticastHitMontage();
 		bIsHittingPlayer = true;
 	}
 
