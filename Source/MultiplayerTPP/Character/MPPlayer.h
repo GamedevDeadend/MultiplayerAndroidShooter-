@@ -63,6 +63,15 @@ private:
 	UFUNCTION()
 		void OnRep_OverlappedWeapon(class AWeapons* LastWeapon);
 
+	UFUNCTION()
+		void OnRep_HealthChange();
+
+	UPROPERTY(EditAnywhere, Category  = "Player Stats")
+	float MaxHealth = 100.0f;
+
+	UPROPERTY(ReplicatedUsing = OnRep_HealthChange,VisibleAnywhere, Category = "Player Stats")
+	float CurrentHealth = MaxHealth;
+
 	UPROPERTY(EditAnywhere, Category = Combat)
 		UCombatComponent* CombatComponent;
 
@@ -95,6 +104,7 @@ private:
 	float AO_Pitch;
 	float InterpAo_Yaw;
 	ETurningInPlace TurningInplace;
+	class AMPPlayerController* MPPlayerController;
 
 	UPROPERTY(Replicated)
 		FRotator StartAimRotation;

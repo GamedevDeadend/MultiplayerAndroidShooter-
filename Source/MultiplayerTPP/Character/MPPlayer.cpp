@@ -13,6 +13,7 @@
 #include "Components/CapsuleComponent.h"
 #include "Components/SpotLightComponent.h"
 #include "MultiplayerTPP/MultiplayerTPP.h"
+#include "MultiplayerTPP/Controllers/MPPlayerController.h"
 
 AMPPlayer::AMPPlayer()
 {
@@ -62,9 +63,6 @@ void AMPPlayer::PostInitializeComponents()
 	}
 }
 
-
-
-
 //This function is used to register replicated variable
 void AMPPlayer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -73,12 +71,20 @@ void AMPPlayer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetim
 	// This will set Overlappedweapon for replication but intial value will be null
 	DOREPLIFETIME_CONDITION(AMPPlayer, OverlappedWeapon, COND_OwnerOnly);
 	DOREPLIFETIME(AMPPlayer, StartAimRotation);
+	DOREPLIFETIME(AMPPlayer, CurrentHealth);
 }
 
 void AMPPlayer::BeginPlay()
 {
 	Super::BeginPlay();
 	GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
+
+	MPPlayerController = Cast < AMPPlayerController>(Controller);
+	if (MPPlayerController)
+	{
+		MPPlayerController->SetHUDHealth(MaxHealth, CurrentHealth);
+	}
+
 }
 
 void AMPPlayer::Tick(float DeltaTime)
@@ -106,66 +112,6 @@ void AMPPlayer::Tick(float DeltaTime)
 	//UE_LOG(LogTemp, Error, TEXT("Walk Speed %f"), GetCharacterMovement()->MaxWalkSpeed);
 }
 
-
-
-bool AMPPlayer::IsWeaponEquipped()
-{
-	return CombatComponent && CombatComponent->EquippedWeapon;
-}
-
-bool AMPPlayer::IsAiming()
-{
-	return CombatComponent->bAim;
-}
-
-AWeapons* AMPPlayer::GetEquippedWeapon()
-{
-	if (CombatComponent == nullptr) return nullptr;
-
-	return CombatComponent->EquippedWeapon;
-}
-
-FVector AMPPlayer::GetHitTarget() const
-{
-	return CombatComponent == nullptr ? FVector() : CombatComponent->HitTarget;
-}
-
-//THIS FUNC IS SETTING OVERLAPPEDWEAPON ON EVERY CALL WHICH IN TURN IS CALLING REP NOTIFY
-void AMPPlayer::SetOverlappingWeapon(AWeapons* Weapon)
-{
-	//THIS CONDITION IS TO HIDE PICKUP WIDGET ON SERVER SIDE PAWN
-
-	if (!Weapon)
-	{
-		OverlappedWeapon->ShowPickupWidget(false);
-	}
-
-	OverlappedWeapon = Weapon;
-
-	//THIS CONDITION IS TO SHOW PICKUP WIDGET ON SERVER SIDE PAWN
-	if (IsLocallyControlled())
-	{
-		if (OverlappedWeapon)
-		{
-			OverlappedWeapon->ShowPickupWidget(true);
-		}
-	}
-}
-
-void AMPPlayer::MulticastHitMontage_Implementation()
-{
-	PlayHitReactMontage();
-}
-
-void AMPPlayer::OnRep_OverlappedWeapon(AWeapons* LastWeapon)
-{
-	if (OverlappedWeapon)
-		OverlappedWeapon->ShowPickupWidget(true);
-
-	if (LastWeapon)
-		LastWeapon->ShowPickupWidget(false);
-}
-
 void AMPPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
@@ -184,32 +130,6 @@ void AMPPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	PlayerInputComponent->BindAction("Fire", IE_Released, this, &AMPPlayer::FireButtonReleased);
 }
 
-void AMPPlayer::PlayFireMontage(bool bAiming)
-{
-	if (!CombatComponent || !CombatComponent->EquippedWeapon) return;
-	UAnimInstance* PlayerAnimInstance = GetMesh()->GetAnimInstance();
-	if (PlayerAnimInstance && FireMontage)
-	{
-		PlayerAnimInstance->Montage_Play(FireMontage);
-		FName SectionName = bAiming ? FName("RifleAim") : FName("RifleHip");
-		PlayerAnimInstance->Montage_JumpToSection(SectionName);
-	}
-}
-
-void AMPPlayer::PlayHitReactMontage()
-{
-	if (!CombatComponent || !CombatComponent->EquippedWeapon) return;
-	UAnimInstance* PlayerAnimInstance = GetMesh()->GetAnimInstance();
-	if (PlayerAnimInstance && HitReactMontage)
-	{
-		PlayerAnimInstance->Montage_Play(HitReactMontage);
-		FName SectionName("From Front");
-		PlayerAnimInstance->Montage_JumpToSection(SectionName);
-	}
-}
-
-
-
 void AMPPlayer::FireButtonPressed()
 {
 	if (CombatComponent)
@@ -223,33 +143,6 @@ void AMPPlayer::FireButtonReleased()
 	if (CombatComponent)
 	{
 		CombatComponent->FirePressed(false);
-	}
-
-}
-
-void AMPPlayer::HidePlayerIfCameraTooClose()
-{
-	if (!IsLocallyControlled()) return;
-
-	if ( (FollowCamera->GetComponentLocation() - GetActorLocation()).Size() < AMPPlayer::CameraThreshold)
-	{
-		GetMesh()->SetVisibility(false);
-
-		if (CombatComponent && CombatComponent->EquippedWeapon && CombatComponent->EquippedWeapon->GetWeaponMesh())
-		{
-			CombatComponent->EquippedWeapon->GetWeaponMesh()->bOwnerNoSee = true;
-		}
-	}
-
-	else
-	{
-		GetMesh()->SetVisibility(true);
-
-		if (CombatComponent && CombatComponent->EquippedWeapon && CombatComponent->EquippedWeapon->GetWeaponMesh())
-		{
-			CombatComponent->EquippedWeapon->GetWeaponMesh()->bOwnerNoSee = false;
-		}
-
 	}
 
 }
@@ -301,6 +194,12 @@ void AMPPlayer::EquipWeapon()
 	}
 }
 
+void AMPPlayer::ServerEquipPressed_Implementation()
+{
+	if (CombatComponent)
+		CombatComponent->EquipWeapon(OverlappedWeapon);
+}
+
 void AMPPlayer::Jump()
 {
 	if (bIsCrouched)
@@ -312,12 +211,6 @@ void AMPPlayer::Jump()
 	{
 		Super::Jump();
 	}
-}
-
-void AMPPlayer::ServerEquipPressed_Implementation()
-{
-	if (CombatComponent)
-		CombatComponent->EquipWeapon(OverlappedWeapon);
 }
 
 void AMPPlayer::CrouchAction()
@@ -339,6 +232,131 @@ void AMPPlayer::AimReleased()
 {
 	if (CombatComponent)
 		CombatComponent->SetAiming(false);
+}
+
+bool AMPPlayer::IsWeaponEquipped()
+{
+	return CombatComponent && CombatComponent->EquippedWeapon;
+}
+
+bool AMPPlayer::IsAiming()
+{
+	return CombatComponent->bAim;
+}
+
+AWeapons* AMPPlayer::GetEquippedWeapon()
+{
+	if (CombatComponent == nullptr) return nullptr;
+
+	return CombatComponent->EquippedWeapon;
+}
+
+FVector AMPPlayer::GetHitTarget() const
+{
+	return CombatComponent == nullptr ? FVector() : CombatComponent->HitTarget;
+}
+
+FString AMPPlayer::GetPlayerName()
+{
+	APlayerState* OurPlayerState = this->GetPlayerState();
+	FString OurPlayerName;
+
+	if (OurPlayerState)
+		OurPlayerName = OurPlayerState->GetPlayerName();
+
+	return OurPlayerName;
+}
+
+//THIS FUNC IS SETTING OVERLAPPEDWEAPON ON EVERY CALL WHICH IN TURN IS CALLING REP NOTIFY
+void AMPPlayer::SetOverlappingWeapon(AWeapons* Weapon)
+{
+	//THIS CONDITION IS TO HIDE PICKUP WIDGET ON SERVER SIDE PAWN
+
+	if (!Weapon)
+	{
+		OverlappedWeapon->ShowPickupWidget(false);
+	}
+
+	OverlappedWeapon = Weapon;
+
+	//THIS CONDITION IS TO SHOW PICKUP WIDGET ON SERVER SIDE PAWN
+	if (IsLocallyControlled())
+	{
+		if (OverlappedWeapon)
+		{
+			OverlappedWeapon->ShowPickupWidget(true);
+		}
+	}
+}
+
+void AMPPlayer::MulticastHitMontage_Implementation()
+{
+	PlayHitReactMontage();
+}
+
+void AMPPlayer::OnRep_OverlappedWeapon(AWeapons* LastWeapon)
+{
+	if (OverlappedWeapon)
+		OverlappedWeapon->ShowPickupWidget(true);
+
+	if (LastWeapon)
+		LastWeapon->ShowPickupWidget(false);
+}
+
+void AMPPlayer::OnRep_HealthChange()
+{
+
+}
+
+void AMPPlayer::PlayFireMontage(bool bAiming)
+{
+	if (!CombatComponent || !CombatComponent->EquippedWeapon) return;
+	UAnimInstance* PlayerAnimInstance = GetMesh()->GetAnimInstance();
+	if (PlayerAnimInstance && FireMontage)
+	{
+		PlayerAnimInstance->Montage_Play(FireMontage);
+		FName SectionName = bAiming ? FName("RifleAim") : FName("RifleHip");
+		PlayerAnimInstance->Montage_JumpToSection(SectionName);
+	}
+}
+
+void AMPPlayer::PlayHitReactMontage()
+{
+	if (!CombatComponent || !CombatComponent->EquippedWeapon) return;
+	UAnimInstance* PlayerAnimInstance = GetMesh()->GetAnimInstance();
+	if (PlayerAnimInstance && HitReactMontage)
+	{
+		PlayerAnimInstance->Montage_Play(HitReactMontage);
+		FName SectionName("From Front");
+		PlayerAnimInstance->Montage_JumpToSection(SectionName);
+	}
+}
+
+void AMPPlayer::HidePlayerIfCameraTooClose()
+{
+	if (!IsLocallyControlled()) return;
+
+	if ( (FollowCamera->GetComponentLocation() - GetActorLocation()).Size() < AMPPlayer::CameraThreshold)
+	{
+		GetMesh()->SetVisibility(false);
+
+		if (CombatComponent && CombatComponent->EquippedWeapon && CombatComponent->EquippedWeapon->GetWeaponMesh())
+		{
+			CombatComponent->EquippedWeapon->GetWeaponMesh()->bOwnerNoSee = true;
+		}
+	}
+
+	else
+	{
+		GetMesh()->SetVisibility(true);
+
+		if (CombatComponent && CombatComponent->EquippedWeapon && CombatComponent->EquippedWeapon->GetWeaponMesh())
+		{
+			CombatComponent->EquippedWeapon->GetWeaponMesh()->bOwnerNoSee = false;
+		}
+
+	}
+
 }
 
 void AMPPlayer::AimOffset(float DeltaTime)
@@ -410,16 +428,5 @@ void AMPPlayer::TurnInPlace(float DeltaTime)
 	}
 }
 
-
-FString AMPPlayer::GetPlayerName()
-{
-	APlayerState* OurPlayerState = this->GetPlayerState();
-	FString OurPlayerName;
-
-	if (OurPlayerState)
-		OurPlayerName = OurPlayerState->GetPlayerName();
-
-	return OurPlayerName;
-}
 
 

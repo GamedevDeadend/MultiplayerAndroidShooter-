@@ -17,6 +17,8 @@ public:
 
 private:
 
+	bool bIsHittingPlayer = false;
+
 	UPROPERTY(EditAnywhere)
 		class UBoxComponent* CollisionBox;
 
@@ -30,6 +32,9 @@ private:
 
 	UPROPERTY(EditAnywhere)
 		UParticleSystem* ImpactParticles;
+
+	UPROPERTY(EditAnywhere)
+		UParticleSystem* OtherPlayerImpactParticles;
 
 	UPROPERTY(EditAnywhere)
 		class USoundCue* ImpactSound;

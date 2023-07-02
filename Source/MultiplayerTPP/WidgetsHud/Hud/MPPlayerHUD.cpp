@@ -2,6 +2,16 @@
 
 
 #include "MPPlayerHUD.h"
+#include "MultiplayerTPP/WidgetsHud/PlayerOverlay.h"
+
+
+void AMPPlayerHUD::BeginPlay()
+{
+	Super::BeginPlay();
+
+	AddPlayerOverlay();
+}
+
 
 void AMPPlayerHUD::DrawHUD()
 {
@@ -65,4 +75,15 @@ void AMPPlayerHUD::DrawCrosshair(UTexture2D* Texture, FVector2D ViewportCenter, 
 		1.f,
 		Color
 	);
+}
+
+void AMPPlayerHUD::AddPlayerOverlay()
+{
+	APlayerController* OwningPlayerController = GetOwningPlayerController();
+
+	if (OwningPlayerController && OverlayClass)
+	{
+		PlayerOverlay = CreateWidget<UPlayerOverlay>(OwningPlayerController, OverlayClass);
+		PlayerOverlay->AddToViewport();
+	}
 }

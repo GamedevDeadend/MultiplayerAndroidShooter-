@@ -76,7 +76,7 @@ void AProjectile::OnHit
 	if (Player)
 	{
 		Player->MulticastHitMontage();
-		//Player->PlayHitReactMontage();
+		bIsHittingPlayer = true;
 	}
 
 	Destroy();
@@ -86,10 +86,22 @@ void AProjectile::OnHit
 
 void AProjectile::Destroyed()
 {
-	if (ImpactParticles)
+	if (bIsHittingPlayer)
 	{
-		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticles, GetActorTransform());
+		if (OtherPlayerImpactParticles)
+		{
+			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), OtherPlayerImpactParticles, GetActorTransform());
+			bIsHittingPlayer = false;
+		}
 	}
+	else
+	{
+		if (ImpactParticles)
+		{
+			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticles, GetActorTransform());
+		}
+	}
+
 
 	if (ImpactSound)
 	{

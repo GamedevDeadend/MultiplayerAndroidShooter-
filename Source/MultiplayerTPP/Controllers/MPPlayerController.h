@@ -13,5 +13,17 @@ UCLASS()
 class MULTIPLAYERTPP_API AMPPlayerController : public APlayerController
 {
 	GENERATED_BODY()
-	
+
+protected:
+
+	virtual void BeginPlay() override;
+
+private:
+
+	class AMPPlayerHUD* PlayerHUD;
+
+public:
+
+	void SetHUDHealth(float MaxHealth, float CurrentHealth);
+
 };
