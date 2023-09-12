@@ -18,7 +18,6 @@ void UMPPAnimInstance::NativeInitializeAnimation()
 void UMPPAnimInstance::NativeUpdateAnimation(float Deltatime)
 {
 
-
 	Super::NativeUpdateAnimation(Deltatime);
 
 	if (MPPlayer == nullptr)
@@ -40,6 +39,7 @@ void UMPPAnimInstance::NativeUpdateAnimation(float Deltatime)
 	bIsCrouch = MPPlayer->bIsCrouched;
 	bIsPlayerAiming = MPPlayer->IsAiming();
 	TurningInplace = MPPlayer->GetTurningState();
+	bIsEliminated = MPPlayer->GetIsEliminated();
 
 	FRotator AimRotation = MPPlayer->GetBaseAimRotation();
 	FRotator MovementRotation = UKismetMathLibrary::MakeRotFromX(MPPlayer->GetVelocity());

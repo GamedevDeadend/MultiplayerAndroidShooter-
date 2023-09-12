@@ -70,6 +70,9 @@ private:
 	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
 		bool bIsLocallyControlled;
 
+	UPROPERTY(BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"))
+		bool bIsEliminated;
+
 	FRotator PlayerRotationLastFrame;
 	FRotator PlayerRotation;
 	FRotator DeltaRotation;

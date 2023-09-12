@@ -25,6 +25,10 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	void PlayFireMontage(bool bAiming);
 	void PlayHitReactMontage();
+	void PlayElimMontage();
+
+	UFUNCTION(NetMulticast, Reliable)
+		void Elim();
 
 
 protected:
@@ -100,9 +104,13 @@ private:
 	UPROPERTY(EditAnywhere, Category = Combat)
 		class UAnimMontage*	HitReactMontage;
 
+	UPROPERTY(EditAnywhere, Category = Combat)
+		class UAnimMontage* EliminationMontage;
+
 	float AO_Yaw;
 	float AO_Pitch;
 	float InterpAo_Yaw;
+	bool bIsEliminated = false;
 	ETurningInPlace TurningInplace;
 	class AMPPlayerController* MPPlayerController;
 
@@ -127,6 +135,7 @@ public:
 	FORCEINLINE float GetAimPitch() const { return AO_Pitch; }
 	FORCEINLINE ETurningInPlace GetTurningState() const { return TurningInplace; }
 	FORCEINLINE UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+	FORCEINLINE bool GetIsEliminated()const { return bIsEliminated;  }
 	AWeapons* GetEquippedWeapon();
 	FVector GetHitTarget()const;
 };

@@ -14,6 +14,7 @@
 #include "Components/SpotLightComponent.h"
 #include "MultiplayerTPP/MultiplayerTPP.h"
 #include "MultiplayerTPP/Controllers/MPPlayerController.h"
+#include "MultiplayerTPP/GameMode/DeathMatch_GM.h"
 
 AMPPlayer::AMPPlayer()
 {
@@ -332,6 +333,15 @@ void AMPPlayer::PlayHitReactMontage()
 	}
 }
 
+void AMPPlayer::PlayElimMontage()
+{
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (EliminationMontage && AnimInstance)
+	{
+		AnimInstance->Montage_Play(EliminationMontage);
+	}
+}
+
 void AMPPlayer::HidePlayerIfCameraTooClose()
 {
 	if (!IsLocallyControlled()) return;
@@ -368,11 +378,30 @@ void AMPPlayer::UpdateHealthHUD()
 	}
 }
 
+void AMPPlayer::Elim_Implementation()
+{
+	bIsEliminated = true;
+	PlayElimMontage();
+}
+
 void AMPPlayer::TakeDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, class AController* InstigatorController, AActor* DamageCauser)
 {
 	CurrentHealth = FMath::Clamp(CurrentHealth - Damage, 0.0f, MaxHealth);
 	PlayHitReactMontage();
 	UpdateHealthHUD();
+
+	if (CurrentHealth == 0.0f)
+	{
+		ADeathMatch_GM* DeathMatch_GM = GetWorld()->GetAuthGameMode<ADeathMatch_GM>();
+
+		if (DeathMatch_GM)
+		{
+			MPPlayerController = MPPlayerController ? MPPlayerController : Cast<AMPPlayerController>(Controller);
+			AMPPlayerController* AttackPlayercontroller = Cast<AMPPlayerController>(InstigatorController);
+
+			DeathMatch_GM->PlayerEliminated(this, MPPlayerController, AttackPlayercontroller);
+		}
+	}
 
 }
 

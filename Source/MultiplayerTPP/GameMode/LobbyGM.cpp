@@ -27,7 +27,7 @@ void ALobbyGM::StartLvlTravel()
 	if (World != nullptr)
 	{
 		bUseSeamlessTravel = true;
-		World->ServerTravel(FString("/Game/Maps/StartLvl?listen"));
+		World->ServerTravel(FString("/Game/Maps/SoloDeathMatch?listen"));
 		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Cyan, FString("Our dunction worked 2"));
 	}
 
