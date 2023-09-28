@@ -15,6 +15,7 @@
 #include "MultiplayerTPP/MultiplayerTPP.h"
 #include "MultiplayerTPP/Controllers/MPPlayerController.h"
 #include "MultiplayerTPP/GameMode/DeathMatch_GM.h"
+#include "TimerManager.h"
 
 AMPPlayer::AMPPlayer()
 {
@@ -261,6 +262,7 @@ FVector AMPPlayer::GetHitTarget() const
 	return CombatComponent == nullptr ? FVector() : CombatComponent->HitTarget;
 }
 
+
 FString AMPPlayer::GetPlayerName()
 {
 	APlayerState* OurPlayerState = this->GetPlayerState();
@@ -378,10 +380,28 @@ void AMPPlayer::UpdateHealthHUD()
 	}
 }
 
-void AMPPlayer::Elim_Implementation()
+void AMPPlayer::Elim()
+{
+	GetWorldTimerManager().SetTimer(ElimDelayTimer, this, &ThisClass::EliminationFinished, ElimDelay);
+
+	MulticastElim();
+}
+
+void AMPPlayer::MulticastElim_Implementation()
 {
 	bIsEliminated = true;
 	PlayElimMontage();
+}
+
+void AMPPlayer::EliminationFinished()
+{
+	ADeathMatch_GM* DeathMatchGM = GetWorld()->GetAuthGameMode<ADeathMatch_GM>();
+
+	if (DeathMatchGM)
+	{
+		DeathMatchGM->RequestRespawn(this, Controller);
+	}
+
 }
 
 void AMPPlayer::TakeDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, class AController* InstigatorController, AActor* DamageCauser)

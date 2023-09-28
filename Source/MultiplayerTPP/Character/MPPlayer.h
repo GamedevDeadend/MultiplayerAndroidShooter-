@@ -26,9 +26,10 @@ public:
 	void PlayFireMontage(bool bAiming);
 	void PlayHitReactMontage();
 	void PlayElimMontage();
+	void Elim();
 
 	UFUNCTION(NetMulticast, Reliable)
-		void Elim();
+		void MulticastElim();
 
 
 protected:
@@ -113,6 +114,14 @@ private:
 	bool bIsEliminated = false;
 	ETurningInPlace TurningInplace;
 	class AMPPlayerController* MPPlayerController;
+
+	FTimerHandle ElimDelayTimer;
+
+
+	void EliminationFinished();
+
+	UPROPERTY(EditDefaultsOnly)
+	float ElimDelay = 3.0f;
 
 	UPROPERTY(Replicated)
 		FRotator StartAimRotation;
