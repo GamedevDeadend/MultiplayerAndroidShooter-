@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "MultiplayerTPP/Types/TurningInPlace.h"
 #include "MultiplayerTPP/Interfaces/InteractWithCrosshairs.h"
+#include "Components/TimelineComponent.h"
 #include "MPPlayer.generated.h"
 
 class UCombatComponent;
@@ -57,9 +58,10 @@ private:
 	void FireButtonReleased();
 	void HidePlayerIfCameraTooClose();
 	void UpdateHealthHUD();
+	void EliminationFinished();
 
 	UFUNCTION()
-	void TakeDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, class AController* InstigatorController, AActor* DamageCauser);
+		void TakeDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, class AController* InstigatorController, AActor* DamageCauser);
 
 	// Server side rpc method are already implemneted we have to just extend implementation by using _Implementation 
 	UFUNCTION(Server, Reliable)
@@ -71,11 +73,19 @@ private:
 	UFUNCTION()
 		void OnRep_HealthChange();
 
+	UFUNCTION()
+		void StartDissolveMaterial();
+
+	UFUNCTION()
+		void UpdateDissolveMaterial(float DissolveValue);
+
+
+
 	UPROPERTY(EditAnywhere, Category  = "Player Stats")
-	float MaxHealth = 100.0f;
+		float MaxHealth = 100.0f;
 
 	UPROPERTY(ReplicatedUsing = OnRep_HealthChange,VisibleAnywhere, Category = "Player Stats")
-	float CurrentHealth = MaxHealth;
+		float CurrentHealth = MaxHealth;
 
 	UPROPERTY(EditAnywhere, Category = Combat)
 		UCombatComponent* CombatComponent;
@@ -90,7 +100,7 @@ private:
 		UCameraComponent* FollowCamera;
 
 	UPROPERTY(EditAnywhere, Category = Camera)
-	float CameraThreshold = 200.0f;
+		float CameraThreshold = 200.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadonly, meta = (Allowprivateaccess = true))
 		UWidgetComponent* OverHead;
@@ -108,26 +118,37 @@ private:
 	UPROPERTY(EditAnywhere, Category = Combat)
 		class UAnimMontage* EliminationMontage;
 
+	UPROPERTY(EditDefaultsOnly)
+		float ElimDelay = 3.0f;
+
+	//Meta specifier indicating that this variable needs to be replicated
+	UPROPERTY(Replicated)
+		FRotator StartAimRotation;
+
+	/* Dissolve Material Variables*/
+
+	//Material Instance Set on blueprint, through which it's Dynamic instance will be created
+	UPROPERTY(EditAnywhere, Category = Elimination)
+		UMaterialInstance* DissolveMaterial;
+
+	//Dynamic instance of our elimination material
+	UPROPERTY(VisibleAnywhere, Category = Elimination)
+		UMaterialInstanceDynamic* DynamicDissolveMaterial;
+
+	UPROPERTY(VisibleAnywhere)
+		UTimelineComponent* DissolveTimeline;
+
+	UPROPERTY(EditAnywhere)
+		UCurveFloat* DissolveCurve;
+	
+	FOnTimelineFloat DissolveTrack;
 	float AO_Yaw;
 	float AO_Pitch;
 	float InterpAo_Yaw;
 	bool bIsEliminated = false;
 	ETurningInPlace TurningInplace;
 	class AMPPlayerController* MPPlayerController;
-
 	FTimerHandle ElimDelayTimer;
-
-
-	void EliminationFinished();
-
-	UPROPERTY(EditDefaultsOnly)
-	float ElimDelay = 3.0f;
-
-	UPROPERTY(Replicated)
-		FRotator StartAimRotation;
-
-	//Meta specifier indicating that this variable needs to be replicated
-
 
 //Getters And Setters
 public:

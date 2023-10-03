@@ -17,6 +17,7 @@
 #include "MultiplayerTPP/GameMode/DeathMatch_GM.h"
 #include "TimerManager.h"
 
+
 AMPPlayer::AMPPlayer()
 {
 
@@ -48,6 +49,9 @@ AMPPlayer::AMPPlayer()
 	GetMesh()->SetCollisionObjectType(ECC_SkeletalMesh);
 	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
+
+	DissolveTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("DissolveTimeline Component "));
+
 
 	NetUpdateFrequency = 66.0f;
 	MinNetUpdateFrequency = 33.0f;
@@ -389,8 +393,17 @@ void AMPPlayer::Elim()
 
 void AMPPlayer::MulticastElim_Implementation()
 {
+	if (DissolveMaterial == nullptr) return;
+
 	bIsEliminated = true;
 	PlayElimMontage();
+
+	DynamicDissolveMaterial = UMaterialInstanceDynamic::Create(DissolveMaterial, this);
+	GetMesh()->SetMaterial(0, DynamicDissolveMaterial);
+	DynamicDissolveMaterial->SetScalarParameterValue(TEXT("Dissolve"), -0.55f);
+	DynamicDissolveMaterial->SetScalarParameterValue(TEXT("Glow"), 200.0f);
+
+	StartDissolveMaterial();
 }
 
 void AMPPlayer::EliminationFinished()
@@ -402,6 +415,23 @@ void AMPPlayer::EliminationFinished()
 		DeathMatchGM->RequestRespawn(this, Controller);
 	}
 
+}
+
+void AMPPlayer::StartDissolveMaterial()
+{
+	if (DissolveCurve == nullptr || DissolveTimeline == nullptr) return;
+
+	DissolveTrack.BindDynamic(this, &ThisClass::UpdateDissolveMaterial);
+	DissolveTimeline->AddInterpFloat(DissolveCurve, DissolveTrack);
+	DissolveTimeline->Play();
+}
+
+void AMPPlayer::UpdateDissolveMaterial(float DissolveValue)
+{
+	if (DynamicDissolveMaterial)
+	{
+		DynamicDissolveMaterial->SetScalarParameterValue(TEXT("Dissolve"), DissolveValue);
+	}
 }
 
 void AMPPlayer::TakeDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, class AController* InstigatorController, AActor* DamageCauser)
