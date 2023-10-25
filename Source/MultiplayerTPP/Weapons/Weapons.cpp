@@ -132,14 +132,35 @@ void AWeapons::OnSphereEndOverlap
 		Player->SetOverlappingWeapon(nullptr);
 }
 
+void AWeapons::Dropped()
+{
+	SetWeaponState(EWeaponState::EWS_Dropped);
+	FDetachmentTransformRules DetachRules(EDetachmentRule::KeepWorld, true);
+	Mesh->DetachFromComponent(DetachRules);
+	SetOwner(nullptr);
+}
+
 void AWeapons::SetWeaponState(EWeaponState State)
 {
 	WeaponState = State;
 	switch (WeaponState)
 	{
 		case EWeaponState::EWS_Equipped:
+			Mesh->SetSimulatePhysics(false);
+			Mesh->SetEnableGravity(false);
+			Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 			ShowPickupWidget(false);
 			OverlapAreaSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		break; 
+
+		case EWeaponState::EWS_Dropped:
+			if (HasAuthority())
+			{
+				OverlapAreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+			}
+			Mesh->SetSimulatePhysics(true);
+			Mesh->SetEnableGravity(true);
+			Mesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		break;
 	}
 }
@@ -150,8 +171,18 @@ void AWeapons::OnRep_WeaponState()
 	{
 		case EWeaponState::EWS_Equipped:
 			ShowPickupWidget(false);
-			//OverlapAreaSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			Mesh->SetSimulatePhysics(false);
+			Mesh->SetEnableGravity(false);
+			Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		break;
+
+			//OverlapAreaSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		case EWeaponState::EWS_Dropped:
+			Mesh->SetSimulatePhysics(true);
+			Mesh->SetEnableGravity(true);
+			Mesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		break;
+
 	}
 }
 

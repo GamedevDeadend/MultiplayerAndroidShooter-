@@ -111,9 +111,12 @@ protected:
 			int32 OtherBodyIndex
 		);
 
+
+
 	//Getters And Setters
 public:
 
+	virtual void Dropped();
 	void SetWeaponState(EWeaponState State);
 	FORCEINLINE USkeletalMeshComponent* GetWeaponMesh() const { return Mesh; }
 	FORCEINLINE float GetZoomedFOV()const { return ZoomFOV; }

@@ -386,24 +386,42 @@ void AMPPlayer::UpdateHealthHUD()
 
 void AMPPlayer::Elim()
 {
-	GetWorldTimerManager().SetTimer(ElimDelayTimer, this, &ThisClass::EliminationFinished, ElimDelay);
+	if (CombatComponent && CombatComponent->EquippedWeapon)
+	{
+		CombatComponent->EquippedWeapon->Dropped();
+	}
 
 	MulticastElim();
+	GetWorldTimerManager().SetTimer(ElimDelayTimer, this, &ThisClass::EliminationFinished, ElimDelay);
 }
 
 void AMPPlayer::MulticastElim_Implementation()
 {
-	if (DissolveMaterial == nullptr) return;
+	if (DissolveMaterialInstance == nullptr) return;
 
 	bIsEliminated = true;
 	PlayElimMontage();
 
-	DynamicDissolveMaterial = UMaterialInstanceDynamic::Create(DissolveMaterial, this);
-	GetMesh()->SetMaterial(0, DynamicDissolveMaterial);
-	DynamicDissolveMaterial->SetScalarParameterValue(TEXT("Dissolve"), -0.55f);
-	DynamicDissolveMaterial->SetScalarParameterValue(TEXT("Glow"), 200.0f);
+	//Dissolve Material Setup
+	DynamicDissolveMaterialInstance = UMaterialInstanceDynamic::Create(DissolveMaterialInstance, this);
+	GetMesh()->SetMaterial(0, DynamicDissolveMaterialInstance);
+	DynamicDissolveMaterialInstance->SetScalarParameterValue(TEXT("Dissolve"), -0.55f);
+	DynamicDissolveMaterialInstance->SetScalarParameterValue(TEXT("Glow"), 200.0f);
 
+	//Dissolve TimeLine Function
 	StartDissolveMaterial();
+
+	//Disable Movement
+	GetCharacterMovement()->DisableMovement();//Disable Key Input
+	GetCharacterMovement()->StopMovementImmediately();//Disable Mouse Inputs Too
+	if (MPPlayerController)
+	{
+		DisableInput(MPPlayerController);
+	}
+
+	//Disable Collision
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 void AMPPlayer::EliminationFinished()
@@ -419,6 +437,7 @@ void AMPPlayer::EliminationFinished()
 
 void AMPPlayer::StartDissolveMaterial()
 {
+	// Setting and Binding Runtime Material & Timeline
 	if (DissolveCurve == nullptr || DissolveTimeline == nullptr) return;
 
 	DissolveTrack.BindDynamic(this, &ThisClass::UpdateDissolveMaterial);
@@ -428,9 +447,9 @@ void AMPPlayer::StartDissolveMaterial()
 
 void AMPPlayer::UpdateDissolveMaterial(float DissolveValue)
 {
-	if (DynamicDissolveMaterial)
+	if (DynamicDissolveMaterialInstance)
 	{
-		DynamicDissolveMaterial->SetScalarParameterValue(TEXT("Dissolve"), DissolveValue);
+		DynamicDissolveMaterialInstance->SetScalarParameterValue(TEXT("Dissolve"), DissolveValue);
 	}
 }
 

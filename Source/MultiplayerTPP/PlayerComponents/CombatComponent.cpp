@@ -260,8 +260,19 @@ void UCombatComponent::OnRep_WeaponEquip()
 {
 	if (EquippedWeapon && MPPlayer)
 	{
+		EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
+
+		MPPlayer->SetBaseAimRotation(FRotator(0.0f, MPPlayer->GetBaseAimRotation().Yaw, 0.0f));
+
+		const USkeletalMeshSocket* HandSocket = MPPlayer->GetMesh()->GetSocketByName(FName("RightHandSocket"));
+
+		if (HandSocket)
+		{
+			HandSocket->AttachActor(EquippedWeapon, MPPlayer->GetMesh());
+		}
 		MPPlayer->GetCharacterMovement()->bOrientRotationToMovement = false;
 		MPPlayer->bUseControllerRotationYaw = true;
+		MPPlayer->GetCharacterMovement()->JumpZVelocity = MPPlayer->IsWeaponEquipped() ? EquipJumpVelociy : BaseJumpVelocity;
 	}
 }
 

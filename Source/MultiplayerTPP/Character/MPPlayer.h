@@ -129,11 +129,11 @@ private:
 
 	//Material Instance Set on blueprint, through which it's Dynamic instance will be created
 	UPROPERTY(EditAnywhere, Category = Elimination)
-		UMaterialInstance* DissolveMaterial;
+		UMaterialInstance* DissolveMaterialInstance;
 
 	//Dynamic instance of our elimination material
 	UPROPERTY(VisibleAnywhere, Category = Elimination)
-		UMaterialInstanceDynamic* DynamicDissolveMaterial;
+		UMaterialInstanceDynamic* DynamicDissolveMaterialInstance;
 
 	UPROPERTY(VisibleAnywhere)
 		UTimelineComponent* DissolveTimeline;
