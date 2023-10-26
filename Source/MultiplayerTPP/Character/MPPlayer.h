@@ -32,12 +32,15 @@ public:
 	UFUNCTION(NetMulticast, Reliable)
 		void MulticastElim();
 
+	virtual void Destroyed() override;
+
 
 protected:
 
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	
 
 
 private:
@@ -140,6 +143,16 @@ private:
 
 	UPROPERTY(EditAnywhere)
 		UCurveFloat* DissolveCurve;
+
+	//Elim_Bot
+	UPROPERTY(VisibleAnywhere)
+	UParticleSystemComponent* ElimBotParticleComponent;
+
+	UPROPERTY(EditAnywhere)
+	UParticleSystem* ElimBotParticleEffect;
+
+	UPROPERTY(EditAnywhere)
+	class USoundCue* ElimBotSound;
 	
 	FOnTimelineFloat DissolveTrack;
 	float AO_Yaw;

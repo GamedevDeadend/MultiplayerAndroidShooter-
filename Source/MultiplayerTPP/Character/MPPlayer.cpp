@@ -16,6 +16,9 @@
 #include "MultiplayerTPP/Controllers/MPPlayerController.h"
 #include "MultiplayerTPP/GameMode/DeathMatch_GM.h"
 #include "TimerManager.h"
+#include "Kismet/GameplayStatics.h"
+#include "Sound/SoundCue.h"
+#include "Particles/ParticleSystemComponent.h"
 
 
 AMPPlayer::AMPPlayer()
@@ -411,6 +414,27 @@ void AMPPlayer::MulticastElim_Implementation()
 	//Dissolve TimeLine Function
 	StartDissolveMaterial();
 
+	/*Elimination hoverring Bot*/
+	if (ElimBotParticleEffect)
+	{
+		FVector ElimBotSpawnPoint(GetActorLocation().X, GetActorLocation().Y, GetActorLocation().Z + 200.f);
+		ElimBotParticleComponent = UGameplayStatics::SpawnEmitterAtLocation(
+			GetWorld(),
+			ElimBotParticleEffect,
+			ElimBotSpawnPoint,
+			GetActorRotation()
+		);
+	}
+	if (ElimBotSound)
+	{
+		UGameplayStatics::SpawnSoundAtLocation(
+			this,
+			ElimBotSound,
+			GetActorLocation()
+		);
+	}
+
+
 	//Disable Movement
 	GetCharacterMovement()->DisableMovement();//Disable Key Input
 	GetCharacterMovement()->StopMovementImmediately();//Disable Mouse Inputs Too
@@ -472,6 +496,16 @@ void AMPPlayer::TakeDamage(AActor* DamagedActor, float Damage, const UDamageType
 		}
 	}
 
+}
+
+void AMPPlayer::Destroyed()
+{
+	Super::Destroyed();
+
+	if (ElimBotParticleComponent)
+	{
+		ElimBotParticleComponent->DestroyComponent();
+	}
 }
 
 void AMPPlayer::AimOffset(float DeltaTime)

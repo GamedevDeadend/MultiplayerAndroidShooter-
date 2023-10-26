@@ -17,6 +17,7 @@
 
 
 
+
 UCombatComponent::UCombatComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
