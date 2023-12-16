@@ -62,6 +62,10 @@ private:
 	void HidePlayerIfCameraTooClose();
 	void UpdateHealthHUD();
 	void EliminationFinished();
+	/// <summary>
+	/// poll for any relevant classes and intialize them.
+	/// </summary>
+	void PollInit();
 
 	UFUNCTION()
 		void TakeDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, class AController* InstigatorController, AActor* DamageCauser);
@@ -162,6 +166,7 @@ private:
 	ETurningInPlace TurningInplace;
 	class AMPPlayerController* MPPlayerController;
 	FTimerHandle ElimDelayTimer;
+	class AMPPlayerState* MPPlayerState;
 
 //Getters And Setters
 public:
@@ -179,6 +184,8 @@ public:
 	FORCEINLINE ETurningInPlace GetTurningState() const { return TurningInplace; }
 	FORCEINLINE UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 	FORCEINLINE bool GetIsEliminated()const { return bIsEliminated;  }
+	FORCEINLINE float GetHealth()const { return CurrentHealth; }
+	FORCEINLINE float GetMaxHealth()const { return MaxHealth; }
 	AWeapons* GetEquippedWeapon();
 	FVector GetHitTarget()const;
 };

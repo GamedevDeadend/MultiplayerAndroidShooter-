@@ -25,5 +25,8 @@ private:
 public:
 
 	void SetHUDHealth(float MaxHealth, float CurrentHealth);
+	void SetHUDScore(float Score);
+
+	virtual void OnPossess(APawn* InPawn) override;
 
 };

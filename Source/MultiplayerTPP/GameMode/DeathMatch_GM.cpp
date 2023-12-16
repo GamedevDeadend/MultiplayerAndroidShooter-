@@ -6,9 +6,19 @@
 #include "MultiplayerTPP/Controllers/MPPlayerController.h"
 #include"Kismet/GameplayStatics.h"
 #include "GameFramework/PlayerStart.h"
+#include "MultiplayerTPP/PlayerState/MPPlayerState.h"
 
 void ADeathMatch_GM::PlayerEliminated(AMPPlayer* EliminatedCharacter, AMPPlayerController* EliminatedPlayerController, AMPPlayerController* AttackingPlayerController)
 {
+
+	AMPPlayerState* AttackerPlayerState = AttackingPlayerController ? Cast<AMPPlayerState>(AttackingPlayerController->PlayerState) : nullptr;
+	AMPPlayerState* EliminatedPlayerState = EliminatedPlayerController ? Cast<AMPPlayerState>(EliminatedPlayerController->PlayerState) : nullptr;
+
+	if (AttackerPlayerState == EliminatedPlayerState) return;
+
+	AttackerPlayerState->AddToScore(1.f);
+
+	if(EliminatedCharacter)
 	EliminatedCharacter->Elim();
 }
 

@@ -19,6 +19,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundCue.h"
 #include "Particles/ParticleSystemComponent.h"
+#include "MultiplayerTPP/PlayerState/MPPlayerState.h"
 
 
 AMPPlayer::AMPPlayer()
@@ -118,6 +119,7 @@ void AMPPlayer::Tick(float DeltaTime)
 
 	AimOffset(DeltaTime);
 	HidePlayerIfCameraTooClose();
+	PollInit();
 
 	//if( HasAuthority() && !IsLocallyControlled() )
 	//UE_LOG(LogTemp, Warning, TEXT("Pitch Rotation %f"), AO_Pitch);
@@ -474,6 +476,18 @@ void AMPPlayer::UpdateDissolveMaterial(float DissolveValue)
 	if (DynamicDissolveMaterialInstance)
 	{
 		DynamicDissolveMaterialInstance->SetScalarParameterValue(TEXT("Dissolve"), DissolveValue);
+	}
+}
+
+void AMPPlayer::PollInit()
+{
+	if (MPPlayerState == nullptr)
+	{
+		MPPlayerState = GetPlayerState<AMPPlayerState>();
+		if (MPPlayerState)
+		{
+			MPPlayerState->AddToScore(0.f);
+		}
 	}
 }
 
