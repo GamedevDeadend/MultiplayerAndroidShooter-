@@ -17,12 +17,15 @@ class MULTIPLAYERTPP_API UPlayerOverlay : public UUserWidget
 public:
 
 	UPROPERTY(meta = (BindWidget))
-		class UProgressBar* HealthBar;
+		TObjectPtr<class UProgressBar> HealthBar;
 
 	UPROPERTY(meta = (BindWidget))
-		class UTextBlock* HealthText;
+		TObjectPtr<class UTextBlock> HealthText;
 
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UTextBlock> ScoreAmt;
+		TObjectPtr<class UTextBlock> ScoreAmt;
+
+	UPROPERTY(meta = (BindWidget))
+		TObjectPtr<class UTextBlock> DefeatAmt;
 	
 };

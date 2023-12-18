@@ -487,6 +487,7 @@ void AMPPlayer::PollInit()
 		if (MPPlayerState)
 		{
 			MPPlayerState->AddToScore(0.f);
+			MPPlayerState->AddToDefeat(0);
 		}
 	}
 }

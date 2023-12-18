@@ -166,7 +166,9 @@ private:
 	ETurningInPlace TurningInplace;
 	class AMPPlayerController* MPPlayerController;
 	FTimerHandle ElimDelayTimer;
-	class AMPPlayerState* MPPlayerState;
+
+	UPROPERTY()
+	TObjectPtr<class AMPPlayerState> MPPlayerState;
 
 //Getters And Setters
 public:

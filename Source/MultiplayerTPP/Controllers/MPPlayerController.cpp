@@ -36,12 +36,26 @@ void AMPPlayerController::SetHUDScore(float Score)
 	PlayerHUD = PlayerHUD == nullptr ? Cast<AMPPlayerHUD>(GetHUD()) : PlayerHUD;
 
 
-	bool bIsValidPlayerOverlay = PlayerHUD && PlayerHUD->PlayerOverlay && PlayerHUD->PlayerOverlay->HealthBar && PlayerHUD->PlayerOverlay->HealthText;
+	bool bIsValidPlayerOverlay = PlayerHUD && PlayerHUD->PlayerOverlay && PlayerHUD->PlayerOverlay->ScoreAmt;
 
 	if (bIsValidPlayerOverlay)
 	{
 		FString ScoreAmt = FString::Printf(TEXT("%d"), FMath::FloorToInt(Score));
 		PlayerHUD->PlayerOverlay->ScoreAmt->SetText(FText::FromString(ScoreAmt));
+	}
+}
+
+void AMPPlayerController::SetHUDDefeats(int Defeats)
+{
+	PlayerHUD = PlayerHUD == nullptr ? Cast<AMPPlayerHUD>(GetHUD()) : PlayerHUD;
+
+
+	bool bIsValidPlayerOverlay = PlayerHUD && PlayerHUD->PlayerOverlay && PlayerHUD->PlayerOverlay->DefeatAmt;
+
+	if (bIsValidPlayerOverlay)
+	{
+		FString DefeatAmt = FString::Printf(TEXT("%d"), Defeats);
+		PlayerHUD->PlayerOverlay->DefeatAmt->SetText(FText::FromString(DefeatAmt));
 	}
 }
 

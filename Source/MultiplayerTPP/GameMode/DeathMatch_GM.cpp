@@ -10,13 +10,21 @@
 
 void ADeathMatch_GM::PlayerEliminated(AMPPlayer* EliminatedCharacter, AMPPlayerController* EliminatedPlayerController, AMPPlayerController* AttackingPlayerController)
 {
+	if (AttackingPlayerController == nullptr || AttackingPlayerController->PlayerState == nullptr) return;
+	if (EliminatedPlayerController == nullptr || EliminatedPlayerController->PlayerState == nullptr) return;
 
 	AMPPlayerState* AttackerPlayerState = AttackingPlayerController ? Cast<AMPPlayerState>(AttackingPlayerController->PlayerState) : nullptr;
 	AMPPlayerState* EliminatedPlayerState = EliminatedPlayerController ? Cast<AMPPlayerState>(EliminatedPlayerController->PlayerState) : nullptr;
 
-	if (AttackerPlayerState == EliminatedPlayerState) return;
-
-	AttackerPlayerState->AddToScore(1.f);
+	if (AttackerPlayerState && AttackerPlayerState != EliminatedPlayerState)
+	{
+		AttackerPlayerState->AddToScore(1.f);
+	}
+		
+	if (EliminatedPlayerState)
+	{
+		EliminatedPlayerState->AddToDefeat(1);
+	}
 
 	if(EliminatedCharacter)
 	EliminatedCharacter->Elim();

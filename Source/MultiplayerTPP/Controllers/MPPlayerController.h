@@ -26,6 +26,7 @@ public:
 
 	void SetHUDHealth(float MaxHealth, float CurrentHealth);
 	void SetHUDScore(float Score);
+	void SetHUDDefeats(int Defeats);
 
 	virtual void OnPossess(APawn* InPawn) override;
 
