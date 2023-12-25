@@ -168,7 +168,7 @@ private:
 	FTimerHandle ElimDelayTimer;
 
 	UPROPERTY()
-	TObjectPtr<class AMPPlayerState> MPPlayerState;
+	TObjectPtr<class AMPPlayerState> MPPlayerState = nullptr;
 
 //Getters And Setters
 public:

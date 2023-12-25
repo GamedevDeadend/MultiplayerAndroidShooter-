@@ -36,7 +36,8 @@ public:
 	virtual void DrawHUD()override;
 
 	//Health Widget
-	class UPlayerOverlay* PlayerOverlay;
+	UPROPERTY()
+	class UPlayerOverlay* PlayerOverlay = nullptr;
 
 protected:
 
@@ -50,8 +51,8 @@ private:
 	UPROPERTY(EditAnywhere, Category = " Player Overlay")
 	TSubclassOf<class UUserWidget> OverlayClass;
 
-
 	FHUDPackage HUDPackage;
+
 	void DrawCrosshair(UTexture2D* Texture, FVector2D ViewportCenter, FVector2D Spread, float Scale, FLinearColor Color);
 
 	UPROPERTY(EditAnywhere)

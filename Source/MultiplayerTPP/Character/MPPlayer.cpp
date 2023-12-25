@@ -458,7 +458,6 @@ void AMPPlayer::EliminationFinished()
 	{
 		DeathMatchGM->RequestRespawn(this, Controller);
 	}
-
 }
 
 void AMPPlayer::StartDissolveMaterial()

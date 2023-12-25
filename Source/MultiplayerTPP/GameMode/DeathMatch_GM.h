@@ -19,5 +19,4 @@ public:
 	virtual void PlayerEliminated(class AMPPlayer* EliminatedCharacter, class AMPPlayerController* EliminatedPlayerController, class AMPPlayerController* AttackingPlayerController);
 	virtual void RequestRespawn(ACharacter* ElimCharacter, AController* ElimPlayerController);
 
-	
 };

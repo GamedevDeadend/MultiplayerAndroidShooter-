@@ -20,13 +20,14 @@ protected:
 
 private:
 
-	class AMPPlayerHUD* PlayerHUD;
+	UPROPERTY()
+	class AMPPlayerHUD* PlayerHUD = nullptr;
 
 public:
 
 	void SetHUDHealth(float MaxHealth, float CurrentHealth);
 	void SetHUDScore(float Score);
-	void SetHUDDefeats(int Defeats);
+	void SetHUDDefeats(int32 Defeats);
 
 	virtual void OnPossess(APawn* InPawn) override;
 

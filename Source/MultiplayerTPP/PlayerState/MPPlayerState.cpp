@@ -5,13 +5,31 @@
 #include "MultiplayerTPP/Character/MPPlayer.h"
 #include "MultiplayerTPP/Controllers/MPPlayerController.h"
 #include "Net/UnrealNetwork.h"
+#include "TimerManager.h"
 
 
 void AMPPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(AMPPlayerState, DefeatsAmt);
+	DOREPLIFETIME_CONDITION(AMPPlayerState, DefeatsAmt, COND_OwnerOnly);
+		//(AMPPlayerState, DefeatsAmt);
+}
+
+void AMPPlayerState::AddToScore(float Amt)
+{
+	SetScore(GetScore() + Amt);
+	Character = Character == nullptr ? Cast<AMPPlayer>(GetPawn()) : Character;
+
+	if (Character && Character->Controller)
+	{
+		Controller = Controller == nullptr ? Cast<AMPPlayerController>(Character->Controller) : Controller;
+
+		if (Controller)
+		{
+			Controller->SetHUDScore(GetScore());
+		}
+	}
 }
 
 void AMPPlayerState::OnRep_Score()
@@ -21,7 +39,7 @@ void AMPPlayerState::OnRep_Score()
 	Character = Character == nullptr ? Cast<AMPPlayer>(GetPawn()) : Character;
 	if (Character && Character->Controller)
 	{
-		Controller == nullptr ? Controller = Cast<AMPPlayerController>(Character->Controller) : Controller;
+		Controller =  Controller == nullptr ? Cast<AMPPlayerController>(Character->Controller) : Controller;
 		
 		if (Controller)
 		{
@@ -30,12 +48,29 @@ void AMPPlayerState::OnRep_Score()
 	}
 }
 
+void AMPPlayerState::AddToDefeat(int32 Defeats)
+{
+	DefeatsAmt += Defeats;
+	Character = Character == nullptr ? Cast<AMPPlayer>(GetPawn()) : Character;
+
+	if (Character && Character->Controller)
+	{
+		Controller = Controller == nullptr ? Cast<AMPPlayerController>(Character->Controller) : Controller;
+
+		if (Controller)
+		{
+			Controller->SetHUDDefeats(DefeatsAmt);
+		}
+	}
+}
+
 void AMPPlayerState::OnRep_Defeats()
 {
 	Character = Character == nullptr ? Cast<AMPPlayer>(GetPawn()) : Character;
-	if (Character && Character->Controller)
+
+	if (Character)
 	{
-		Controller == nullptr ? Controller = Cast<AMPPlayerController>(Character->Controller) : Controller;
+		Controller = Controller == nullptr ?  Cast<AMPPlayerController>(Character->Controller) : Controller;
 
 		if (Controller)
 		{
@@ -44,35 +79,32 @@ void AMPPlayerState::OnRep_Defeats()
 	}
 }
 
-void AMPPlayerState::AddToScore(float Amt)
+/*  ##########TODO DISPLAY DEFEAT MESSAGE################
+void AMPPlayerState::DisplayLosingMessage()
 {
-	SetScore(GetScore() + Amt);
 	Character = Character == nullptr ? Cast<AMPPlayer>(GetPawn()) : Character;
-	
-	if (Character && Character->Controller)
+
+	if (Character)
 	{
-		Controller == nullptr ? Controller = Cast<AMPPlayerController>(Character->Controller) : Controller;
+		//Controller = Controller == nullptr ?  Cast<TObjectPtr<AMPPlayerController>>(Character->Controller) : Controller;
+		//UE_LOG(LogTemp, Warning, TEXT("Inside Display Message"));
+
+		Controller = Cast<AMPPlayerController>(Character->Controller);
 
 		if (Controller)
 		{
-			Controller->SetHUDScore(GetScore());
+			Controller->SetHUDDefeatMessage(DisplayMessage);
 		}
 	}
-}
 
-void AMPPlayerState::AddToDefeat(int Defeats)
+	FTimerHandle HideDelayTimerHanlde;
+	GetWorldTimerManager().SetTimer(HideDelayTimerHanlde,this, &ThisClass::HideHUDMessage, 1.5f, false);
+}
+void AMPPlayerState::HideHUDMessage()
 {
-	DefeatsAmt += Defeats;
-
-	Character = Character == nullptr ? Cast<AMPPlayer>(GetPawn()) : Character;
-
-	if (Character && Character->Controller)
+	if (GetPawn())
 	{
-		Controller == nullptr ? Controller = Cast<AMPPlayerController>(Character->Controller) : Controller;
-
-		if (Controller)
-		{
-			Controller->SetHUDDefeats(DefeatsAmt);
-		}
+		Cast<AMPPlayerController>(GetPawn()->GetController())->HideMessage();
 	}
-}
+}*/
+

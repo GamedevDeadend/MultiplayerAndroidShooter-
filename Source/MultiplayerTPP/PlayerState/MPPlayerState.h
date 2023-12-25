@@ -22,19 +22,25 @@ public:
 	virtual void OnRep_Defeats();
 
 	virtual void AddToScore(float Amt);
-	virtual void AddToDefeat(int DefeatAmt);
+	virtual void AddToDefeat(int32 DefeatAmt);
+	virtual void DisplayLosingMessage();
 
 private:
 
 	virtual void GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const override;
+	virtual void HideHUDMessage();
 
 	UPROPERTY()
-	TObjectPtr<class AMPPlayer> Character;
+	class AMPPlayer* Character = nullptr;
 
 	UPROPERTY()
-	TObjectPtr<class AMPPlayerController> Controller;
+	class AMPPlayerController* Controller = nullptr;
 
 	UPROPERTY(ReplicatedUsing = OnRep_Defeats)
 	int32 DefeatsAmt;
+
+	UPROPERTY(EditAnywhere, Category = "Defeated Message")
+	FString DisplayMessage;
+
 };
  

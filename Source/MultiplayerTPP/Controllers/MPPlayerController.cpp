@@ -33,10 +33,17 @@ void AMPPlayerController::SetHUDHealth(float MaxHealth, float CurrentHealth)
 
 void AMPPlayerController::SetHUDScore(float Score)
 {
+
 	PlayerHUD = PlayerHUD == nullptr ? Cast<AMPPlayerHUD>(GetHUD()) : PlayerHUD;
 
 
 	bool bIsValidPlayerOverlay = PlayerHUD && PlayerHUD->PlayerOverlay && PlayerHUD->PlayerOverlay->ScoreAmt;
+	bool bIsValidPlayerOverlayMessage = PlayerHUD && PlayerHUD->PlayerOverlay && PlayerHUD->PlayerOverlay->DisplayMessage;
+
+	if (bIsValidPlayerOverlayMessage && Score == 0.0f)
+	{
+		PlayerHUD->PlayerOverlay->DisplayMessage->SetVisibility(ESlateVisibility::Visible);
+	}
 
 	if (bIsValidPlayerOverlay)
 	{
@@ -45,7 +52,7 @@ void AMPPlayerController::SetHUDScore(float Score)
 	}
 }
 
-void AMPPlayerController::SetHUDDefeats(int Defeats)
+void AMPPlayerController::SetHUDDefeats(int32 Defeats)
 {
 	PlayerHUD = PlayerHUD == nullptr ? Cast<AMPPlayerHUD>(GetHUD()) : PlayerHUD;
 
@@ -54,6 +61,7 @@ void AMPPlayerController::SetHUDDefeats(int Defeats)
 
 	if (bIsValidPlayerOverlay)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("Inside Final Call"));
 		FString DefeatAmt = FString::Printf(TEXT("%d"), Defeats);
 		PlayerHUD->PlayerOverlay->DefeatAmt->SetText(FText::FromString(DefeatAmt));
 	}

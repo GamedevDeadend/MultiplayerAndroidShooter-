@@ -31,7 +31,8 @@ void ADeathMatch_GM::PlayerEliminated(AMPPlayer* EliminatedCharacter, AMPPlayerC
 }
 
 void ADeathMatch_GM::RequestRespawn(ACharacter* ElimCharacter, AController* ElimPlayerController)
-{
+{	
+	
 	if (ElimCharacter)
 	{
 		ElimCharacter->Reset();
@@ -40,8 +41,6 @@ void ADeathMatch_GM::RequestRespawn(ACharacter* ElimCharacter, AController* Elim
 
 	if (ElimPlayerController)
 	{
-		//ElimPlayerController->;
-
 		TArray<AActor*> PlayerStarts; 
 		UGameplayStatics::GetAllActorsOfClass(this, APlayerStart::StaticClass(), PlayerStarts);
 		int32 RandomSelection = FMath::RandRange(0, PlayerStarts.Num() - 1);

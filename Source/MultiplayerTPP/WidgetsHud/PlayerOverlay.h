@@ -14,6 +14,8 @@ class MULTIPLAYERTPP_API UPlayerOverlay : public UUserWidget
 {
 	GENERATED_BODY()
 
+	virtual void NativeConstruct()override;
+
 public:
 
 	UPROPERTY(meta = (BindWidget))
@@ -23,9 +25,13 @@ public:
 		TObjectPtr<class UTextBlock> HealthText;
 
 	UPROPERTY(meta = (BindWidget))
-		TObjectPtr<class UTextBlock> ScoreAmt;
+		TObjectPtr<class UTextBlock> ScoreAmt = nullptr;
 
 	UPROPERTY(meta = (BindWidget))
 		TObjectPtr<class UTextBlock> DefeatAmt;
+
+	///Display Message Text
+	UPROPERTY(meta = (BindWidget))
+		TObjectPtr<class UTextBlock> DisplayMessage = nullptr;
 	
 };

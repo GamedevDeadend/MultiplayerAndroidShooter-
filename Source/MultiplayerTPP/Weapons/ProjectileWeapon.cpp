@@ -9,7 +9,7 @@ void AProjectileWeapon:: Fire(const FVector& HitTarget)
 {
 	Super::Fire(HitTarget);
 
-	UE_LOG(LogTemp, Warning, TEXT("FireSuccess"));
+	//UE_LOG(LogTemp, Warning, TEXT("FireSuccess"));
 
 	if (!HasAuthority()) return;
 
