@@ -10,15 +10,22 @@
 
 void ADeathMatch_GM::PlayerEliminated(AMPPlayer* EliminatedCharacter, AMPPlayerController* EliminatedPlayerController, AMPPlayerController* AttackingPlayerController)
 {
+
 	if (AttackingPlayerController == nullptr || AttackingPlayerController->PlayerState == nullptr) return;
 	if (EliminatedPlayerController == nullptr || EliminatedPlayerController->PlayerState == nullptr) return;
+
+	//if (GEngine)
+	//{
+	//	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green,FString("Inside Player Eliminated"));
+	//}
+
 
 	AMPPlayerState* AttackerPlayerState = AttackingPlayerController ? Cast<AMPPlayerState>(AttackingPlayerController->PlayerState) : nullptr;
 	AMPPlayerState* EliminatedPlayerState = EliminatedPlayerController ? Cast<AMPPlayerState>(EliminatedPlayerController->PlayerState) : nullptr;
 
 	if (AttackerPlayerState && AttackerPlayerState != EliminatedPlayerState)
 	{
-		AttackerPlayerState->AddToScore(1.f);
+		AttackerPlayerState->AddToScore(1.0f);
 	}
 		
 	if (EliminatedPlayerState)

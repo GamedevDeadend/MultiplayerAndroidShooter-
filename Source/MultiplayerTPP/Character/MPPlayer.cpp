@@ -567,7 +567,7 @@ void AMPPlayer::AimOffset(float DeltaTime)
 
 void AMPPlayer::TurnInPlace(float DeltaTime)
 {
-	UE_LOG(LogTemp, Error, TEXT("Yaw Rotation Static %f"), AO_Yaw);
+	//UE_LOG(LogTemp, Error, TEXT("Yaw Rotation Static %f"), AO_Yaw);
 	if (AO_Yaw > 90.f)
 	{
 		TurningInplace = ETurningInPlace::ETIP_Right;

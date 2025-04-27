@@ -2,6 +2,7 @@
 
 
 #include "MPPlayerController.h"
+#include "MultiplayerTPP/PlayerState/MPPlayerState.h"
 #include "MultiplayerTPP/WidgetsHud/Hud/MPPlayerHUD.h"
 #include "MultiplayerTPP/WidgetsHud/PlayerOverlay.h"
 #include "Components/ProgressBar.h"
@@ -67,6 +68,46 @@ void AMPPlayerController::SetHUDDefeats(int32 Defeats)
 	}
 }
 
+/// <summary>
+/// Show Defeat Message When Player is Dead
+/// </summary>
+/// <param name="DefeatMessage"></param>
+void AMPPlayerController::ShowDefeatMessage(FString DefeatMessage)
+{
+	PlayerHUD = PlayerHUD == nullptr ? Cast<AMPPlayerHUD>(GetHUD()) : PlayerHUD;
+
+
+	bool bIsValidPlayerOverlay = PlayerHUD && PlayerHUD->PlayerOverlay && PlayerHUD->PlayerOverlay->DisplayMessage;
+
+	if (bIsValidPlayerOverlay)
+	{
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Yellow, FString("Valid Overlay"));
+		}
+		PlayerHUD->PlayerOverlay->DisplayMessage->SetVisibility(ESlateVisibility::Visible);
+		PlayerHUD->PlayerOverlay->DisplayMessage->SetText(FText::FromString(DefeatMessage));
+	}
+}
+
+/// <summary>
+/// Hides Player Defeat Message after message is shown
+/// </summary>
+void AMPPlayerController::HideDefeatMessage()
+{
+	PlayerHUD = PlayerHUD == nullptr ? Cast<AMPPlayerHUD>(GetHUD()) : PlayerHUD;
+
+
+	bool bIsValidPlayerOverlay = PlayerHUD && PlayerHUD->PlayerOverlay && PlayerHUD->PlayerOverlay->DisplayMessage;
+
+	if (bIsValidPlayerOverlay)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Inside Final Call"));
+		PlayerHUD->PlayerOverlay->DisplayMessage->SetVisibility(ESlateVisibility::Hidden);
+		PlayerHUD->PlayerOverlay->DisplayMessage->SetText(FText::FromString(""));
+	}
+}
+
 void AMPPlayerController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
@@ -76,6 +117,13 @@ void AMPPlayerController::OnPossess(APawn* InPawn)
 	if (Player)
 	{
 		SetHUDHealth(InPlayer->GetMaxHealth(), InPlayer->GetHealth());
+		
+		auto MPPlayerState = Cast<AMPPlayerState>(this->PlayerState);
+
+		if (MPPlayerState)
+		{
+			MPPlayerState->SetCanReplicateDefeat(false);
+		}
 	}
 	
 }

@@ -29,6 +29,9 @@ public:
 	void SetHUDScore(float Score);
 	void SetHUDDefeats(int32 Defeats);
 
+	void ShowDefeatMessage(FString DefeatMessage);
+	void HideDefeatMessage();
+
 	virtual void OnPossess(APawn* InPawn) override;
 
 };

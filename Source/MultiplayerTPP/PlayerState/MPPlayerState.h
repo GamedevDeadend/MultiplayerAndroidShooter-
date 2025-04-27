@@ -23,12 +23,21 @@ public:
 
 	virtual void AddToScore(float Amt);
 	virtual void AddToDefeat(int32 DefeatAmt);
-	virtual void DisplayLosingMessage();
+	void DisplayLossingMessage();
+	inline void SetCanReplicateDefeat(bool b) { CanReplicateDefeat = b; };
+	//virtual void DisplayLosingMessage();
 
 private:
 
 	virtual void GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const override;
-	virtual void HideHUDMessage();
+	void UpdateHUDScore();
+	void UpdateHUDDefeats();
+
+	bool CanReplicateDefeat = false;
+
+
+	UFUNCTION()
+	void HideLossingMessage();
 
 	UPROPERTY()
 	class AMPPlayer* Character = nullptr;
@@ -40,7 +49,7 @@ private:
 	int32 DefeatsAmt;
 
 	UPROPERTY(EditAnywhere, Category = "Defeated Message")
-	FString DisplayMessage;
+	FString DisplayMessage = "You were Killed";
 
 };
  
