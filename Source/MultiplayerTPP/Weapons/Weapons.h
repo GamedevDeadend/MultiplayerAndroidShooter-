@@ -28,6 +28,8 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	void ShowPickupWidget(bool bShowWidget);
 	virtual void Fire(const FVector& HitTarget);
+	void SetHUDAmmo();
+	void AmmoSpend();
 
 	// Weapon Type
 	UPROPERTY(EditAnywhere, Category = " Weapon Type")
@@ -56,6 +58,13 @@ public:
 
 private:
 
+	UFUNCTION()
+		void OnRep_WeaponState();
+
+	UFUNCTION()
+		void OnRepAmmo();
+
+
 	UPROPERTY(EditAnywhere, Category = "Weapon Properties")
 		class UAnimationAsset* FireAnimAsset;
 
@@ -69,13 +78,10 @@ private:
 		EWeaponState WeaponState;
 
 	UPROPERTY(EditAnywhere, Category = "Weapon Properties")
-		class UWidgetComponent* PickUpWidget;
+		class UWidgetComponent* PickUpWidget = nullptr;
 
 	UPROPERTY(EditAnywhere)
 		TSubclassOf<class ACasing> CasingClass;
-
-	UFUNCTION()
-		void OnRep_WeaponState();
 
 	//Zooming Attributes
 
@@ -85,9 +91,22 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Zoom")
 		float ZoomInterpSpeed = 20.0f;
 
+	UPROPERTY(ReplicatedUsing = OnRepAmmo)
+		int32 Ammo;
+
+	UPROPERTY(EditAnywhere)
+		int32 MagCapacity = 30;
+
+	UPROPERTY()
+		class AMPPlayer* OwnerCharacter;
+
+	UPROPERTY()
+		class AMPPlayerController* OwnerController;
+			
 
 protected:
 
+	virtual void OnRep_Owner() override;
 	virtual void BeginPlay() override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
@@ -121,5 +140,7 @@ public:
 	FORCEINLINE USkeletalMeshComponent* GetWeaponMesh() const { return Mesh; }
 	FORCEINLINE float GetZoomedFOV()const { return ZoomFOV; }
 	FORCEINLINE float GetZoomInterpSpeed()const { return ZoomInterpSpeed; }
+	FORCEINLINE bool GetIsEmpty()const { return Ammo <= 0; }
+	FORCEINLINE int32 GetAmmo() const { return Ammo; }
 
 };

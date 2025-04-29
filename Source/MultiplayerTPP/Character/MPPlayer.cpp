@@ -138,6 +138,7 @@ void AMPPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &AMPPlayer::Jump);
 	PlayerInputComponent->BindAction("Equip", IE_Pressed, this, &AMPPlayer::EquipWeapon);
+	PlayerInputComponent->BindAction("Drop", IE_Pressed, this, & AMPPlayer::DropWeapon);
 	PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &AMPPlayer::CrouchAction);
 	PlayerInputComponent->BindAction("Aim", IE_Pressed, this, &AMPPlayer::AimPressed);
 	PlayerInputComponent->BindAction("Aim", IE_Released, this, &AMPPlayer::AimReleased);
@@ -207,6 +208,11 @@ void AMPPlayer::EquipWeapon()
 		else
 			ServerEquipPressed();
 	}
+}
+
+void AMPPlayer::DropWeapon()
+{
+	//TODO: Create Drop Weapon Functionality
 }
 
 void AMPPlayer::ServerEquipPressed_Implementation()
@@ -402,6 +408,11 @@ void AMPPlayer::Elim()
 
 void AMPPlayer::MulticastElim_Implementation()
 {
+	if (MPPlayerController != nullptr)
+	{
+		MPPlayerController->SetHUDAmmoCount(0);
+	}
+
 	if (DissolveMaterialInstance == nullptr) return;
 
 	bIsEliminated = true;

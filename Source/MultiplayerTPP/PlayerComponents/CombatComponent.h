@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "MultiplayerTPP/WidgetsHud/Hud/MPPlayerHUD.h"
+#include "MultiplayerTPP/Types/WeaponType.h"
 #include "CombatComponent.generated.h"
 
 #define TRACE_LENGTH 80000.f
@@ -25,6 +26,8 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	void EquipWeapon(class AWeapons* Equipweapon);
+
+	void UpdateEquippedWeaponAmmo();
 
 protected:
 
@@ -63,6 +66,7 @@ private:
 	class AMPPlayerHUD* HUD;
 
 	bool bFireButtonPressed;
+	bool bIsWeaponEmpty;
 	FVector_NetQuantize HitTarget;
 
 	float VelocityFactor;
@@ -109,7 +113,19 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Zoom", meta = (Allowprivateaccess = true))
 		float ZoomOutInterp = 30.0f;
 
+	UPROPERTY(EditAnywhere, Category = "Inventory", meta = (AllowPrivateaccess = true))
+		int32 DeafaultAvailableAmmo = 30;
+
+	UPROPERTY(ReplicatedUsing = On_RepEquippedWeaponAmmo)
+		int32 EquippedWeaponAmmo;
+
+	TMap<EWeaponType, int32> AmmunationMap;
+
 	void InterpFOV(float DeltaTime);
+	void InitPlayerAmmunationMap();
+
+	UFUNCTION()
+	void On_RepEquippedWeaponAmmo();
 
 	//Getters And Setters
 public:

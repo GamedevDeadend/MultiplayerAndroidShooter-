@@ -28,6 +28,8 @@ public:
 	void SetHUDHealth(float MaxHealth, float CurrentHealth);
 	void SetHUDScore(float Score);
 	void SetHUDDefeats(int32 Defeats);
+	void SetHUDAmmoCount(int32 Ammo);
+	void SetHUDEquippedWepaonAmmo(int32 Ammo);
 
 	void ShowDefeatMessage(FString DefeatMessage);
 	void HideDefeatMessage();

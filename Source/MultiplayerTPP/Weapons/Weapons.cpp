@@ -12,6 +12,7 @@
 #include "Engine/SkeletalMeshSocket.h"
 #include "Engine/Texture2D.h"
 #include "Math/UnrealMathUtility.h"
+#include "MultiplayerTPP/Controllers/MPPlayerController.h"
 
 
 // Sets default values
@@ -37,7 +38,10 @@ AWeapons::AWeapons()
 
 	PickUpWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("Pickup OverHead"));
 	PickUpWidget->SetupAttachment(RootComponent);
+
+	Ammo = MagCapacity;
 }
+
 
 
 void AWeapons::BeginPlay()
@@ -71,6 +75,7 @@ void AWeapons::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetime
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(AWeapons, WeaponState);
+	DOREPLIFETIME(AWeapons, Ammo);
 }
 
 void AWeapons::Fire(const FVector& HitTarget)
@@ -98,9 +103,59 @@ void AWeapons::Fire(const FVector& HitTarget)
 			}
 		}
 	}
+
+	AmmoSpend();
 }
 
+void AWeapons::SetHUDAmmo()
+{
+	OwnerCharacter = OwnerCharacter == nullptr ? Cast<AMPPlayer>(GetOwner()) : OwnerCharacter;
 
+	if (OwnerCharacter != nullptr)
+	{
+		//if (GEngine)
+		//{
+		//	GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Yellow, FString("Valid Character"));
+		//}
+
+		OwnerController = OwnerController == nullptr ? Cast<AMPPlayerController>(OwnerCharacter->Controller) : OwnerController;
+
+		if (OwnerController != nullptr)
+		{
+			//if (GEngine)
+			//{
+			//	GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Yellow, FString("Valid Controller"));
+			//}
+
+			OwnerController->SetHUDAmmoCount(Ammo);
+		}
+	}
+}
+
+/// <summary>
+/// Function called to update Ammo Count
+/// </summary>
+void AWeapons::AmmoSpend()
+{
+	Ammo = FMath::Clamp( Ammo-1 , 0, MagCapacity);
+
+	//if (GEngine)
+	//{
+	//	GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Yellow, FString("Inside Set Ammo Spend"));
+	//}
+
+	SetHUDAmmo();
+
+}
+
+/// <summary>
+/// Rep Notifier called when Ammo Count is updated
+/// </summary>
+void AWeapons::OnRepAmmo()
+{
+	OwnerCharacter = OwnerCharacter == nullptr ? Cast<AMPPlayer>(GetOwner()) : OwnerCharacter;
+	SetHUDAmmo();
+}
 
 void AWeapons::OnSphereOverlap
 (
@@ -116,7 +171,9 @@ void AWeapons::OnSphereOverlap
 	AMPPlayer* Player = Cast<AMPPlayer>(OtherActor);
 
 	if (Player)
+	{
 		Player->SetOverlappingWeapon(this);
+	}
 }
 
 void AWeapons::OnSphereEndOverlap
@@ -129,7 +186,9 @@ void AWeapons::OnSphereEndOverlap
 {
 	AMPPlayer* Player = Cast<AMPPlayer>(OtherActor);
 	if (Player)
+	{
 		Player->SetOverlappingWeapon(nullptr);
+	}
 }
 
 void AWeapons::Dropped()
@@ -138,6 +197,8 @@ void AWeapons::Dropped()
 	FDetachmentTransformRules DetachRules(EDetachmentRule::KeepWorld, true);
 	Mesh->DetachFromComponent(DetachRules);
 	SetOwner(nullptr);
+	OwnerCharacter = nullptr;
+	OwnerController = nullptr;
 }
 
 void AWeapons::SetWeaponState(EWeaponState State)
@@ -146,6 +207,7 @@ void AWeapons::SetWeaponState(EWeaponState State)
 	switch (WeaponState)
 	{
 		case EWeaponState::EWS_Equipped:
+			Mesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Block);
 			Mesh->SetSimulatePhysics(false);
 			Mesh->SetEnableGravity(false);
 			Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -158,6 +220,7 @@ void AWeapons::SetWeaponState(EWeaponState State)
 			{
 				OverlapAreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 			}
+			Mesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
 			Mesh->SetSimulatePhysics(true);
 			Mesh->SetEnableGravity(true);
 			Mesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
@@ -171,6 +234,7 @@ void AWeapons::OnRep_WeaponState()
 	{
 		case EWeaponState::EWS_Equipped:
 			ShowPickupWidget(false);
+			Mesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Block);
 			Mesh->SetSimulatePhysics(false);
 			Mesh->SetEnableGravity(false);
 			Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -178,6 +242,7 @@ void AWeapons::OnRep_WeaponState()
 
 			//OverlapAreaSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		case EWeaponState::EWS_Dropped:
+			Mesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
 			Mesh->SetSimulatePhysics(true);
 			Mesh->SetEnableGravity(true);
 			Mesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
@@ -188,7 +253,22 @@ void AWeapons::OnRep_WeaponState()
 
 void AWeapons::ShowPickupWidget(bool bShowWidget)
 {
-	if (PickUpWidget)
+	if (this && PickUpWidget != nullptr)
+	{
 		PickUpWidget->SetVisibility(bShowWidget);
+	}
 }
 
+void AWeapons::OnRep_Owner()
+{
+	Super::OnRep_Owner();
+	if (Owner == nullptr)
+	{
+		OwnerCharacter = nullptr;
+		OwnerController = nullptr;
+	}
+	else
+	{
+		SetHUDAmmo();
+	}
+}

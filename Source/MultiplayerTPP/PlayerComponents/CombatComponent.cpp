@@ -34,6 +34,7 @@ void UCombatComponent :: GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 
 	DOREPLIFETIME(UCombatComponent, EquippedWeapon);
 	DOREPLIFETIME(UCombatComponent, bAim);
+	DOREPLIFETIME_CONDITION(UCombatComponent, EquippedWeaponAmmo, COND_OwnerOnly);
 }
 
 void UCombatComponent::BeginPlay()
@@ -51,8 +52,12 @@ void UCombatComponent::BeginPlay()
 		DefaultFOV = MPPlayer->GetFollowCamera()->FieldOfView;
 		CurrentFOV = DefaultFOV;
 	}
-}
 
+	if (MPPlayer->HasAuthority())
+	{
+		InitPlayerAmmunationMap();
+	}
+}
 
 void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
@@ -68,6 +73,13 @@ void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 		InterpFOV(DeltaTime);
 
 	}
+}
+
+void UCombatComponent::InitPlayerAmmunationMap()
+{
+	AmmunationMap.Emplace(EWeaponType::EWT_AR_Auto, DeafaultAvailableAmmo);
+	AmmunationMap.Emplace(EWeaponType::EWT_AR_Burst, DeafaultAvailableAmmo);
+	AmmunationMap.Emplace(EWeaponType::EWT_AR_Single, DeafaultAvailableAmmo);
 }
 
 void UCombatComponent::SetHUD(float DeltaTime)
@@ -192,21 +204,21 @@ void UCombatComponent::FirePressed(bool bPressed)
 {
 	bFireButtonPressed = bPressed;
 
-	if (!EquippedWeapon) return;
+	if (EquippedWeapon == nullptr) return;
 
 	if (bPressed)
 	{
 		switch (EquippedWeapon->WeaponType)
 		{
-			case EWeaponType::EWT_Single:
+			case EWeaponType::EWT_AR_Single:
 				Fire();
 				break;
 
-			case EWeaponType::EWT_Auto:
+			case EWeaponType::EWT_AR_Auto:
 				MPPlayer->GetWorldTimerManager().SetTimer(AutoFireTimerHandle, this, &UCombatComponent::Fire, 0.1f, true);
 				break;
 
-			case EWeaponType::EWT_Burst:
+			case EWeaponType::EWT_AR_Burst:
 				MPPlayer->GetWorldTimerManager().SetTimer(BurstFireTimerHandle, this, &UCombatComponent::BurstFire, 0.1f, true);
 				break;
 		}
@@ -224,7 +236,14 @@ void UCombatComponent::FirePressed(bool bPressed)
 
 void UCombatComponent::Fire()
 {
-	ServerFire(HitTarget);
+	if (EquippedWeapon != nullptr)
+	{
+		bIsWeaponEmpty = EquippedWeapon->GetIsEmpty();
+	}
+	if (bIsWeaponEmpty == false)
+	{
+		ServerFire(HitTarget);
+	}
 }
 
 void UCombatComponent::BurstFire()
@@ -236,7 +255,7 @@ void UCombatComponent::BurstFire()
 		BurstFireCount = 0;
 	}
 
-	ServerFire(HitTarget);
+	Fire();
 }
 
 
@@ -279,8 +298,15 @@ void UCombatComponent::OnRep_WeaponEquip()
 
 void UCombatComponent::EquipWeapon(AWeapons* WeaponToEquip)
 {
-	if (!MPPlayer || !WeaponToEquip)
+	if (MPPlayer == nullptr || WeaponToEquip == nullptr)
+	{
 		return;
+	}
+
+	if (EquippedWeapon != nullptr)
+	{
+		EquippedWeapon->Dropped();
+	}
 
 	EquippedWeapon = WeaponToEquip;
 	EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
@@ -293,10 +319,21 @@ void UCombatComponent::EquipWeapon(AWeapons* WeaponToEquip)
 	}
 
 	EquippedWeapon->SetOwner(MPPlayer);
+	EquippedWeapon->SetHUDAmmo();
+	EquippedWeaponAmmo =  EquippedWeapon->GetAmmo();
+	UpdateEquippedWeaponAmmo();
 
 	MPPlayer->GetCharacterMovement()->bOrientRotationToMovement = false;
 	MPPlayer->bUseControllerRotationYaw = true;
 	MPPlayer->GetCharacterMovement()->JumpZVelocity = MPPlayer->IsWeaponEquipped() ? EquipJumpVelociy : BaseJumpVelocity;
+}
+
+void UCombatComponent::UpdateEquippedWeaponAmmo()
+{
+	if (MPPlayerController != nullptr)
+	{
+		MPPlayerController->SetHUDEquippedWepaonAmmo(EquippedWeaponAmmo);
+	}
 }
 
 void UCombatComponent::InterpFOV(float DeltaTime)
@@ -317,6 +354,12 @@ void UCombatComponent::InterpFOV(float DeltaTime)
 	{
 		MPPlayer->GetFollowCamera()->SetFieldOfView(CurrentFOV);
 	}
+}
+
+
+void UCombatComponent::On_RepEquippedWeaponAmmo()
+{
+	UpdateEquippedWeaponAmmo();
 }
 
 

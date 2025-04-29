@@ -33,5 +33,11 @@ public:
 	///Display Message Text
 	UPROPERTY(meta = (BindWidget))
 		TObjectPtr<class UTextBlock> DisplayMessage = nullptr;
+
+	UPROPERTY(meta = (BingWidget))
+		TObjectPtr<class UTextBlock> AmmoCount = nullptr;
+
+	UPROPERTY(meta = (BingWidget))
+		TObjectPtr<class UTextBlock> EquippedWeaponAmmoCount = nullptr;
 	
 };

@@ -52,6 +52,7 @@ private:
 	void LookUp(float Value);
 	void LookRight(float Value);
 	void EquipWeapon();
+	void DropWeapon();
 	void CrouchAction();
 	void AimPressed();
 	void AimReleased();

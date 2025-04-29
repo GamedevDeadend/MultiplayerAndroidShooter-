@@ -8,8 +8,6 @@
 #include "Components/ProgressBar.h"
 #include "Components/TextBlock.h"
 #include "MultiplayerTPP/Character/MPPlayer.h"
-#include "MultiplayerTPP/WidgetsHud/Hud/MPPlayerHUD.h"
-#include "MultiplayerTPP/WidgetsHud/PlayerOverlay.h"
 
 void AMPPlayerController::BeginPlay()
 {
@@ -62,9 +60,52 @@ void AMPPlayerController::SetHUDDefeats(int32 Defeats)
 
 	if (bIsValidPlayerOverlay)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Inside Final Call"));
+		//UE_LOG(LogTemp, Warning, TEXT("Inside Final Call"));
 		FString DefeatAmt = FString::Printf(TEXT("%d"), Defeats);
 		PlayerHUD->PlayerOverlay->DefeatAmt->SetText(FText::FromString(DefeatAmt));
+	}
+}
+
+/// <summary>
+/// Function to Update Ammount in Player Overlay through HUD
+/// </summary>
+/// <param name="Ammo"></param>
+void AMPPlayerController::SetHUDAmmoCount(int32 Ammo)
+{
+	PlayerHUD = PlayerHUD == nullptr ? Cast<AMPPlayerHUD>(GetHUD()) : PlayerHUD;
+
+	bool bIsValidPlayerOverlay = PlayerHUD && PlayerHUD->PlayerOverlay && PlayerHUD->PlayerOverlay->AmmoCount;
+
+	if (bIsValidPlayerOverlay)
+	{
+		//if (GEngine)
+		//{
+		//	GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Yellow, FString("Valid Overlay Ammo Count"));
+		//}
+		FString AmmoTxt = FString::Printf(TEXT("%d"), Ammo);
+		PlayerHUD->PlayerOverlay->AmmoCount->SetText(FText::FromString(AmmoTxt));
+	}
+
+}
+
+/// <summary>
+/// Function to update Current Weapon Ammo carried by player
+/// </summary>
+/// <param name="Ammo"></param>
+void AMPPlayerController::SetHUDEquippedWepaonAmmo(int32 Ammo)
+{
+	PlayerHUD = PlayerHUD == nullptr ? Cast<AMPPlayerHUD>(GetHUD()) : PlayerHUD;
+
+	bool bIsValidPlayerOverlay = PlayerHUD && PlayerHUD->PlayerOverlay && PlayerHUD->PlayerOverlay->EquippedWeaponAmmoCount;
+
+	if (bIsValidPlayerOverlay)
+	{
+		//if (GEngine)
+		//{
+		//	GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Yellow, FString("Valid Overlay Ammo Count"));
+		//}
+		FString AmmoTxt = FString::Printf(TEXT("%d"), Ammo);
+		PlayerHUD->PlayerOverlay->EquippedWeaponAmmoCount->SetText(FText::FromString(AmmoTxt));
 	}
 }
 
@@ -81,10 +122,10 @@ void AMPPlayerController::ShowDefeatMessage(FString DefeatMessage)
 
 	if (bIsValidPlayerOverlay)
 	{
-		if (GEngine)
-		{
-			GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Yellow, FString("Valid Overlay"));
-		}
+		//if (GEngine)
+		//{
+		//	GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Yellow, FString("Valid Overlay"));
+		//}
 		PlayerHUD->PlayerOverlay->DisplayMessage->SetVisibility(ESlateVisibility::Visible);
 		PlayerHUD->PlayerOverlay->DisplayMessage->SetText(FText::FromString(DefeatMessage));
 	}
@@ -102,7 +143,7 @@ void AMPPlayerController::HideDefeatMessage()
 
 	if (bIsValidPlayerOverlay)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Inside Final Call"));
+		//UE_LOG(LogTemp, Warning, TEXT("Inside Final Call"));
 		PlayerHUD->PlayerOverlay->DisplayMessage->SetVisibility(ESlateVisibility::Hidden);
 		PlayerHUD->PlayerOverlay->DisplayMessage->SetText(FText::FromString(""));
 	}
