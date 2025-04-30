@@ -73,6 +73,9 @@ private:
 	UPROPERTY(BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"))
 		bool bIsEliminated;
 
+	UPROPERTY(BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"))
+		bool bCanUseFABRIK;
+
 	FRotator PlayerRotationLastFrame;
 	FRotator PlayerRotation;
 	FRotator DeltaRotation;

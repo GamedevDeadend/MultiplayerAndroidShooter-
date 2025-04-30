@@ -35,6 +35,7 @@ void UCombatComponent :: GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 	DOREPLIFETIME(UCombatComponent, EquippedWeapon);
 	DOREPLIFETIME(UCombatComponent, bAim);
 	DOREPLIFETIME_CONDITION(UCombatComponent, EquippedWeaponAmmo, COND_OwnerOnly);
+	DOREPLIFETIME(UCombatComponent, CombatState);
 }
 
 void UCombatComponent::BeginPlay()
@@ -80,6 +81,56 @@ void UCombatComponent::InitPlayerAmmunationMap()
 	AmmunationMap.Emplace(EWeaponType::EWT_AR_Auto, DeafaultAvailableAmmo);
 	AmmunationMap.Emplace(EWeaponType::EWT_AR_Burst, DeafaultAvailableAmmo);
 	AmmunationMap.Emplace(EWeaponType::EWT_AR_Single, DeafaultAvailableAmmo);
+}
+
+/// <summary>
+/// Rep Notifier for Combat State
+/// </summary>
+void UCombatComponent::OnRep_CombatState()
+{
+	switch (CombatState)
+	{
+		case ECombatState::ECS_Reloading : 
+			HandleReload();
+		break;
+	}
+}
+/// <summary>
+/// Function Called when Reload button is pressed
+/// It will calll server RPC to handle reload on server 
+/// </summary>
+void UCombatComponent::Reload()
+{
+	if (EquippedWeaponAmmo > 0 && CombatState != ECombatState::ECS_Reloading)
+	{
+		ServerReload();
+	}
+}
+/// <summary>
+/// Servr RPC for Reload
+/// </summary>
+void UCombatComponent::ServerReload_Implementation()
+{
+	CombatState = ECombatState::ECS_Reloading;
+	HandleReload();
+}
+
+void UCombatComponent::FinishReloading()
+{
+	if (MPPlayer != nullptr)
+	{
+		if (MPPlayer->HasAuthority())
+		{
+			CombatState = ECombatState::ECS_Unoccupied;
+		}
+	}
+}
+
+void UCombatComponent::HandleReload()
+{
+	if (MPPlayer == nullptr) return;
+
+	MPPlayer->PlayReloadMontage();
 }
 
 void UCombatComponent::SetHUD(float DeltaTime)
@@ -357,11 +408,10 @@ void UCombatComponent::InterpFOV(float DeltaTime)
 }
 
 
-void UCombatComponent::On_RepEquippedWeaponAmmo()
+void UCombatComponent::OnRep_EquippedWeaponAmmo()
 {
 	UpdateEquippedWeaponAmmo();
-}
-
+} 
 
 void UCombatComponent::SetAiming(bool bIsAiming)
 {

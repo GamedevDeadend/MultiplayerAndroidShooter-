@@ -20,6 +20,7 @@
 #include "Sound/SoundCue.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "MultiplayerTPP/PlayerState/MPPlayerState.h"
+#include "MultiplayerTPP/Types/WeaponType.h"
 
 
 AMPPlayer::AMPPlayer()
@@ -144,6 +145,8 @@ void AMPPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	PlayerInputComponent->BindAction("Aim", IE_Released, this, &AMPPlayer::AimReleased);
 	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &AMPPlayer::FireButtonPressed);
 	PlayerInputComponent->BindAction("Fire", IE_Released, this, &AMPPlayer::FireButtonReleased);
+	PlayerInputComponent->BindAction("Reload", IE_Released, this, &AMPPlayer::ReloadWeapon);
+
 }
 
 void AMPPlayer::FireButtonPressed()
@@ -207,6 +210,15 @@ void AMPPlayer::EquipWeapon()
 			CombatComponent->EquipWeapon(OverlappedWeapon);
 		else
 			ServerEquipPressed();
+	}
+}
+
+void AMPPlayer::ReloadWeapon()
+{
+	if (CombatComponent != nullptr)
+	{
+		
+		CombatComponent->Reload();
 	}
 }
 
@@ -277,6 +289,18 @@ FVector AMPPlayer::GetHitTarget() const
 	return CombatComponent == nullptr ? FVector() : CombatComponent->HitTarget;
 }
 
+ECombatState AMPPlayer::GetCombatState() const
+{
+	if (CombatComponent != nullptr)
+	{
+		return CombatComponent->CombatState;
+	}
+	else
+	{
+		return ECombatState::ECS_MAX;
+	}
+}
+
 
 FString AMPPlayer::GetPlayerName()
 {
@@ -334,6 +358,33 @@ void AMPPlayer::PlayFireMontage(bool bAiming)
 	{
 		PlayerAnimInstance->Montage_Play(FireMontage);
 		FName SectionName = bAiming ? FName("RifleAim") : FName("RifleHip");
+		PlayerAnimInstance->Montage_JumpToSection(SectionName);
+	}
+}
+
+void AMPPlayer::PlayReloadMontage()
+{
+	if (!CombatComponent || !CombatComponent->EquippedWeapon) return;
+
+	UAnimInstance* PlayerAnimInstance = GetMesh()->GetAnimInstance();
+	if (PlayerAnimInstance && ReloadMontage)
+	{
+		PlayerAnimInstance->Montage_Play(ReloadMontage);
+		FName SectionName;
+
+		switch (CombatComponent->EquippedWeapon->WeaponType)
+		{
+		case EWeaponType::EWT_AR_Auto: 
+			SectionName = FName("Rifle");
+			break;
+		case EWeaponType::EWT_AR_Burst:
+			SectionName = FName("Rifle");
+			break;
+		case EWeaponType::EWT_AR_Single:
+			SectionName = FName("Rifle");
+			break;
+		}
+
 		PlayerAnimInstance->Montage_JumpToSection(SectionName);
 	}
 }

@@ -6,6 +6,7 @@
 #include "Components/ActorComponent.h"
 #include "MultiplayerTPP/WidgetsHud/Hud/MPPlayerHUD.h"
 #include "MultiplayerTPP/Types/WeaponType.h"
+#include "MultiplayerTPP/Types/CombatState.h"
 #include "CombatComponent.generated.h"
 
 #define TRACE_LENGTH 80000.f
@@ -28,6 +29,9 @@ public:
 	void EquipWeapon(class AWeapons* Equipweapon);
 
 	void UpdateEquippedWeaponAmmo();
+
+	UFUNCTION(BlueprintCallable)
+	void FinishReloading();
 
 protected:
 
@@ -56,6 +60,8 @@ protected:
 
 	void TraceUnderCrosshairs(FHitResult& TraceHitResult);
 
+	void HandleReload();
+
 	void SetHUD(float DeltaTime);
 
 private:
@@ -77,7 +83,11 @@ private:
 	FTimerHandle AutoFireTimerHandle;
 	FTimerHandle BurstFireTimerHandle;
 
+
 	FHUDPackage MPPlayerHUDPackage;
+
+	UPROPERTY(ReplicatedUsing = OnRep_CombatState)
+		ECombatState CombatState;
 
 	UPROPERTY(EditAnywhere, Category = "Combat Movement", meta = (Allowprivateaccess = true))
 		float BaseJumpVelocity;
@@ -116,16 +126,24 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Inventory", meta = (AllowPrivateaccess = true))
 		int32 DeafaultAvailableAmmo = 30;
 
-	UPROPERTY(ReplicatedUsing = On_RepEquippedWeaponAmmo)
+	UPROPERTY(ReplicatedUsing = OnRep_EquippedWeaponAmmo)
 		int32 EquippedWeaponAmmo;
 
 	TMap<EWeaponType, int32> AmmunationMap;
 
 	void InterpFOV(float DeltaTime);
 	void InitPlayerAmmunationMap();
+	void Reload();
+
+	UFUNCTION(Server, Reliable)
+		void ServerReload();
 
 	UFUNCTION()
-	void On_RepEquippedWeaponAmmo();
+		void OnRep_EquippedWeaponAmmo();
+
+	UFUNCTION()
+		void OnRep_CombatState();
+
 
 	//Getters And Setters
 public:

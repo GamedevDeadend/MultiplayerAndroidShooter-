@@ -5,6 +5,7 @@
 #include "MPPlayer.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "MultiplayerTPP/Types/CombatState.h"
 #include "MultiplayerTPP/Weapons/Weapons.h"
 
 void UMPPAnimInstance::NativeInitializeAnimation()
@@ -78,6 +79,8 @@ void UMPPAnimInstance::NativeUpdateAnimation(float Deltatime)
 			FRotator LookAtRotation = UKismetMathLibrary::FindLookAtRotation(RightHandTransform.GetLocation(), RightHandTransform.GetLocation() + (RightHandTransform.GetLocation() - MPPlayer->GetHitTarget()));
 			RightHandRotation = FMath::RInterpTo(RightHandRotation, LookAtRotation, Deltatime, 20.0f);
 		}
+
+		bCanUseFABRIK = MPPlayer->GetCombatState() != ECombatState::ECS_Reloading;
 	}
 }
 

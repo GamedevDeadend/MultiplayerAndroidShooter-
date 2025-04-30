@@ -7,6 +7,7 @@
 #include "MultiplayerTPP/Types/TurningInPlace.h"
 #include "MultiplayerTPP/Interfaces/InteractWithCrosshairs.h"
 #include "Components/TimelineComponent.h"
+#include "MultiplayerTPP/Types/CombatState.h"
 #include "MPPlayer.generated.h"
 
 class UCombatComponent;
@@ -25,6 +26,7 @@ public:
 	AMPPlayer();
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	void PlayFireMontage(bool bAiming);
+	void PlayReloadMontage();
 	void PlayHitReactMontage();
 	void PlayElimMontage();
 	void Elim();
@@ -52,6 +54,7 @@ private:
 	void LookUp(float Value);
 	void LookRight(float Value);
 	void EquipWeapon();
+	void ReloadWeapon();
 	void DropWeapon();
 	void CrouchAction();
 	void AimPressed();
@@ -95,7 +98,7 @@ private:
 	UPROPERTY(ReplicatedUsing = OnRep_HealthChange,VisibleAnywhere, Category = "Player Stats")
 		float CurrentHealth = MaxHealth;
 
-	UPROPERTY(EditAnywhere, Category = Combat)
+	UPROPERTY(EditAnywhere, Category = Combat, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 		UCombatComponent* CombatComponent;
 
 	UPROPERTY(VisibleAnywhere, Category = Camera)
@@ -117,6 +120,10 @@ private:
 	UPROPERTY(ReplicatedUsing = OnRep_OverlappedWeapon)
 		AWeapons* OverlappedWeapon;
 
+	/*
+	* Animation Montages
+	*/
+
 	UPROPERTY(EditAnywhere, Category = Combat)
 		class UAnimMontage* FireMontage;
 
@@ -125,6 +132,9 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = Combat)
 		class UAnimMontage* EliminationMontage;
+
+	UPROPERTY(EditAnywhere, Category = Combat)
+		class UAnimMontage* ReloadMontage;
 
 	UPROPERTY(EditDefaultsOnly)
 		float ElimDelay = 3.0f;
@@ -191,4 +201,6 @@ public:
 	FORCEINLINE float GetMaxHealth()const { return MaxHealth; }
 	AWeapons* GetEquippedWeapon();
 	FVector GetHitTarget()const;
+	ECombatState GetCombatState()const;
+
 };
