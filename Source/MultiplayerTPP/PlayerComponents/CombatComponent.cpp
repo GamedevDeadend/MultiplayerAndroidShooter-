@@ -13,6 +13,7 @@
 #include "Camera/CameraComponent.h"
 #include "MultiplayerTPP/Interfaces/InteractWithCrosshairs.h"
 #include "Components/SpotLightComponent.h"
+#include "Sound/SoundCue.h"
 #include "MultiplayerTPP/Types/WeaponType.h"
 
 
@@ -34,7 +35,7 @@ void UCombatComponent :: GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 
 	DOREPLIFETIME(UCombatComponent, EquippedWeapon);
 	DOREPLIFETIME(UCombatComponent, bAim);
-	DOREPLIFETIME_CONDITION(UCombatComponent, EquippedWeaponAmmo, COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(UCombatComponent, CarriedAmmo, COND_OwnerOnly);
 	DOREPLIFETIME(UCombatComponent, CombatState);
 }
 
@@ -56,7 +57,7 @@ void UCombatComponent::BeginPlay()
 
 	if (MPPlayer->HasAuthority())
 	{
-		InitPlayerAmmunationMap();
+		InitPlayeCarriedAmmoMap();
 	}
 }
 
@@ -76,11 +77,11 @@ void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 	}
 }
 
-void UCombatComponent::InitPlayerAmmunationMap()
+void UCombatComponent::InitPlayeCarriedAmmoMap()
 {
-	AmmunationMap.Emplace(EWeaponType::EWT_AR_Auto, DeafaultAvailableAmmo);
-	AmmunationMap.Emplace(EWeaponType::EWT_AR_Burst, DeafaultAvailableAmmo);
-	AmmunationMap.Emplace(EWeaponType::EWT_AR_Single, DeafaultAvailableAmmo);
+	CarriedAmmoMap.Emplace(EWeaponType::EWT_AR_Auto, DeafaultAvailableAmmo);
+	CarriedAmmoMap.Emplace(EWeaponType::EWT_AR_Burst, DeafaultAvailableAmmo);
+	CarriedAmmoMap.Emplace(EWeaponType::EWT_AR_Single, DeafaultAvailableAmmo);
 }
 
 /// <summary>
@@ -101,7 +102,7 @@ void UCombatComponent::OnRep_CombatState()
 /// </summary>
 void UCombatComponent::Reload()
 {
-	if (EquippedWeaponAmmo > 0 && CombatState != ECombatState::ECS_Reloading)
+	if (CarriedAmmo > 0 && CombatState != ECombatState::ECS_Reloading)
 	{
 		ServerReload();
 	}
@@ -122,6 +123,12 @@ void UCombatComponent::FinishReloading()
 		if (MPPlayer->HasAuthority())
 		{
 			CombatState = ECombatState::ECS_Unoccupied;
+
+			if (EquippedWeapon != nullptr)
+			{
+				EquippedWeapon->Reload(CarriedAmmo);
+				UpdateCarriedAmmo();
+			}
 		}
 	}
 }
@@ -129,7 +136,6 @@ void UCombatComponent::FinishReloading()
 void UCombatComponent::HandleReload()
 {
 	if (MPPlayer == nullptr) return;
-
 	MPPlayer->PlayReloadMontage();
 }
 
@@ -259,7 +265,7 @@ void UCombatComponent::FirePressed(bool bPressed)
 
 	if (bPressed)
 	{
-		switch (EquippedWeapon->WeaponType)
+		switch (EquippedWeapon->GetWeaponType())
 		{
 			case EWeaponType::EWT_AR_Single:
 				Fire();
@@ -291,9 +297,30 @@ void UCombatComponent::Fire()
 	{
 		bIsWeaponEmpty = EquippedWeapon->GetIsEmpty();
 	}
-	if (bIsWeaponEmpty == false)
+
+	if (EquippedWeapon->GetIsEmpty())
+	{
+		Reload();
+	}
+
+	if (bIsWeaponEmpty == false && CombatState == ECombatState::ECS_Unoccupied)
 	{
 		ServerFire(HitTarget);
+	}
+}
+
+void UCombatComponent::ServerFire_Implementation(const FVector_NetQuantize& TraceHitTarget)
+{
+	MultiCastFire(TraceHitTarget);
+}
+
+void UCombatComponent::MultiCastFire_Implementation(const FVector_NetQuantize& TraceHitTarget)
+{
+	if (!EquippedWeapon) return;
+	if (MPPlayer)
+	{
+		MPPlayer->PlayFireMontage(bAim);
+		EquippedWeapon->Fire(TraceHitTarget);
 	}
 }
 
@@ -309,29 +336,16 @@ void UCombatComponent::BurstFire()
 	Fire();
 }
 
-
-void UCombatComponent::ServerFire_Implementation(const FVector_NetQuantize& TraceHitTarget)
-{
-	MultiCastFire(TraceHitTarget);
-}
-
-void UCombatComponent::MultiCastFire_Implementation(const FVector_NetQuantize& TraceHitTarget)
-{
-	if (!EquippedWeapon) return;
-	if (MPPlayer)
-	{
-		MPPlayer->PlayFireMontage(bAim);
-		EquippedWeapon->Fire(TraceHitTarget);
-		//UE_LOG(LogTemp, Warning, TEXT("FireSucces"));
-	}
-}
-
-
-void UCombatComponent::OnRep_WeaponEquip()
+void UCombatComponent::OnRep_EquippedWeapon()
 {
 	if (EquippedWeapon && MPPlayer)
 	{
 		EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
+
+		if (EquippedWeapon->EquipSound != nullptr)
+		{
+			UGameplayStatics::PlaySoundAtLocation(this, EquippedWeapon->EquipSound, MPPlayer->GetActorLocation());
+		}
 
 		MPPlayer->SetBaseAimRotation(FRotator(0.0f, MPPlayer->GetBaseAimRotation().Yaw, 0.0f));
 
@@ -344,6 +358,7 @@ void UCombatComponent::OnRep_WeaponEquip()
 		MPPlayer->GetCharacterMovement()->bOrientRotationToMovement = false;
 		MPPlayer->bUseControllerRotationYaw = true;
 		MPPlayer->GetCharacterMovement()->JumpZVelocity = MPPlayer->IsWeaponEquipped() ? EquipJumpVelociy : BaseJumpVelocity;
+
 	}
 }
 
@@ -371,19 +386,38 @@ void UCombatComponent::EquipWeapon(AWeapons* WeaponToEquip)
 
 	EquippedWeapon->SetOwner(MPPlayer);
 	EquippedWeapon->SetHUDAmmo();
-	EquippedWeaponAmmo =  EquippedWeapon->GetAmmo();
-	UpdateEquippedWeaponAmmo();
+
+	if (CarriedAmmoMap.Contains(EquippedWeapon->GetWeaponType()) )
+	{
+		CarriedAmmo =  CarriedAmmoMap[EquippedWeapon->GetWeaponType()];
+	}
+	UpdateCarriedAmmo();
+
+	if (EquippedWeapon->EquipSound != nullptr)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, EquippedWeapon->EquipSound, MPPlayer->GetActorLocation());
+	}
+
+	if (EquippedWeapon->GetIsEmpty())
+	{
+		Reload();
+	}
 
 	MPPlayer->GetCharacterMovement()->bOrientRotationToMovement = false;
 	MPPlayer->bUseControllerRotationYaw = true;
 	MPPlayer->GetCharacterMovement()->JumpZVelocity = MPPlayer->IsWeaponEquipped() ? EquipJumpVelociy : BaseJumpVelocity;
 }
 
-void UCombatComponent::UpdateEquippedWeaponAmmo()
+void UCombatComponent::UpdateCarriedAmmo()
 {
+	if (CarriedAmmoMap.Contains(EquippedWeapon->GetWeaponType()))
+	{
+		CarriedAmmoMap[EquippedWeapon->GetWeaponType()] = CarriedAmmo;
+	}
+
 	if (MPPlayerController != nullptr)
 	{
-		MPPlayerController->SetHUDEquippedWepaonAmmo(EquippedWeaponAmmo);
+		MPPlayerController->SetHUDCarriedAmmo(CarriedAmmo);
 	}
 }
 
@@ -408,9 +442,9 @@ void UCombatComponent::InterpFOV(float DeltaTime)
 }
 
 
-void UCombatComponent::OnRep_EquippedWeaponAmmo()
+void UCombatComponent::OnRep_CarriedAmmo()
 {
-	UpdateEquippedWeaponAmmo();
+	UpdateCarriedAmmo();
 } 
 
 void UCombatComponent::SetAiming(bool bIsAiming)

@@ -28,12 +28,11 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	void ShowPickupWidget(bool bShowWidget);
 	virtual void Fire(const FVector& HitTarget);
+	virtual void Reload(int32& CarriedAmmo);
+	virtual void Dropped();
 	void SetHUDAmmo();
 	void AmmoSpend();
 
-	// Weapon Type
-	UPROPERTY(EditAnywhere, Category = " Weapon Type")
-		EWeaponType WeaponType;
 
 	//Crosshairs
 
@@ -56,14 +55,20 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Crosshairs", meta = (ClampMin = "-30.0", ClampMax = "30.0"))
 		float CrosshairsScale;
 
+	UPROPERTY(EditAnywhere, Category = "Weapon Properties")
+		class USoundCue* EquipSound;
+
 private:
 
 	UFUNCTION()
 		void OnRep_WeaponState();
 
 	UFUNCTION()
-		void OnRepAmmo();
+		void OnRep_Ammo();
 
+	// Weapon Type
+	UPROPERTY(EditAnywhere, Category = " Weapon Type")
+		EWeaponType WeaponType;
 
 	UPROPERTY(EditAnywhere, Category = "Weapon Properties")
 		class UAnimationAsset* FireAnimAsset;
@@ -73,6 +78,7 @@ private:
 
 	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties")
 		class USphereComponent* OverlapAreaSphere;
+
 
 	UPROPERTY(ReplicatedUsing = OnRep_WeaponState, VisibleAnywhere, Category = "Weapon Properties")
 		EWeaponState WeaponState;
@@ -91,7 +97,7 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Zoom")
 		float ZoomInterpSpeed = 20.0f;
 
-	UPROPERTY(ReplicatedUsing = OnRepAmmo)
+	UPROPERTY(ReplicatedUsing = OnRep_Ammo)
 		int32 Ammo;
 
 	UPROPERTY(EditAnywhere)
@@ -135,12 +141,15 @@ protected:
 	//Getters And Setters
 public:
 
-	virtual void Dropped();
 	void SetWeaponState(EWeaponState State);
+	FORCEINLINE void SetAmmo(int32 UpdatedAmmo) { Ammo = UpdatedAmmo; }
+
 	FORCEINLINE USkeletalMeshComponent* GetWeaponMesh() const { return Mesh; }
 	FORCEINLINE float GetZoomedFOV()const { return ZoomFOV; }
 	FORCEINLINE float GetZoomInterpSpeed()const { return ZoomInterpSpeed; }
 	FORCEINLINE bool GetIsEmpty()const { return Ammo <= 0; }
 	FORCEINLINE int32 GetAmmo() const { return Ammo; }
+	FORCEINLINE int32 GetMagCapacity()const { return MagCapacity; }
+	FORCEINLINE EWeaponType GetWeaponType()const { return WeaponType; }
 
 };

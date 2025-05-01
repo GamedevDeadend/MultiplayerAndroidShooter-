@@ -29,7 +29,7 @@ public:
 	void SetHUDScore(float Score);
 	void SetHUDDefeats(int32 Defeats);
 	void SetHUDAmmoCount(int32 Ammo);
-	void SetHUDEquippedWepaonAmmo(int32 Ammo);
+	void SetHUDCarriedAmmo(int32 Ammo);
 
 	void ShowDefeatMessage(FString DefeatMessage);
 	void HideDefeatMessage();

@@ -38,6 +38,6 @@ public:
 		TObjectPtr<class UTextBlock> AmmoCount = nullptr;
 
 	UPROPERTY(meta = (BingWidget))
-		TObjectPtr<class UTextBlock> EquippedWeaponAmmoCount = nullptr;
+		TObjectPtr<class UTextBlock> CarriedAmmoCount = nullptr;
 	
 };

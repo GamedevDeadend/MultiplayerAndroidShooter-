@@ -28,7 +28,7 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	void EquipWeapon(class AWeapons* Equipweapon);
 
-	void UpdateEquippedWeaponAmmo();
+	void UpdateCarriedAmmo();
 
 	UFUNCTION(BlueprintCallable)
 	void FinishReloading();
@@ -44,7 +44,7 @@ protected:
 		void ServerSetAiming(bool bIsAiming);
 
 	UFUNCTION()
-		void OnRep_WeaponEquip();
+		void OnRep_EquippedWeapon();
 
 	void FirePressed(bool bPressed);
 
@@ -107,7 +107,7 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Combat Crosshairs Color", meta = (Allowprivateaccess = true))
 		FLinearColor NormalAimColor;
 
-	UPROPERTY(ReplicatedUsing = OnRep_WeaponEquip)
+	UPROPERTY(ReplicatedUsing = OnRep_EquippedWeapon)
 		AWeapons* EquippedWeapon;
 
 	UPROPERTY(Replicated)
@@ -124,22 +124,22 @@ private:
 		float ZoomOutInterp = 30.0f;
 
 	UPROPERTY(EditAnywhere, Category = "Inventory", meta = (AllowPrivateaccess = true))
-		int32 DeafaultAvailableAmmo = 30;
+		int32 DeafaultAvailableAmmo = 60;
 
-	UPROPERTY(ReplicatedUsing = OnRep_EquippedWeaponAmmo)
-		int32 EquippedWeaponAmmo;
+	UPROPERTY(ReplicatedUsing = OnRep_CarriedAmmo)
+		int32 CarriedAmmo;
 
-	TMap<EWeaponType, int32> AmmunationMap;
+	TMap<EWeaponType, int32> CarriedAmmoMap;
 
 	void InterpFOV(float DeltaTime);
-	void InitPlayerAmmunationMap();
+	void InitPlayeCarriedAmmoMap();
 	void Reload();
 
 	UFUNCTION(Server, Reliable)
 		void ServerReload();
 
 	UFUNCTION()
-		void OnRep_EquippedWeaponAmmo();
+		void OnRep_CarriedAmmo();
 
 	UFUNCTION()
 		void OnRep_CombatState();

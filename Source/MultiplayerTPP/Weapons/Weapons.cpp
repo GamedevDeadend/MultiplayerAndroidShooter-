@@ -107,6 +107,19 @@ void AWeapons::Fire(const FVector& HitTarget)
 	AmmoSpend();
 }
 
+/// <summary>
+/// Reload a Weapon
+/// </summary>
+/// <param name="CarriedAmmo"></param>
+void AWeapons::Reload(int32& CarriedAmmo)
+{
+		int32 RoomInMag = MagCapacity - Ammo;
+		int32 least = FMath::Min(RoomInMag, CarriedAmmo);
+		Ammo += least;
+		CarriedAmmo = FMath::Max(0, (CarriedAmmo - least));
+		SetHUDAmmo();
+}
+
 void AWeapons::SetHUDAmmo()
 {
 	OwnerCharacter = OwnerCharacter == nullptr ? Cast<AMPPlayer>(GetOwner()) : OwnerCharacter;
@@ -151,7 +164,7 @@ void AWeapons::AmmoSpend()
 /// <summary>
 /// Rep Notifier called when Ammo Count is updated
 /// </summary>
-void AWeapons::OnRepAmmo()
+void AWeapons::OnRep_Ammo()
 {
 	OwnerCharacter = OwnerCharacter == nullptr ? Cast<AMPPlayer>(GetOwner()) : OwnerCharacter;
 	SetHUDAmmo();

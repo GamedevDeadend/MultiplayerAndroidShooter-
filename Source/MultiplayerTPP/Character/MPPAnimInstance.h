@@ -76,6 +76,12 @@ private:
 	UPROPERTY(BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"))
 		bool bCanUseFABRIK;
 
+	UPROPERTY(BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"))
+		bool bCanUseAimOffsets;
+
+	UPROPERTY(BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"))
+		bool bCanTransformRightHand;
+
 	FRotator PlayerRotationLastFrame;
 	FRotator PlayerRotation;
 	FRotator DeltaRotation;

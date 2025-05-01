@@ -92,11 +92,11 @@ void AMPPlayerController::SetHUDAmmoCount(int32 Ammo)
 /// Function to update Current Weapon Ammo carried by player
 /// </summary>
 /// <param name="Ammo"></param>
-void AMPPlayerController::SetHUDEquippedWepaonAmmo(int32 Ammo)
+void AMPPlayerController::SetHUDCarriedAmmo(int32 Ammo)
 {
 	PlayerHUD = PlayerHUD == nullptr ? Cast<AMPPlayerHUD>(GetHUD()) : PlayerHUD;
 
-	bool bIsValidPlayerOverlay = PlayerHUD && PlayerHUD->PlayerOverlay && PlayerHUD->PlayerOverlay->EquippedWeaponAmmoCount;
+	bool bIsValidPlayerOverlay = PlayerHUD && PlayerHUD->PlayerOverlay && PlayerHUD->PlayerOverlay->CarriedAmmoCount;
 
 	if (bIsValidPlayerOverlay)
 	{
@@ -105,7 +105,7 @@ void AMPPlayerController::SetHUDEquippedWepaonAmmo(int32 Ammo)
 		//	GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Yellow, FString("Valid Overlay Ammo Count"));
 		//}
 		FString AmmoTxt = FString::Printf(TEXT("%d"), Ammo);
-		PlayerHUD->PlayerOverlay->EquippedWeaponAmmoCount->SetText(FText::FromString(AmmoTxt));
+		PlayerHUD->PlayerOverlay->CarriedAmmoCount->SetText(FText::FromString(AmmoTxt));
 	}
 }
 

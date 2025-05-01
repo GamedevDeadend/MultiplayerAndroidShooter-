@@ -372,7 +372,7 @@ void AMPPlayer::PlayReloadMontage()
 		PlayerAnimInstance->Montage_Play(ReloadMontage);
 		FName SectionName;
 
-		switch (CombatComponent->EquippedWeapon->WeaponType)
+		switch (CombatComponent->EquippedWeapon->GetWeaponType())
 		{
 		case EWeaponType::EWT_AR_Auto: 
 			SectionName = FName("Rifle");
