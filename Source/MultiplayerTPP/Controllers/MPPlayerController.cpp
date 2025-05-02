@@ -7,6 +7,8 @@
 #include "MultiplayerTPP/WidgetsHud/PlayerOverlay.h"
 #include "Components/ProgressBar.h"
 #include "Components/TextBlock.h"
+#include "Components/Image.h"
+#include "MultiplayerTPP/DataAssets/WeaponDataAsset.h"
 #include "MultiplayerTPP/Character/MPPlayer.h"
 
 void AMPPlayerController::BeginPlay()
@@ -106,6 +108,29 @@ void AMPPlayerController::SetHUDCarriedAmmo(int32 Ammo)
 		//}
 		FString AmmoTxt = FString::Printf(TEXT("%d"), Ammo);
 		PlayerHUD->PlayerOverlay->CarriedAmmoCount->SetText(FText::FromString(AmmoTxt));
+	}
+}
+
+void AMPPlayerController::SetHUDWeaponInfo(UWeaponDataAsset* WeaponDataAsset)
+{
+	if (WeaponDataAsset == nullptr) { return; }
+
+	PlayerHUD = PlayerHUD == nullptr ? Cast<AMPPlayerHUD>(GetHUD()) : PlayerHUD;
+
+	bool bIsValidWeaponName = PlayerHUD && PlayerHUD->PlayerOverlay && PlayerHUD->PlayerOverlay->WeaponName;
+	bool bIsValidWeaponIcon = PlayerHUD && PlayerHUD->PlayerOverlay && PlayerHUD->PlayerOverlay->WeaponIcon;
+
+	if (bIsValidWeaponName && bIsValidWeaponIcon)
+	{
+		//if (GEngine)
+		//{
+		//	GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Yellow, FString("Valid Overlay"));
+		//}
+		PlayerHUD->PlayerOverlay->WeaponName->SetVisibility(ESlateVisibility::Visible);
+		PlayerHUD->PlayerOverlay->WeaponName->SetText( FText::FromString(WeaponDataAsset->GetWeaponName()) );
+
+		PlayerHUD->PlayerOverlay->WeaponIcon->SetVisibility(ESlateVisibility::Visible);
+		PlayerHUD->PlayerOverlay->WeaponIcon->SetBrushFromTexture(WeaponDataAsset->GetWeaponIcon(), false);
 	}
 }
 

@@ -359,6 +359,10 @@ void UCombatComponent::OnRep_EquippedWeapon()
 		MPPlayer->bUseControllerRotationYaw = true;
 		MPPlayer->GetCharacterMovement()->JumpZVelocity = MPPlayer->IsWeaponEquipped() ? EquipJumpVelociy : BaseJumpVelocity;
 
+		if (MPPlayerController != nullptr && MPPlayerController->IsLocalController())
+		{
+			MPPlayerController->SetHUDWeaponInfo(EquippedWeapon->GetWeaponDataAsset());
+		}
 	}
 }
 
@@ -393,6 +397,11 @@ void UCombatComponent::EquipWeapon(AWeapons* WeaponToEquip)
 	}
 	UpdateCarriedAmmo();
 
+	if (MPPlayerController != nullptr &&MPPlayerController->IsLocalController())
+	{
+			MPPlayerController->SetHUDWeaponInfo(EquippedWeapon->GetWeaponDataAsset());
+	}
+
 	if (EquippedWeapon->EquipSound != nullptr)
 	{
 		UGameplayStatics::PlaySoundAtLocation(this, EquippedWeapon->EquipSound, MPPlayer->GetActorLocation());
@@ -410,6 +419,8 @@ void UCombatComponent::EquipWeapon(AWeapons* WeaponToEquip)
 
 void UCombatComponent::UpdateCarriedAmmo()
 {
+	if (EquippedWeapon == nullptr) { return; }
+
 	if (CarriedAmmoMap.Contains(EquippedWeapon->GetWeaponType()))
 	{
 		CarriedAmmoMap[EquippedWeapon->GetWeaponType()] = CarriedAmmo;

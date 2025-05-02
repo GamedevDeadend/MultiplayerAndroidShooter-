@@ -70,6 +70,9 @@ private:
 	UPROPERTY(EditAnywhere, Category = " Weapon Type")
 		EWeaponType WeaponType;
 
+	UPROPERTY(EditAnywhere, Category = " Weapon Data Asset")
+		class UWeaponDataAsset* WeaponAsset;
+
 	UPROPERTY(EditAnywhere, Category = "Weapon Properties")
 		class UAnimationAsset* FireAnimAsset;
 
@@ -151,5 +154,6 @@ public:
 	FORCEINLINE int32 GetAmmo() const { return Ammo; }
 	FORCEINLINE int32 GetMagCapacity()const { return MagCapacity; }
 	FORCEINLINE EWeaponType GetWeaponType()const { return WeaponType; }
+	FORCEINLINE UWeaponDataAsset* GetWeaponDataAsset()const { return WeaponAsset; }
 
 };

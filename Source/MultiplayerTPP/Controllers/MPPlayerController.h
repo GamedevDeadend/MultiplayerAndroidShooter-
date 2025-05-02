@@ -30,6 +30,7 @@ public:
 	void SetHUDDefeats(int32 Defeats);
 	void SetHUDAmmoCount(int32 Ammo);
 	void SetHUDCarriedAmmo(int32 Ammo);
+	void SetHUDWeaponInfo(class UWeaponDataAsset* WeaponDataAsset);
 
 	void ShowDefeatMessage(FString DefeatMessage);
 	void HideDefeatMessage();

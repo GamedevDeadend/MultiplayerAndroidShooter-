@@ -39,5 +39,13 @@ public:
 
 	UPROPERTY(meta = (BingWidget))
 		TObjectPtr<class UTextBlock> CarriedAmmoCount = nullptr;
+
+	UPROPERTY(meta = (BingWidget))
+		TObjectPtr<class UTextBlock> WeaponName = nullptr;
+
+	UPROPERTY(meta = (BingWidget))
+		TObjectPtr<class UImage> WeaponIcon = nullptr;
+
+	
 	
 };

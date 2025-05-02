@@ -12,6 +12,7 @@
 #include "Engine/SkeletalMeshSocket.h"
 #include "Engine/Texture2D.h"
 #include "Math/UnrealMathUtility.h"
+#include "MultiplayerTPP/DataAssets/WeaponDataAsset.h"
 #include "MultiplayerTPP/Controllers/MPPlayerController.h"
 
 
