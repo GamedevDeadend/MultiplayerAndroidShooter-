@@ -18,6 +18,107 @@ void AMPPlayerController::BeginPlay()
 	PlayerHUD = Cast<AMPPlayerHUD>(GetHUD());
 }
 
+void AMPPlayerController::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	SetHUDTime();
+
+	CheckTimeSync(DeltaTime);
+
+}
+
+/// <summary>
+/// Function for periodically calculating CSD for propery syncing
+/// </summary>
+/// <param name="DeltaTime"></param>
+void AMPPlayerController::CheckTimeSync(float DeltaTime)
+{
+	TimeSyncRunningTime += DeltaTime;
+	if (IsLocalController() && TimeSyncRunningTime > TimeSyncFrequency)
+	{
+		ServerRequestServerTime(GetWorld()->GetTimeSeconds());
+		TimeSyncRunningTime = 0.0f;
+	}
+}
+
+/// <summary>
+/// Getter for getting server time with clientServerDelta taken in consideration
+/// </summary>
+/// <returns></returns>
+float AMPPlayerController::GetServerTime()
+{
+	return GetWorld()->GetTimeSeconds() + ClientServerDelta;
+}
+
+/// <summary>
+/// Earliest Method available where we can sync clocks for first time.
+/// </summary>
+void AMPPlayerController::ReceivedPlayer()
+{
+	Super::ReceivedPlayer();
+
+	if (IsLocalController())
+	{
+		ServerRequestServerTime(GetWorld()->GetTimeSeconds());
+	}
+}
+
+/// <summary>
+/// RPC to Server for tequesting server time
+/// </summary>
+/// <param name="TimeOfClientRequest"></param>
+void AMPPlayerController::ServerRequestServerTime_Implementation(float TimeOfClientRequest)
+{
+	float ServerTimeOfReciept = GetWorld()->GetTimeSeconds();
+	ClientReportServerTime(TimeOfClientRequest, ServerTimeOfReciept);
+}
+
+/// <summary>
+/// RPC from Server to client to give TimeOfClient Request, Time Server Recieved request.
+/// These values help in calculation of RTT, CST, CSD.
+/// </summary>
+/// <param name="TimeOfClientRequest"></param>
+/// <param name="TimeServerRecievedClientRequest"></param>
+void AMPPlayerController::ClientReportServerTime_Implementation(float TimeOfClientRequest, float TimeServerRecievedClientRequest)
+{
+	float RountTripTime = GetWorld()->GetTimeSeconds() - TimeOfClientRequest;
+	float CurrentServerTime = TimeServerRecievedClientRequest + (0.5f * RountTripTime);
+	ClientServerDelta = CurrentServerTime - GetWorld()->GetTimeSeconds();
+}
+
+/// <summary>
+/// Function which performs calculation for count down timer final HUD values and then pass it to HUD 
+/// </summary>
+void AMPPlayerController::SetHUDTime()
+{
+	uint32 SecondsLeft = FMath::CeilToInt(MatchTime - GetServerTime());
+
+	if (CountDownInt != SecondsLeft)
+	{
+		SetHUDMatchCountDown(MatchTime - GetServerTime());
+	}
+
+	CountDownInt = SecondsLeft;
+}
+
+/// <summary>
+/// Update Countdown timer on HUD
+/// </summary>
+/// <param name="Sec"></param>
+void AMPPlayerController::SetHUDMatchCountDown(float CountDownTime)
+{
+	bool bIsValidPlayerOverlay = PlayerHUD && PlayerHUD->PlayerOverlay && PlayerHUD->PlayerOverlay->CountDown;
+
+	if (bIsValidPlayerOverlay)
+	{
+		int32 Minutes = FMath::FloorToInt32(CountDownTime / 60.0f);
+		int32 Seconds = CountDownTime - (Minutes * 60);
+		FString CountDownText = FString::Printf(TEXT("%02d:%02d"), Minutes, Seconds);
+		PlayerHUD->PlayerOverlay->CountDown->SetText(FText::FromString(CountDownText));
+	}
+}
+
 void AMPPlayerController::SetHUDHealth(float MaxHealth, float CurrentHealth)
 {
 	PlayerHUD = PlayerHUD == nullptr ? Cast<AMPPlayerHUD>(GetHUD()) : PlayerHUD;
@@ -53,6 +154,10 @@ void AMPPlayerController::SetHUDScore(float Score)
 	}
 }
 
+/// <summary>
+/// Function to Set Defeats on HUD
+/// </summary>
+/// <param name="Defeats"></param>
 void AMPPlayerController::SetHUDDefeats(int32 Defeats)
 {
 	PlayerHUD = PlayerHUD == nullptr ? Cast<AMPPlayerHUD>(GetHUD()) : PlayerHUD;
@@ -111,6 +216,10 @@ void AMPPlayerController::SetHUDCarriedAmmo(int32 Ammo)
 	}
 }
 
+/// <summary>
+/// Function to Set HUD Weapon Info like name and Image
+/// </summary>
+/// <param name="WeaponDataAsset"></param>
 void AMPPlayerController::SetHUDWeaponInfo(UWeaponDataAsset* WeaponDataAsset)
 {
 	if (WeaponDataAsset == nullptr) { return; }
@@ -127,12 +236,13 @@ void AMPPlayerController::SetHUDWeaponInfo(UWeaponDataAsset* WeaponDataAsset)
 		//	GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Yellow, FString("Valid Overlay"));
 		//}
 		PlayerHUD->PlayerOverlay->WeaponName->SetVisibility(ESlateVisibility::Visible);
-		PlayerHUD->PlayerOverlay->WeaponName->SetText( FText::FromString(WeaponDataAsset->GetWeaponName()) );
+		PlayerHUD->PlayerOverlay->WeaponName->SetText(FText::FromString(WeaponDataAsset->GetWeaponName()));
 
 		PlayerHUD->PlayerOverlay->WeaponIcon->SetVisibility(ESlateVisibility::Visible);
 		PlayerHUD->PlayerOverlay->WeaponIcon->SetBrushFromTexture(WeaponDataAsset->GetWeaponIcon(), false);
 	}
 }
+
 
 /// <summary>
 /// Show Defeat Message When Player is Dead
@@ -183,7 +293,7 @@ void AMPPlayerController::OnPossess(APawn* InPawn)
 	if (Player)
 	{
 		SetHUDHealth(InPlayer->GetMaxHealth(), InPlayer->GetHealth());
-		
+
 		auto MPPlayerState = Cast<AMPPlayerState>(this->PlayerState);
 
 		if (MPPlayerState)
@@ -191,5 +301,5 @@ void AMPPlayerController::OnPossess(APawn* InPawn)
 			MPPlayerState->SetCanReplicateDefeat(false);
 		}
 	}
-	
+
 }

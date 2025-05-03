@@ -46,6 +46,9 @@ public:
 	UPROPERTY(meta = (BingWidget))
 		TObjectPtr<class UImage> WeaponIcon = nullptr;
 
+	UPROPERTY(meta = (BingWidget))
+		TObjectPtr<class UTextBlock> CountDown = nullptr;
+
 	
 	
 };

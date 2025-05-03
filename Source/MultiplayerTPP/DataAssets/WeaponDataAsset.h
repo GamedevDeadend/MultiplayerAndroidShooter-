@@ -17,6 +17,7 @@ class MULTIPLAYERTPP_API UWeaponDataAsset : public UDataAsset
 
 private : 
 
+	//TODO: Declutter Weapon Class and Add all Weapon Data here
 	UPROPERTY(EditAnywhere)
 		FString WeaponName;
 
