@@ -14,9 +14,18 @@ class MULTIPLAYERTPP_API ADeathMatch_GM : public AGameMode
 {
 	GENERATED_BODY()
 
-public:
+private : 
 
+	float LevelStartTime = 0.0f;
+	float WarmupTime = 10.0f;
+	float CountDownTime = 0.0f;
+
+public:
+	ADeathMatch_GM();
+	virtual void BeginPlay()override;
+	virtual void Tick(float DeltaTime)override;
 	virtual void PlayerEliminated(class AMPPlayer* EliminatedCharacter, class AMPPlayerController* EliminatedPlayerController, class AMPPlayerController* AttackingPlayerController);
 	virtual void RequestRespawn(ACharacter* ElimCharacter, AController* ElimPlayerController);
+	virtual void OnMatchStateSet()override;
 
 };

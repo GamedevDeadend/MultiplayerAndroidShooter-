@@ -34,10 +34,16 @@ public:
 
 
 	virtual void DrawHUD()override;
+	void AddPlayerOverlay();
+	void AddAnnouncementOverlay();
 
-	//Health Widget
+	//Player Overlay Widget
 	UPROPERTY()
 	class UPlayerOverlay* PlayerOverlay = nullptr;
+
+	//Announcement Overlay Widget
+	UPROPERTY()
+	class UAnnouncementOverlay* AnnouncementOverlay = nullptr;
 
 protected:
 
@@ -45,11 +51,14 @@ protected:
 
 private:
 
-	void AddPlayerOverlay();
 
-	//Health Widget Blueprint Class
+	//Player Overlay Widget Blueprint Class
 	UPROPERTY(EditAnywhere, Category = " Player Overlay")
 	TSubclassOf<class UUserWidget> OverlayClass;
+
+	//Announcement Overlay Widget BlueprintClass
+	UPROPERTY(EditAnywhere, Category = " Announcement Overlay")
+	TSubclassOf<class UUserWidget> AnnouncementOverlayClass;
 
 	FHUDPackage HUDPackage;
 

@@ -3,13 +3,23 @@
 
 #include "MPPlayerHUD.h"
 #include "MultiplayerTPP/WidgetsHud/PlayerOverlay.h"
+#include "MultiplayerTPP/WidgetsHud/AnnouncementOverlay.h"
 
 
 void AMPPlayerHUD::BeginPlay()
 {
 	Super::BeginPlay();
+}
 
-	AddPlayerOverlay();
+void AMPPlayerHUD::AddAnnouncementOverlay()
+{
+	APlayerController* OwningPlayerController = GetOwningPlayerController();
+
+	if (OwningPlayerController && AnnouncementOverlayClass)
+	{
+		AnnouncementOverlay = CreateWidget<UAnnouncementOverlay>(OwningPlayerController, AnnouncementOverlayClass);
+		AnnouncementOverlay->AddToViewport();
+	}
 }
 
 

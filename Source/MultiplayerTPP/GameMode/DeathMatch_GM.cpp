@@ -8,6 +8,30 @@
 #include "GameFramework/PlayerStart.h"
 #include "MultiplayerTPP/PlayerState/MPPlayerState.h"
 
+ADeathMatch_GM::ADeathMatch_GM()
+{
+	bDelayedStart = true;
+}
+
+void ADeathMatch_GM::BeginPlay()
+{
+	Super::BeginPlay();
+
+	LevelStartTime = GetWorld()->GetTimeSeconds();
+}
+
+void ADeathMatch_GM::Tick(float DeltaTime)
+{
+	if (MatchState == MatchState::WaitingToStart)
+	{
+		CountDownTime += WarmupTime - (GetWorld()->GetTimeSeconds() - LevelStartTime);
+		if (CountDownTime <= 0.0f)
+		{
+			StartMatch();
+		}
+	}
+}
+
 void ADeathMatch_GM::PlayerEliminated(AMPPlayer* EliminatedCharacter, AMPPlayerController* EliminatedPlayerController, AMPPlayerController* AttackingPlayerController)
 {
 
@@ -53,5 +77,19 @@ void ADeathMatch_GM::RequestRespawn(ACharacter* ElimCharacter, AController* Elim
 		int32 RandomSelection = FMath::RandRange(0, PlayerStarts.Num() - 1);
 
 		RestartPlayerAtPlayerStart(ElimPlayerController, PlayerStarts[RandomSelection]);
+	}
+}
+
+void ADeathMatch_GM::OnMatchStateSet()
+{
+	Super::OnMatchStateSet();
+
+	for (auto It = GetWorld()->GetPlayerControllerIterator(); It; It++)
+	{
+		AMPPlayerController* MPPlayerController = Cast<AMPPlayerController>(*It);
+		if (MPPlayerController != nullptr)
+		{
+			MPPlayerController->OnMatchStateSet(MatchState);
+		}
 	}
 }

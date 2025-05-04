@@ -8,14 +8,47 @@
 #include "Components/ProgressBar.h"
 #include "Components/TextBlock.h"
 #include "Components/Image.h"
+#include "Net/UnrealNetwork.h"
 #include "MultiplayerTPP/DataAssets/WeaponDataAsset.h"
 #include "MultiplayerTPP/Character/MPPlayer.h"
+#include "MultiplayerTPP/GameMode/DeathMatch_GM.h"
+#include "MultiplayerTPP/WidgetsHud/AnnouncementOverlay.h"
 
 void AMPPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
 
 	PlayerHUD = Cast<AMPPlayerHUD>(GetHUD());
+
+	if (PlayerHUD != nullptr)
+	{
+		PlayerHUD->AddAnnouncementOverlay();
+	}
+}
+
+void AMPPlayerController::PollInit()
+{
+	if (PlayerOverlay == nullptr)
+	{
+		if (PlayerHUD != nullptr && PlayerHUD->PlayerOverlay != nullptr)
+		{
+			PlayerOverlay = PlayerHUD->PlayerOverlay;
+
+			if (PlayerOverlay != nullptr)
+			{
+				SetHUDHealth(Cached_MaxHealth, Cached_Health);
+				SetHUDScore(Cached_Score);
+				SetHUDDefeats(Cached_Defeats);
+			}
+		}
+	}
+}
+
+void AMPPlayerController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AMPPlayerController, MatchState);
 }
 
 void AMPPlayerController::Tick(float DeltaTime)
@@ -25,6 +58,7 @@ void AMPPlayerController::Tick(float DeltaTime)
 	SetHUDTime();
 
 	CheckTimeSync(DeltaTime);
+	PollInit();
 
 }
 
@@ -119,6 +153,24 @@ void AMPPlayerController::SetHUDMatchCountDown(float CountDownTime)
 	}
 }
 
+void AMPPlayerController::HideAnnouncementOverlay()
+{
+	PlayerHUD = PlayerHUD == nullptr ? Cast<AMPPlayerHUD>(GetHUD()) : PlayerHUD;
+
+	bool bIsValidAnnouncementOverlay = PlayerHUD && PlayerHUD->AnnouncementOverlay;
+
+	if (bIsValidAnnouncementOverlay)
+	{
+		PlayerHUD->AnnouncementOverlay->SetVisibility(ESlateVisibility::Hidden);
+	}
+
+}
+
+/// <summary>
+/// Set Max Health and Current Health in Player HUD
+/// </summary>
+/// <param name="MaxHealth"></param>
+/// <param name="CurrentHealth"></param>
 void AMPPlayerController::SetHUDHealth(float MaxHealth, float CurrentHealth)
 {
 	PlayerHUD = PlayerHUD == nullptr ? Cast<AMPPlayerHUD>(GetHUD()) : PlayerHUD;
@@ -131,8 +183,18 @@ void AMPPlayerController::SetHUDHealth(float MaxHealth, float CurrentHealth)
 		FString PlayerHealth = FString::Printf(TEXT("Health: % d / % d"), FMath::CeilToInt(CurrentHealth), FMath::CeilToInt(MaxHealth));
 		PlayerHUD->PlayerOverlay->HealthText->SetText(FText::FromString(PlayerHealth));
 	}
+	else
+	{
+		bIsPlayerOverlayIntialized = true;
+		Cached_MaxHealth = MaxHealth;
+		Cached_Health = CurrentHealth;
+	}
 }
 
+/// <summary>
+/// Set Score or Kills done by Player to HUD
+/// </summary>
+/// <param name="Score"></param>
 void AMPPlayerController::SetHUDScore(float Score)
 {
 
@@ -140,17 +202,22 @@ void AMPPlayerController::SetHUDScore(float Score)
 
 
 	bool bIsValidPlayerOverlay = PlayerHUD && PlayerHUD->PlayerOverlay && PlayerHUD->PlayerOverlay->ScoreAmt;
-	bool bIsValidPlayerOverlayMessage = PlayerHUD && PlayerHUD->PlayerOverlay && PlayerHUD->PlayerOverlay->DisplayMessage;
-
-	if (bIsValidPlayerOverlayMessage && Score == 0.0f)
-	{
-		PlayerHUD->PlayerOverlay->DisplayMessage->SetVisibility(ESlateVisibility::Visible);
-	}
+	//bool bIsValidPlayerOverlayMessage = PlayerHUD && PlayerHUD->PlayerOverlay && PlayerHUD->PlayerOverlay->DisplayMessage;
 
 	if (bIsValidPlayerOverlay)
 	{
+		//if (bIsValidPlayerOverlayMessage != false && Score == 0.0f)
+		//{
+		//	PlayerHUD->PlayerOverlay->DisplayMessage->SetVisibility(ESlateVisibility::Visible);
+		//}
+
 		FString ScoreAmt = FString::Printf(TEXT("%d"), FMath::FloorToInt(Score));
 		PlayerHUD->PlayerOverlay->ScoreAmt->SetText(FText::FromString(ScoreAmt));
+	}
+	else
+	{
+		bIsPlayerOverlayIntialized = true;
+		Cached_Score = Score;
 	}
 }
 
@@ -170,6 +237,11 @@ void AMPPlayerController::SetHUDDefeats(int32 Defeats)
 		//UE_LOG(LogTemp, Warning, TEXT("Inside Final Call"));
 		FString DefeatAmt = FString::Printf(TEXT("%d"), Defeats);
 		PlayerHUD->PlayerOverlay->DefeatAmt->SetText(FText::FromString(DefeatAmt));
+	}
+	else
+	{
+		bIsPlayerOverlayIntialized = true;
+		Cached_Defeats = Defeats;
 	}
 }
 
@@ -272,8 +344,6 @@ void AMPPlayerController::ShowDefeatMessage(FString DefeatMessage)
 void AMPPlayerController::HideDefeatMessage()
 {
 	PlayerHUD = PlayerHUD == nullptr ? Cast<AMPPlayerHUD>(GetHUD()) : PlayerHUD;
-
-
 	bool bIsValidPlayerOverlay = PlayerHUD && PlayerHUD->PlayerOverlay && PlayerHUD->PlayerOverlay->DisplayMessage;
 
 	if (bIsValidPlayerOverlay)
@@ -282,6 +352,43 @@ void AMPPlayerController::HideDefeatMessage()
 		PlayerHUD->PlayerOverlay->DisplayMessage->SetVisibility(ESlateVisibility::Hidden);
 		PlayerHUD->PlayerOverlay->DisplayMessage->SetText(FText::FromString(""));
 	}
+}
+
+/// <summary>
+/// Function to set Matchstate in player controller
+/// </summary>
+/// <param name="NewMatchState"></param>
+void AMPPlayerController::OnMatchStateSet(FName NewMatchState)
+{
+	MatchState = NewMatchState;
+
+	if (MatchState == MatchState::InProgress)
+	{
+		HandleMatchHasStarted();
+	}
+}
+
+/// <summary>
+/// Rep Notifier for Match State Variable
+/// </summary>
+void AMPPlayerController::OnRep_MatchState()
+{
+	if (MatchState == MatchState::InProgress)
+	{
+		HandleMatchHasStarted();
+	}
+}
+
+void AMPPlayerController::HandleMatchHasStarted()
+{
+		PlayerHUD = PlayerHUD == nullptr ? Cast<AMPPlayerHUD>(GetHUD()) : PlayerHUD;
+
+		if (PlayerHUD != nullptr)
+		{
+			HideAnnouncementOverlay();
+			PlayerHUD->AddPlayerOverlay();
+		}
+
 }
 
 void AMPPlayerController::OnPossess(APawn* InPawn)

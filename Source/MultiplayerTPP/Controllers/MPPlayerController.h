@@ -17,6 +17,9 @@ class MULTIPLAYERTPP_API AMPPlayerController : public APlayerController
 protected:
 
 	virtual void BeginPlay() override;
+	void PollInit();
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	virtual void OnPossess(APawn* InPawn) override;
 	virtual void Tick(float DeltaTime) override;
 	void CheckTimeSync(float DeltaTime);
 	virtual float GetServerTime();
@@ -48,9 +51,29 @@ private:
 
 	UPROPERTY()
 	class AMPPlayerHUD* PlayerHUD = nullptr;
+	class UPlayerOverlay* PlayerOverlay = nullptr;
+
+	/*
+	* Cached Values
+	*/
+	bool bIsPlayerOverlayIntialized = false;
+
+	float Cached_Health = 0.0f;
+	float Cached_MaxHealth = 0.0f;
+	float Cached_Score = 0.0f;
+	int32 Cached_Defeats = 0;
+
 
 	float MatchTime = 120.0f;
 	int32 CountDownInt = 0;
+
+	UPROPERTY(ReplicatedUsing = OnRep_MatchState)
+	FName MatchState;
+
+	UFUNCTION()
+	void OnRep_MatchState();
+
+	void HandleMatchHasStarted();
 
 public:
 
@@ -61,10 +84,10 @@ public:
 	void SetHUDCarriedAmmo(int32 Ammo);
 	void SetHUDWeaponInfo(class UWeaponDataAsset* WeaponDataAsset);
 	void SetHUDMatchCountDown(float Sec);
+	void HideAnnouncementOverlay();
 
 	void ShowDefeatMessage(FString DefeatMessage);
 	void HideDefeatMessage();
-
-	virtual void OnPossess(APawn* InPawn) override;
+	void OnMatchStateSet(FName NewMatchState);
 
 };
