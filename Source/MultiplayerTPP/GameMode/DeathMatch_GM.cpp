@@ -24,7 +24,7 @@ void ADeathMatch_GM::Tick(float DeltaTime)
 {
 	if (MatchState == MatchState::WaitingToStart)
 	{
-		CountDownTime += WarmupTime - (GetWorld()->GetTimeSeconds() - LevelStartTime);
+		CountDownTime = WarmupTime - (GetWorld()->GetTimeSeconds() - LevelStartTime);
 		if (CountDownTime <= 0.0f)
 		{
 			StartMatch();

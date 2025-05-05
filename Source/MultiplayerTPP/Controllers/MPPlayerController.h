@@ -25,6 +25,13 @@ protected:
 	virtual float GetServerTime();
 	void SetHUDTime();
 
+	UFUNCTION(Server, Reliable)
+	void ServerCheckMatchState();
+
+	UFUNCTION(Client, Reliable)
+	void ClientJoinMidGame(FName MatchState, float WarmupTime, float MatchTime, float LevelStartTime);
+	
+
 	/*
 	* Sync time between Client and Server
 	*/
@@ -63,12 +70,13 @@ private:
 	float Cached_Score = 0.0f;
 	int32 Cached_Defeats = 0;
 
-
-	float MatchTime = 120.0f;
-	int32 CountDownInt = 0;
+	float Ctrl_LevelStartTime = 0.0f;
+	float Ctrl_WarmupTime = 0.0f;
+	float Ctrl_MatchTime = 0.0f;
+	int32 Ctrl_CountDownInt = 0;
 
 	UPROPERTY(ReplicatedUsing = OnRep_MatchState)
-	FName MatchState;
+	FName Ctrl_MatchState;
 
 	UFUNCTION()
 	void OnRep_MatchState();
@@ -78,16 +86,27 @@ private:
 public:
 
 	void SetHUDHealth(float MaxHealth, float CurrentHealth);
+
 	void SetHUDScore(float Score);
+
 	void SetHUDDefeats(int32 Defeats);
+
 	void SetHUDAmmoCount(int32 Ammo);
+
 	void SetHUDCarriedAmmo(int32 Ammo);
+
 	void SetHUDWeaponInfo(class UWeaponDataAsset* WeaponDataAsset);
+
 	void SetHUDMatchCountDown(float Sec);
+
+	void SetHUDAnnouncementCountDown(float time);
+
 	void HideAnnouncementOverlay();
 
 	void ShowDefeatMessage(FString DefeatMessage);
+
 	void HideDefeatMessage();
+
 	void OnMatchStateSet(FName NewMatchState);
 
 };

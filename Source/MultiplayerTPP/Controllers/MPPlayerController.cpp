@@ -12,6 +12,7 @@
 #include "MultiplayerTPP/DataAssets/WeaponDataAsset.h"
 #include "MultiplayerTPP/Character/MPPlayer.h"
 #include "MultiplayerTPP/GameMode/DeathMatch_GM.h"
+#include "Kismet/GameplayStatics.h"
 #include "MultiplayerTPP/WidgetsHud/AnnouncementOverlay.h"
 
 void AMPPlayerController::BeginPlay()
@@ -20,10 +21,8 @@ void AMPPlayerController::BeginPlay()
 
 	PlayerHUD = Cast<AMPPlayerHUD>(GetHUD());
 
-	if (PlayerHUD != nullptr)
-	{
-		PlayerHUD->AddAnnouncementOverlay();
-	}
+	ServerCheckMatchState();
+
 }
 
 void AMPPlayerController::PollInit()
@@ -48,7 +47,7 @@ void AMPPlayerController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(AMPPlayerController, MatchState);
+	DOREPLIFETIME(AMPPlayerController, Ctrl_MatchState);
 }
 
 void AMPPlayerController::Tick(float DeltaTime)
@@ -126,14 +125,73 @@ void AMPPlayerController::ClientReportServerTime_Implementation(float TimeOfClie
 /// </summary>
 void AMPPlayerController::SetHUDTime()
 {
-	uint32 SecondsLeft = FMath::CeilToInt(MatchTime - GetServerTime());
-
-	if (CountDownInt != SecondsLeft)
+	if (Ctrl_LevelStartTime == 0.0f && HasAuthority())
 	{
-		SetHUDMatchCountDown(MatchTime - GetServerTime());
+		ADeathMatch_GM* GameMode = Cast<ADeathMatch_GM>(UGameplayStatics::GetGameMode(this));
+		if (GameMode != nullptr)
+		{
+			Ctrl_LevelStartTime = GameMode->LevelStartTime;
+		}
 	}
 
-	CountDownInt = SecondsLeft;
+
+	float TimeLeft = 0.0f;
+
+	if(Ctrl_MatchState == MatchState::WaitingToStart)
+	{
+		TimeLeft = Ctrl_WarmupTime - (GetServerTime() - Ctrl_LevelStartTime);
+	}
+	else if (Ctrl_MatchState == MatchState::InProgress)
+	{
+		TimeLeft = (  Ctrl_MatchTime - ( ( GetServerTime() - Ctrl_LevelStartTime ) + Ctrl_WarmupTime) );
+	}
+
+	uint32 SecondsLeft = FMath::CeilToInt(TimeLeft);
+
+	if (Ctrl_CountDownInt != SecondsLeft)
+	{
+		if (Ctrl_MatchState == MatchState::WaitingToStart)
+		{
+			SetHUDAnnouncementCountDown(TimeLeft);
+		}
+
+		if (Ctrl_MatchState == MatchState::InProgress)
+		{
+			SetHUDMatchCountDown(TimeLeft);
+
+		}
+	}
+
+	Ctrl_CountDownInt = SecondsLeft;
+}
+
+void AMPPlayerController::ServerCheckMatchState_Implementation()
+{
+	ADeathMatch_GM* GameMode = Cast<ADeathMatch_GM>(UGameplayStatics::GetGameMode(this));
+	if (GameMode != nullptr)
+	{
+		Ctrl_WarmupTime = GameMode->WarmupTime;
+		Ctrl_MatchTime = GameMode->MatchTime;
+		Ctrl_LevelStartTime = GameMode->LevelStartTime;
+		Ctrl_MatchState = GameMode->GetMatchState();
+
+		ClientJoinMidGame(Ctrl_MatchState, Ctrl_WarmupTime, Ctrl_MatchTime, Ctrl_LevelStartTime);
+	}
+
+}
+
+void AMPPlayerController::ClientJoinMidGame_Implementation(FName Sr_MatchState, float Sr_WarmupTime, float Sr_MatchTime, float Sr_LevelStartTime)
+{
+		this->Ctrl_WarmupTime = Sr_WarmupTime;
+		this->Ctrl_MatchTime = Sr_MatchTime;
+		this->Ctrl_LevelStartTime = Sr_LevelStartTime;
+		this->Ctrl_MatchState = Sr_MatchState;
+		OnMatchStateSet(Sr_MatchState);
+
+		if (Sr_MatchState == MatchState::WaitingToStart && PlayerHUD != nullptr)
+		{
+			PlayerHUD->AddAnnouncementOverlay();
+		}
 }
 
 /// <summary>
@@ -150,6 +208,21 @@ void AMPPlayerController::SetHUDMatchCountDown(float CountDownTime)
 		int32 Seconds = CountDownTime - (Minutes * 60);
 		FString CountDownText = FString::Printf(TEXT("%02d:%02d"), Minutes, Seconds);
 		PlayerHUD->PlayerOverlay->CountDown->SetText(FText::FromString(CountDownText));
+	}
+}
+
+void AMPPlayerController::SetHUDAnnouncementCountDown(float WarmupTime)
+{
+
+	PlayerHUD = PlayerHUD == nullptr ? Cast<AMPPlayerHUD>(GetHUD()) : PlayerHUD;
+	bool bIsValidAnnouncementOverlay = PlayerHUD && PlayerHUD->AnnouncementOverlay && PlayerHUD->AnnouncementOverlay->WarmupTimer;
+
+	if (bIsValidAnnouncementOverlay)
+	{
+		int32 Minutes = FMath::FloorToInt32(WarmupTime / 60.0f);
+		int32 Seconds = WarmupTime - (Minutes * 60);
+		FString CountDownText = FString::Printf(TEXT("%02d:%02d"), Minutes, Seconds);
+		PlayerHUD->AnnouncementOverlay->WarmupTimer->SetText(FText::FromString(CountDownText));
 	}
 }
 
@@ -360,9 +433,9 @@ void AMPPlayerController::HideDefeatMessage()
 /// <param name="NewMatchState"></param>
 void AMPPlayerController::OnMatchStateSet(FName NewMatchState)
 {
-	MatchState = NewMatchState;
+	Ctrl_MatchState = NewMatchState;
 
-	if (MatchState == MatchState::InProgress)
+	if (Ctrl_MatchState == MatchState::InProgress)
 	{
 		HandleMatchHasStarted();
 	}
@@ -373,7 +446,7 @@ void AMPPlayerController::OnMatchStateSet(FName NewMatchState)
 /// </summary>
 void AMPPlayerController::OnRep_MatchState()
 {
-	if (MatchState == MatchState::InProgress)
+	if (Ctrl_MatchState == MatchState::InProgress)
 	{
 		HandleMatchHasStarted();
 	}

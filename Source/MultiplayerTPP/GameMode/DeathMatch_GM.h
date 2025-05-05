@@ -14,11 +14,21 @@ class MULTIPLAYERTPP_API ADeathMatch_GM : public AGameMode
 {
 	GENERATED_BODY()
 
+public:
+	float LevelStartTime = 0.0f;
+
+	UPROPERTY(EditDefaultsOnly)
+		float WarmupTime = 10.0f;
+
+	UPROPERTY(EditDefaultsOnly)
+		float MatchTime = 120.0f;
+
+
+		float CountDownTime = 0.0f;
+
+
 private : 
 
-	float LevelStartTime = 0.0f;
-	float WarmupTime = 10.0f;
-	float CountDownTime = 0.0f;
 
 public:
 	ADeathMatch_GM();
