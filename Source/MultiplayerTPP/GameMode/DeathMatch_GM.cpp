@@ -6,7 +6,15 @@
 #include "MultiplayerTPP/Controllers/MPPlayerController.h"
 #include"Kismet/GameplayStatics.h"
 #include "GameFramework/PlayerStart.h"
+#include "MultiplayerTPP/GameStates/DeathMatch_GS.h"
 #include "MultiplayerTPP/PlayerState/MPPlayerState.h"
+
+
+
+namespace MatchState
+{
+	const FName Cooldown = FName("Cooldown");
+}
 
 ADeathMatch_GM::ADeathMatch_GM()
 {
@@ -30,6 +38,22 @@ void ADeathMatch_GM::Tick(float DeltaTime)
 			StartMatch();
 		}
 	}
+	else if (MatchState == MatchState::InProgress)
+	{
+		CountDownTime = MatchTime - ( GetWorld()->GetTimeSeconds() - (LevelStartTime + WarmupTime));
+		if (CountDownTime <= 0.0f)
+		{
+			SetMatchState(MatchState::Cooldown);
+		}
+	}
+	else if (MatchState == MatchState::Cooldown)
+	{
+		CountDownTime = CooldownTime - ( GetWorld()->GetTimeSeconds() - (LevelStartTime + WarmupTime + MatchTime) );
+		if (CountDownTime <= 0.0f)
+		{
+			RestartGame();
+		}
+	}
 }
 
 void ADeathMatch_GM::PlayerEliminated(AMPPlayer* EliminatedCharacter, AMPPlayerController* EliminatedPlayerController, AMPPlayerController* AttackingPlayerController)
@@ -46,10 +70,13 @@ void ADeathMatch_GM::PlayerEliminated(AMPPlayer* EliminatedCharacter, AMPPlayerC
 
 	AMPPlayerState* AttackerPlayerState = AttackingPlayerController ? Cast<AMPPlayerState>(AttackingPlayerController->PlayerState) : nullptr;
 	AMPPlayerState* EliminatedPlayerState = EliminatedPlayerController ? Cast<AMPPlayerState>(EliminatedPlayerController->PlayerState) : nullptr;
+	ADeathMatch_GS* Curr_GameState = GetGameState<ADeathMatch_GS>();
 
-	if (AttackerPlayerState && AttackerPlayerState != EliminatedPlayerState)
+
+	if (AttackerPlayerState && AttackerPlayerState != EliminatedPlayerState && Curr_GameState != nullptr)
 	{
 		AttackerPlayerState->AddToScore(1.0f);
+		Curr_GameState->UpdateTopScore(AttackerPlayerState);
 	}
 		
 	if (EliminatedPlayerState)

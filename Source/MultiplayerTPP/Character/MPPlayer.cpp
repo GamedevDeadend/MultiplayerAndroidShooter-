@@ -83,6 +83,7 @@ void AMPPlayer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetim
 	DOREPLIFETIME_CONDITION(AMPPlayer, OverlappedWeapon, COND_OwnerOnly);
 	DOREPLIFETIME(AMPPlayer, StartAimRotation);
 	DOREPLIFETIME(AMPPlayer, CurrentHealth);
+	DOREPLIFETIME(AMPPlayer, bIsGameplayDisabled);
 }
 
 void AMPPlayer::BeginPlay()
@@ -151,6 +152,8 @@ void AMPPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 void AMPPlayer::FireButtonPressed()
 {
+	if (bIsGameplayDisabled) { return; }
+
 	if (CombatComponent)
 	{
 		CombatComponent->FirePressed(true);
@@ -159,6 +162,8 @@ void AMPPlayer::FireButtonPressed()
 
 void AMPPlayer::FireButtonReleased()
 {
+	if (bIsGameplayDisabled) { return; }
+
 	if (CombatComponent)
 	{
 		CombatComponent->FirePressed(false);
@@ -168,6 +173,8 @@ void AMPPlayer::FireButtonReleased()
 
 void AMPPlayer::MoveForward(float Value)
 {
+	if (bIsGameplayDisabled) { return; }
+
 	if (Controller != nullptr && Value != 0.0f)
 	{
 		//Instead of characterMesh Rotation we are getting controller rotation
@@ -181,6 +188,8 @@ void AMPPlayer::MoveForward(float Value)
 
 void AMPPlayer::MoveRight(float Value)
 {
+	if (bIsGameplayDisabled) { return; }
+
 	if (Controller != nullptr && Value != 0)
 	{
 		//Instead of characterMesh Rotation we are getting controller rotation
@@ -204,6 +213,8 @@ void AMPPlayer::LookRight(float Value)
 
 void AMPPlayer::EquipWeapon()
 {
+	if (bIsGameplayDisabled) { return; }
+
 	if (CombatComponent)
 	{
 		if (HasAuthority())
@@ -215,9 +226,10 @@ void AMPPlayer::EquipWeapon()
 
 void AMPPlayer::ReloadWeapon()
 {
+	if (bIsGameplayDisabled) { return; }
+
 	if (CombatComponent != nullptr)
 	{
-		
 		CombatComponent->Reload();
 	}
 }
@@ -235,6 +247,7 @@ void AMPPlayer::ServerEquipPressed_Implementation()
 
 void AMPPlayer::Jump()
 {
+	if (bIsGameplayDisabled) { return; }
 	if (bIsCrouched)
 	{
 		UnCrouch();
@@ -248,6 +261,8 @@ void AMPPlayer::Jump()
 
 void AMPPlayer::CrouchAction()
 {
+	if (bIsGameplayDisabled) { return; }
+
 	if (bIsCrouched)
 		UnCrouch();
 
@@ -257,12 +272,16 @@ void AMPPlayer::CrouchAction()
 
 void AMPPlayer::AimPressed()
 {
+	if (bIsGameplayDisabled) { return; }
+
 	if (CombatComponent)
 		CombatComponent->SetAiming(true);
 }
 
 void AMPPlayer::AimReleased()
 {
+	if (bIsGameplayDisabled) { return; }
+
 	if (CombatComponent)
 		CombatComponent->SetAiming(false);
 }
@@ -502,10 +521,7 @@ void AMPPlayer::MulticastElim_Implementation()
 	//Disable Movement
 	GetCharacterMovement()->DisableMovement();//Disable Key Input
 	GetCharacterMovement()->StopMovementImmediately();//Disable Mouse Inputs Too
-	if (MPPlayerController)
-	{
-		DisableInput(MPPlayerController);
-	}
+	bIsGameplayDisabled = true;
 
 	//Disable Collision
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -582,10 +598,21 @@ void AMPPlayer::Destroyed()
 	{
 		ElimBotParticleComponent->DestroyComponent();
 	}
+
+	if (CombatComponent != nullptr && CombatComponent->EquippedWeapon != nullptr)
+	{
+		CombatComponent->EquippedWeapon->Destroy();
+	}
 }
 
 void AMPPlayer::AimOffset(float DeltaTime)
 {
+	if (bIsGameplayDisabled)
+	{ 
+		bUseControllerRotationYaw = false;
+		TurningInplace = ETurningInPlace::ETIP_NotTurning;
+		return;
+	}
 
 	if (CombatComponent && CombatComponent->EquippedWeapon == nullptr) return;
 

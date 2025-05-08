@@ -9,6 +9,14 @@
 /**
  * 
  */
+namespace MatchState
+{
+	/// <summary>
+	/// Called When Match is finished and waiting for new Match
+	/// </summary>
+	extern MULTIPLAYERTPP_API const FName Cooldown;
+}
+
 UCLASS()
 class MULTIPLAYERTPP_API ADeathMatch_GM : public AGameMode
 {
@@ -21,7 +29,10 @@ public:
 		float WarmupTime = 10.0f;
 
 	UPROPERTY(EditDefaultsOnly)
-		float MatchTime = 120.0f;
+		float MatchTime = 20.0f;
+
+	UPROPERTY(EditDefaultsOnly)
+		float CooldownTime = 10.0f;
 
 
 		float CountDownTime = 0.0f;

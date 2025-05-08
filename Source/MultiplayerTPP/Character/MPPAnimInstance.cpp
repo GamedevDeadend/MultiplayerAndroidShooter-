@@ -81,8 +81,8 @@ void UMPPAnimInstance::NativeUpdateAnimation(float Deltatime)
 		}
 
 		bCanUseFABRIK = MPPlayer->GetCombatState() != ECombatState::ECS_Reloading;
-		bCanUseAimOffsets = MPPlayer->GetCombatState() != ECombatState::ECS_Reloading;
-		bCanTransformRightHand = MPPlayer->GetCombatState() != ECombatState::ECS_Reloading;
+		bCanUseAimOffsets = MPPlayer->GetCombatState() != ECombatState::ECS_Reloading && !MPPlayer->bIsGameplayDisabled;
+		bCanTransformRightHand = MPPlayer->GetCombatState() != ECombatState::ECS_Reloading && !MPPlayer->bIsGameplayDisabled;
 	}
 }
 

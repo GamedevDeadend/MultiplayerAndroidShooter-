@@ -9,6 +9,7 @@
 /**
  * 
  */
+
 UCLASS()
 class MULTIPLAYERTPP_API AMPPlayerController : public APlayerController
 {
@@ -29,7 +30,7 @@ protected:
 	void ServerCheckMatchState();
 
 	UFUNCTION(Client, Reliable)
-	void ClientJoinMidGame(FName MatchState, float WarmupTime, float MatchTime, float LevelStartTime);
+	void ClientJoinMidGame(FName MatchState, float WarmupTime, float MatchTime, float LevelStartTime, float Cooldown);
 	
 
 	/*
@@ -58,6 +59,13 @@ private:
 
 	UPROPERTY()
 	class AMPPlayerHUD* PlayerHUD = nullptr;
+
+	/// <summary>
+	/// Only exists on server
+	/// </summary>
+	UPROPERTY()
+	class ADeathMatch_GM* DeathMatch_GM = nullptr;
+
 	class UPlayerOverlay* PlayerOverlay = nullptr;
 
 	/*
@@ -73,7 +81,9 @@ private:
 	float Ctrl_LevelStartTime = 0.0f;
 	float Ctrl_WarmupTime = 0.0f;
 	float Ctrl_MatchTime = 0.0f;
+	float Ctrl_CooldownTime = 0.0f;
 	int32 Ctrl_CountDownInt = 0;
+
 
 	UPROPERTY(ReplicatedUsing = OnRep_MatchState)
 	FName Ctrl_MatchState;
@@ -82,6 +92,9 @@ private:
 	void OnRep_MatchState();
 
 	void HandleMatchHasStarted();
+	void HandleMatchCooldown();
+
+	void ShowWinners();
 
 public:
 

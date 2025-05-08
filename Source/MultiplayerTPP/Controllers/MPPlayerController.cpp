@@ -14,6 +14,14 @@
 #include "MultiplayerTPP/GameMode/DeathMatch_GM.h"
 #include "Kismet/GameplayStatics.h"
 #include "MultiplayerTPP/WidgetsHud/AnnouncementOverlay.h"
+#include "MultiplayerTPP/PlayerComponents/CombatComponent.h"
+#include "MultiplayerTPP/GameStates/DeathMatch_GS.h"
+
+/*
+* Special naming convention
+* Sr_... means variable is from server
+* Ctrl_.. means variables from control. This convention is used to distinguish varibales from Game_Mode classes
+*/
 
 void AMPPlayerController::BeginPlay()
 {
@@ -143,10 +151,25 @@ void AMPPlayerController::SetHUDTime()
 	}
 	else if (Ctrl_MatchState == MatchState::InProgress)
 	{
-		TimeLeft = (  Ctrl_MatchTime - ( ( GetServerTime() - Ctrl_LevelStartTime ) + Ctrl_WarmupTime) );
+		TimeLeft = (   Ctrl_MatchTime - (  GetServerTime() - (Ctrl_LevelStartTime + Ctrl_WarmupTime)  )   );
+	}
+	else if (Ctrl_MatchState == MatchState::Cooldown)
+	{
+		TimeLeft = Ctrl_CooldownTime - (GetServerTime() - (Ctrl_LevelStartTime + Ctrl_WarmupTime + Ctrl_MatchTime) );
 	}
 
 	uint32 SecondsLeft = FMath::CeilToInt(TimeLeft);
+
+	if (HasAuthority())
+	{
+		DeathMatch_GM = DeathMatch_GM == nullptr ? Cast<ADeathMatch_GM>(UGameplayStatics::GetGameMode(this)) : DeathMatch_GM;
+		
+		if (DeathMatch_GM != nullptr)
+		{
+			SecondsLeft = FMath::CeilToInt(DeathMatch_GM->CountDownTime + Ctrl_LevelStartTime);
+		}
+	}
+
 
 	if (Ctrl_CountDownInt != SecondsLeft)
 	{
@@ -159,6 +182,11 @@ void AMPPlayerController::SetHUDTime()
 		{
 			SetHUDMatchCountDown(TimeLeft);
 
+		}
+
+		if (Ctrl_MatchState == MatchState::Cooldown)
+		{
+			SetHUDAnnouncementCountDown(TimeLeft);
 		}
 	}
 
@@ -174,18 +202,20 @@ void AMPPlayerController::ServerCheckMatchState_Implementation()
 		Ctrl_MatchTime = GameMode->MatchTime;
 		Ctrl_LevelStartTime = GameMode->LevelStartTime;
 		Ctrl_MatchState = GameMode->GetMatchState();
+		Ctrl_CooldownTime = GameMode->CooldownTime;
 
-		ClientJoinMidGame(Ctrl_MatchState, Ctrl_WarmupTime, Ctrl_MatchTime, Ctrl_LevelStartTime);
+		ClientJoinMidGame(Ctrl_MatchState, Ctrl_WarmupTime, Ctrl_MatchTime, Ctrl_LevelStartTime, Ctrl_CooldownTime);
 	}
 
 }
 
-void AMPPlayerController::ClientJoinMidGame_Implementation(FName Sr_MatchState, float Sr_WarmupTime, float Sr_MatchTime, float Sr_LevelStartTime)
+void AMPPlayerController::ClientJoinMidGame_Implementation(FName Sr_MatchState, float Sr_WarmupTime, float Sr_MatchTime, float Sr_LevelStartTime, float Sr_Cooldown)
 {
 		this->Ctrl_WarmupTime = Sr_WarmupTime;
 		this->Ctrl_MatchTime = Sr_MatchTime;
 		this->Ctrl_LevelStartTime = Sr_LevelStartTime;
 		this->Ctrl_MatchState = Sr_MatchState;
+		this->Ctrl_CooldownTime = Sr_Cooldown;
 		OnMatchStateSet(Sr_MatchState);
 
 		if (Sr_MatchState == MatchState::WaitingToStart && PlayerHUD != nullptr)
@@ -204,6 +234,12 @@ void AMPPlayerController::SetHUDMatchCountDown(float CountDownTime)
 
 	if (bIsValidPlayerOverlay)
 	{
+		if (CountDownTime < 0.0f)
+		{
+			PlayerHUD->AnnouncementOverlay->WarmupTimer->SetText(FText::FromString(""));
+			return;
+		}
+
 		int32 Minutes = FMath::FloorToInt32(CountDownTime / 60.0f);
 		int32 Seconds = CountDownTime - (Minutes * 60);
 		FString CountDownText = FString::Printf(TEXT("%02d:%02d"), Minutes, Seconds);
@@ -219,6 +255,13 @@ void AMPPlayerController::SetHUDAnnouncementCountDown(float WarmupTime)
 
 	if (bIsValidAnnouncementOverlay)
 	{
+
+		if (WarmupTime < 0.0f)
+		{
+			PlayerHUD->AnnouncementOverlay->WarmupTimer->SetText(FText::FromString(""));
+			return;
+		}
+
 		int32 Minutes = FMath::FloorToInt32(WarmupTime / 60.0f);
 		int32 Seconds = WarmupTime - (Minutes * 60);
 		FString CountDownText = FString::Printf(TEXT("%02d:%02d"), Minutes, Seconds);
@@ -439,6 +482,10 @@ void AMPPlayerController::OnMatchStateSet(FName NewMatchState)
 	{
 		HandleMatchHasStarted();
 	}
+	else if (Ctrl_MatchState == MatchState::Cooldown)
+	{
+		HandleMatchCooldown();
+	}
 }
 
 /// <summary>
@@ -449,6 +496,10 @@ void AMPPlayerController::OnRep_MatchState()
 	if (Ctrl_MatchState == MatchState::InProgress)
 	{
 		HandleMatchHasStarted();
+	}
+	else if (Ctrl_MatchState == MatchState::Cooldown)
+	{
+		HandleMatchCooldown();
 	}
 }
 
@@ -462,6 +513,78 @@ void AMPPlayerController::HandleMatchHasStarted()
 			PlayerHUD->AddPlayerOverlay();
 		}
 
+}
+
+void AMPPlayerController::HandleMatchCooldown()
+{
+	PlayerHUD = PlayerHUD == nullptr ? Cast<AMPPlayerHUD>(GetHUD()) : PlayerHUD;
+
+	bool bIsHudValid =
+		PlayerHUD != nullptr &&
+		PlayerHUD->PlayerOverlay &&
+		PlayerHUD->AnnouncementOverlay != nullptr &&
+		PlayerHUD->AnnouncementOverlay->MatchAnnouncement &&
+		PlayerHUD->AnnouncementOverlay->MatchInfo;
+
+	if (bIsHudValid)
+	{
+		//HideAnnouncementOverlay();
+		PlayerHUD->PlayerOverlay->RemoveFromParent();
+
+		if (PlayerHUD->AnnouncementOverlay != nullptr)
+		{
+			PlayerHUD->AnnouncementOverlay->SetVisibility(ESlateVisibility::Visible);
+			FString AnnouncementText("New Match Start In : ");
+			PlayerHUD->AnnouncementOverlay->MatchAnnouncement->SetText(FText::FromString(AnnouncementText));
+			ShowWinners();
+		}
+
+	}
+
+	AMPPlayer* MPPlayer = Cast<AMPPlayer>(GetPawn());
+	if (MPPlayer != nullptr && MPPlayer->GetCombatComponent() != nullptr)
+	{
+		MPPlayer->bIsGameplayDisabled = true;
+		MPPlayer->GetCombatComponent()->FirePressed(false);
+		MPPlayer->GetCombatComponent()->SetAiming(false);
+	}
+}
+
+void AMPPlayerController::ShowWinners()
+{
+	FString InfoString = "";
+	ADeathMatch_GS* GameState = Cast<ADeathMatch_GS>(UGameplayStatics::GetGameState(this));
+	if (GameState != nullptr)
+	{
+		auto TopScoringPlayers = GameState->TopScoringPlayers;
+		auto Curr_PlayerState = GetPlayerState<AMPPlayerState>();
+
+		if (TopScoringPlayers.Num() == 0)
+		{
+			InfoString = "No Winner Is There";
+		}
+		else if (TopScoringPlayers.Num() == 1 && TopScoringPlayers[0] == Curr_PlayerState)
+		{
+			InfoString = "You are Winner ;)";
+		}
+		else if (TopScoringPlayers.Num() == 1)
+		{
+			InfoString = FString::Printf(TEXT("Winner is \n%s"), *TopScoringPlayers[0]->GetPlayerName());
+		}
+		else if (TopScoringPlayers.Num() > 1)
+		{
+			InfoString = "We have a Tie :\n";
+
+			for (auto TiedPlayers : TopScoringPlayers)
+			{
+				InfoString.Append(FString::Printf(TEXT("%s\n"), *TiedPlayers->GetPlayerName()));
+			}
+		}
+
+
+	}
+
+	PlayerHUD->AnnouncementOverlay->MatchInfo->SetText(FText::FromString(InfoString));
 }
 
 void AMPPlayerController::OnPossess(APawn* InPawn)

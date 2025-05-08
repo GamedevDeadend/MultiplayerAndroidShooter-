@@ -143,6 +143,7 @@ private:
 	UPROPERTY(Replicated)
 		FRotator StartAimRotation;
 
+
 	/* Dissolve Material Variables*/
 
 	//Material Instance Set on blueprint, through which it's Dynamic instance will be created
@@ -184,6 +185,9 @@ private:
 //Getters And Setters
 public:
 
+	UPROPERTY(Replicated)
+		bool bIsGameplayDisabled = false;
+
 	UFUNCTION(BlueprintCallable)
 		FString GetPlayerName();
 
@@ -199,6 +203,7 @@ public:
 	FORCEINLINE bool GetIsEliminated()const { return bIsEliminated;  }
 	FORCEINLINE float GetHealth()const { return CurrentHealth; }
 	FORCEINLINE float GetMaxHealth()const { return MaxHealth; }
+	FORCEINLINE UCombatComponent* GetCombatComponent()const { return CombatComponent; }
 	AWeapons* GetEquippedWeapon();
 	FVector GetHitTarget()const;
 	ECombatState GetCombatState()const;

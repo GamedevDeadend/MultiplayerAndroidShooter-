@@ -29,6 +29,8 @@ public:
 	void EquipWeapon(class AWeapons* Equipweapon);
 
 	void UpdateCarriedAmmo();
+	void FirePressed(bool bPressed);
+	void SetAiming(bool bIsAiming);
 
 	UFUNCTION(BlueprintCallable)
 	void FinishReloading();
@@ -37,7 +39,6 @@ protected:
 
 	virtual void BeginPlay() override;
 
-	void SetAiming(bool bIsAiming);
 
 	//Server RPC invoke from clients and execute on server
 	UFUNCTION(Server, Reliable)
@@ -46,7 +47,6 @@ protected:
 	UFUNCTION()
 		void OnRep_EquippedWeapon();
 
-	void FirePressed(bool bPressed);
 
 	void Fire();
 
