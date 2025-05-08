@@ -599,10 +599,10 @@ void AMPPlayer::Destroyed()
 		ElimBotParticleComponent->DestroyComponent();
 	}
 
-	if (CombatComponent != nullptr && CombatComponent->EquippedWeapon != nullptr)
-	{
-		CombatComponent->EquippedWeapon->Destroy();
-	}
+	//if (CombatComponent != nullptr && CombatComponent->EquippedWeapon != nullptr)
+	//{
+	//	CombatComponent->EquippedWeapon->Destroy();
+	//}
 }
 
 void AMPPlayer::AimOffset(float DeltaTime)

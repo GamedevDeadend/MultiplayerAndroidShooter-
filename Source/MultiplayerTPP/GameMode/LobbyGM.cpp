@@ -12,11 +12,18 @@ void ALobbyGM::PostLogin(APlayerController* NewPlayer)
 
 	int32 PlayerCount = GameState.Get()->PlayerArray.Num();
 
-	if (PlayerCount > 0)
+	if (PlayerCount >= MaxPlayerCount)
 	{
 		
 		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString("Our dunction worked"));
-		GetWorldTimerManager().SetTimer(LoadDelayHandler, this, &ALobbyGM::StartLvlTravel, 10.0f, false);
+
+		UWorld* World = GetWorld();
+		if (World != nullptr)
+		{
+			bUseSeamlessTravel = true;
+			World->ServerTravel(FString::Printf(TEXT("/Game/Maps/%s?listen"), *DeatMatchLvl));
+			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Cyan, FString("Our dunction worked 2"));
+		}
 
 	}
 }
@@ -27,7 +34,7 @@ void ALobbyGM::StartLvlTravel()
 	if (World != nullptr)
 	{
 		bUseSeamlessTravel = true;
-		World->ServerTravel(FString("/Game/Maps/SoloDeathMatch?listen"));
+		World->ServerTravel(FString::Printf(TEXT("/Game/Maps/%s?listen"), *DeatMatchLvl));
 		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Cyan, FString("Our dunction worked 2"));
 	}
 

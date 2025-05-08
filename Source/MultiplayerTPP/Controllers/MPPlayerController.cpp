@@ -230,6 +230,7 @@ void AMPPlayerController::ClientJoinMidGame_Implementation(FName Sr_MatchState, 
 /// <param name="Sec"></param>
 void AMPPlayerController::SetHUDMatchCountDown(float CountDownTime)
 {
+	PlayerHUD = PlayerHUD == nullptr ? Cast<AMPPlayerHUD>(GetHUD()) : PlayerHUD;
 	bool bIsValidPlayerOverlay = PlayerHUD && PlayerHUD->PlayerOverlay && PlayerHUD->PlayerOverlay->CountDown;
 
 	if (bIsValidPlayerOverlay)

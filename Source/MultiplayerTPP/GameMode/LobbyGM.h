@@ -17,6 +17,12 @@ private:
 	UPROPERTY()
 		FTimerHandle LoadDelayHandler;
 
+	UPROPERTY(EditAnywhere)
+	FString DeatMatchLvl = "SoloDeathMatch";
+
+	UPROPERTY(EditAnywhere)
+	int32 MaxPlayerCount = 2;
+
 protected:
 
 	virtual void PostLogin(APlayerController* NewPlayer) override;
