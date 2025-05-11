@@ -13,10 +13,19 @@ struct FHUDPackage
 
 public:
 
+	UPROPERTY()
 	class UTexture2D* CrosshairsCenter;
+
+	UPROPERTY()
 	UTexture2D* CrosshairsTop;
+
+	UPROPERTY()
 	UTexture2D* CrosshairsBottom;
+
+	UPROPERTY()
 	UTexture2D* CrosshairsLeft;
+
+	UPROPERTY()
 	UTexture2D* CrosshairsRight;
 
 
@@ -60,7 +69,8 @@ private:
 	UPROPERTY(EditAnywhere, Category = " Announcement Overlay")
 	TSubclassOf<class UUserWidget> AnnouncementOverlayClass;
 
-	FHUDPackage HUDPackage;
+	UPROPERTY()
+		FHUDPackage HUDPackage;
 
 	void DrawCrosshair(UTexture2D* Texture, FVector2D ViewportCenter, FVector2D Spread, float Scale, FLinearColor Color);
 

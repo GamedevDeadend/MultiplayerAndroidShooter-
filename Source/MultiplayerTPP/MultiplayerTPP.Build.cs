@@ -12,7 +12,7 @@ public class MultiplayerTPP : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore" });
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "Multiplayer" });
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 

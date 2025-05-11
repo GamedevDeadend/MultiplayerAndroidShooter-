@@ -35,6 +35,8 @@ void AMPPlayerController::BeginPlay()
 
 void AMPPlayerController::PollInit()
 {
+	PlayerHUD = PlayerHUD == nullptr ? Cast<AMPPlayerHUD>(GetHUD()) : PlayerHUD;
+
 	if (PlayerOverlay == nullptr)
 	{
 		if (PlayerHUD != nullptr && PlayerHUD->PlayerOverlay != nullptr)
@@ -67,6 +69,33 @@ void AMPPlayerController::Tick(float DeltaTime)
 	CheckTimeSync(DeltaTime);
 	PollInit();
 
+	CheckForLatestPing(DeltaTime);
+
+}
+
+void AMPPlayerController::CheckForLatestPing(float DeltaTime)
+{
+	HighPingCheckRunningTime += DeltaTime;
+	if (HighPingCheckRunningTime > HighPingCheckFrequencyTime)
+	{
+		if (PlayerState != nullptr)
+		{
+			LatestPing = PlayerState->GetPingInMilliseconds();
+			SetHUDPing();
+
+			if (LatestPing > HighPingThreshold)
+			{
+				PlayerHUD = PlayerHUD == nullptr ? Cast<AMPPlayerHUD>(GetHUD()) : PlayerHUD;
+
+				if (PlayerHUD != nullptr && PlayerHUD->PlayerOverlay != nullptr)
+				{
+					PlayerHUD->PlayerOverlay->ShowHighPingWarning();
+				}
+
+				HighPingCheckRunningTime = 0.0f;
+			}
+		}
+	}
 }
 
 /// <summary>
@@ -231,13 +260,13 @@ void AMPPlayerController::ClientJoinMidGame_Implementation(FName Sr_MatchState, 
 void AMPPlayerController::SetHUDMatchCountDown(float CountDownTime)
 {
 	PlayerHUD = PlayerHUD == nullptr ? Cast<AMPPlayerHUD>(GetHUD()) : PlayerHUD;
-	bool bIsValidPlayerOverlay = PlayerHUD && PlayerHUD->PlayerOverlay && PlayerHUD->PlayerOverlay->CountDown;
+	bool bIsValidPlayerOverlay = PlayerHUD != nullptr && PlayerHUD->PlayerOverlay != nullptr && PlayerHUD->PlayerOverlay->CountDown != nullptr;
 
 	if (bIsValidPlayerOverlay)
 	{
 		if (CountDownTime < 0.0f)
 		{
-			PlayerHUD->AnnouncementOverlay->WarmupTimer->SetText(FText::FromString(""));
+			PlayerHUD->PlayerOverlay->CountDown->SetText(FText::FromString(""));
 			return;
 		}
 
@@ -297,7 +326,7 @@ void AMPPlayerController::SetHUDHealth(float MaxHealth, float CurrentHealth)
 	if (bIsValidPlayerOverlay)
 	{
 		PlayerHUD->PlayerOverlay->HealthBar->SetPercent(CurrentHealth / MaxHealth);
-		FString PlayerHealth = FString::Printf(TEXT("Health: % d / % d"), FMath::CeilToInt(CurrentHealth), FMath::CeilToInt(MaxHealth));
+		FString PlayerHealth = FString::Printf(TEXT("% d / % d"), FMath::CeilToInt(CurrentHealth), FMath::CeilToInt(MaxHealth));
 		PlayerHUD->PlayerOverlay->HealthText->SetText(FText::FromString(PlayerHealth));
 	}
 	else
@@ -586,6 +615,17 @@ void AMPPlayerController::ShowWinners()
 	}
 
 	PlayerHUD->AnnouncementOverlay->MatchInfo->SetText(FText::FromString(InfoString));
+}
+
+void AMPPlayerController::SetHUDPing()
+{
+	PlayerHUD = PlayerHUD == nullptr ? Cast<AMPPlayerHUD>(GetHUD()) : PlayerHUD;
+	bool bIsValidPlayerOverlay = PlayerHUD != nullptr && PlayerHUD->PlayerOverlay != nullptr && PlayerHUD->PlayerOverlay->Ping_Count != nullptr;
+
+	if (bIsValidPlayerOverlay)
+	{
+		PlayerHUD->PlayerOverlay->Ping_Count->SetText(  FText::FromString( FString::Printf(TEXT("%d ms"), (int32)LatestPing ) )  );
+	}
 }
 
 void AMPPlayerController::OnPossess(APawn* InPawn)

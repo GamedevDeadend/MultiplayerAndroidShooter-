@@ -40,6 +40,9 @@ public:
 
 private : 
 
+	UPROPERTY(EditAnywhere)
+		FString LobbyLvl = "Lobby";
+
 
 public:
 	ADeathMatch_GM();

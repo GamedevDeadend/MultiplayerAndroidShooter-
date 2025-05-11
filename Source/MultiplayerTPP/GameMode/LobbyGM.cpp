@@ -16,6 +16,7 @@ void ALobbyGM::PostLogin(APlayerController* NewPlayer)
 	{
 		
 		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString("Our dunction worked"));
+		//RestartGame();
 
 		UWorld* World = GetWorld();
 		if (World != nullptr)

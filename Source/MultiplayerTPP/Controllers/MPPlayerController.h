@@ -22,6 +22,7 @@ protected:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void OnPossess(APawn* InPawn) override;
 	virtual void Tick(float DeltaTime) override;
+	void CheckForLatestPing(float DeltaTime);
 	void CheckTimeSync(float DeltaTime);
 	virtual float GetServerTime();
 	void SetHUDTime();
@@ -66,6 +67,7 @@ private:
 	UPROPERTY()
 	class ADeathMatch_GM* DeathMatch_GM = nullptr;
 
+	UPROPERTY()
 	class UPlayerOverlay* PlayerOverlay = nullptr;
 
 	/*
@@ -84,6 +86,20 @@ private:
 	float Ctrl_CooldownTime = 0.0f;
 	int32 Ctrl_CountDownInt = 0;
 
+	/*
+	* Ping Showing Variables
+	*/
+
+	float LatestPing = 0.0f;
+	float HighPingCheckRunningTime = 0.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Lag Settings")
+		float HighPingThreshold = 10.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Lag Settings")
+		float HighPingCheckFrequencyTime = 30.0f;
+
+
 
 	UPROPERTY(ReplicatedUsing = OnRep_MatchState)
 	FName Ctrl_MatchState;
@@ -95,6 +111,7 @@ private:
 	void HandleMatchCooldown();
 
 	void ShowWinners();
+	void SetHUDPing();
 
 public:
 

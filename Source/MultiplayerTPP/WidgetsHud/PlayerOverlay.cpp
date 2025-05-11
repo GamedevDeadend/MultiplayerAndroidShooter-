@@ -3,6 +3,8 @@
 
 #include "PlayerOverlay.h"
 #include "Components/TextBlock.h"
+#include "Components/Image.h"
+#include "Animation/WidgetAnimation.h"
 
 void UPlayerOverlay::NativeConstruct()
 {
@@ -12,5 +14,13 @@ void UPlayerOverlay::NativeConstruct()
 	{
 		DisplayMessage->SetText(FText::FromString(""));
 		DisplayMessage->SetVisibility(ESlateVisibility::Hidden);
+	}
+}
+
+void UPlayerOverlay::ShowHighPingWarning()
+{
+	if (High_Ping_Icon != nullptr && High_Ping_Anim != nullptr && !IsPlayingAnimation())
+	{
+		PlayAnimation(High_Ping_Anim,0.0f, 3);
 	}
 }

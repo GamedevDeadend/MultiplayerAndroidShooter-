@@ -49,6 +49,15 @@ public:
 	UPROPERTY(meta = (BingWidget))
 		TObjectPtr<class UTextBlock> CountDown = nullptr;
 
-	
+	UPROPERTY(meta = (BindWidget))
+		TObjectPtr<class UImage> High_Ping_Icon = nullptr;
+
+	UPROPERTY(meta = (BindWidgetAnim), Transient)
+		TObjectPtr<class UWidgetAnimation> High_Ping_Anim = nullptr;
+
+	UPROPERTY(meta = (BingWidget))
+		TObjectPtr<class UTextBlock> Ping_Count = nullptr;
+
+		void ShowHighPingWarning();
 	
 };
