@@ -296,16 +296,17 @@ void UCombatComponent::Fire()
 	if (EquippedWeapon != nullptr)
 	{
 		bIsWeaponEmpty = EquippedWeapon->GetIsEmpty();
-	}
 
-	if (EquippedWeapon->GetIsEmpty())
-	{
-		Reload();
+		if (bIsWeaponEmpty)
+		{
+			Reload();
+		}
 	}
 
 	if (bIsWeaponEmpty == false && CombatState == ECombatState::ECS_Unoccupied)
 	{
 		ServerFire(HitTarget);
+		LocalFire(HitTarget);
 	}
 }
 
@@ -315,6 +316,12 @@ void UCombatComponent::ServerFire_Implementation(const FVector_NetQuantize& Trac
 }
 
 void UCombatComponent::MultiCastFire_Implementation(const FVector_NetQuantize& TraceHitTarget)
+{
+	if (MPPlayer != nullptr && MPPlayer->IsLocallyControlled() && !MPPlayer->HasAuthority()){ return; }
+	LocalFire(TraceHitTarget);
+}
+
+void UCombatComponent::LocalFire(const FVector_NetQuantize& TraceHitTarget)
 {
 	if (!EquippedWeapon) return;
 	if (MPPlayer)

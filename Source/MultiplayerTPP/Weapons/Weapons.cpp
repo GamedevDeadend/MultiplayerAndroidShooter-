@@ -56,13 +56,10 @@ void AWeapons::BeginPlay()
 
 
 	//We are binding delegates on server side only 
-	if (HasAuthority())
-	{
 		OverlapAreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		OverlapAreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
 		OverlapAreaSphere->OnComponentBeginOverlap.AddDynamic(this, &AWeapons::OnSphereOverlap);
 		OverlapAreaSphere->OnComponentEndOverlap.AddDynamic(this, &AWeapons::OnSphereEndOverlap);
-	}	
 }
 
 void AWeapons::Tick(float DeltaTime)

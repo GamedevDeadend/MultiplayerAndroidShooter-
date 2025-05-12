@@ -50,6 +50,8 @@ protected:
 
 	void Fire();
 
+	void LocalFire(const FVector_NetQuantize& TraceHitTarget);
+
 	void BurstFire();
 
 	UFUNCTION(Server, Reliable)
@@ -72,7 +74,7 @@ private:
 	class AMPPlayerHUD* HUD;
 
 	bool bFireButtonPressed;
-	bool bIsWeaponEmpty;
+	bool bIsWeaponEmpty = false;
 	FVector_NetQuantize HitTarget;
 
 	float VelocityFactor;
