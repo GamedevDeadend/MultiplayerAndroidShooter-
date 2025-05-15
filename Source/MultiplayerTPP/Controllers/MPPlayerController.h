@@ -74,6 +74,7 @@ private:
 	* Cached Values
 	*/
 	bool bIsPlayerOverlayIntialized = false;
+	bool bIsCheckingFirstTime = true;
 
 	float Cached_Health = 0.0f;
 	float Cached_MaxHealth = 0.0f;

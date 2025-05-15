@@ -63,8 +63,11 @@ private:
 	UFUNCTION()
 		void OnRep_WeaponState();
 
-	UFUNCTION()
-		void OnRep_Ammo();
+	UFUNCTION(Client, Reliable)
+		void ClientAmmoSpend(int32 ServerAmmo);
+
+	UFUNCTION(Client, Reliable)
+		void ClientAddAmmoForReload(int32 AmmoAdded);
 
 	// Weapon Type
 	UPROPERTY(EditAnywhere, Category = " Weapon Type")
@@ -100,8 +103,14 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Zoom")
 		float ZoomInterpSpeed = 20.0f;
 
-	UPROPERTY(ReplicatedUsing = OnRep_Ammo)
+	UPROPERTY()
 		int32 Ammo;
+
+	/// <summary>
+	/// To track no of predection made by client for Ammo Spend ( Implemnting Server reconcialtion for Client Side Prediction) 
+	/// </summary>
+	UPROPERTY()
+	int32 Sequence = 0;
 
 	UPROPERTY(EditAnywhere)
 		int32 MagCapacity = 30;

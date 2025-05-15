@@ -73,7 +73,6 @@ void AWeapons::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetime
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(AWeapons, WeaponState);
-	DOREPLIFETIME(AWeapons, Ammo);
 }
 
 void AWeapons::Fire(const FVector& HitTarget)
@@ -113,9 +112,22 @@ void AWeapons::Reload(int32& CarriedAmmo)
 {
 		int32 RoomInMag = MagCapacity - Ammo;
 		int32 least = FMath::Min(RoomInMag, CarriedAmmo);
-		Ammo += least;
 		CarriedAmmo = FMath::Max(0, (CarriedAmmo - least));
+		Ammo += least;
 		SetHUDAmmo();
+
+		if (HasAuthority())
+		{
+			ClientAddAmmoForReload(least);
+		}
+}
+
+void AWeapons::ClientAddAmmoForReload_Implementation(int32 AmmoAdded)
+{
+	if (HasAuthority()) return;
+
+	Ammo += AmmoAdded;
+	SetHUDAmmo();
 }
 
 void AWeapons::SetHUDAmmo()
@@ -133,10 +145,6 @@ void AWeapons::SetHUDAmmo()
 
 		if (OwnerController != nullptr)
 		{
-			//if (GEngine)
-			//{
-			//	GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Yellow, FString("Valid Controller"));
-			//}
 
 			OwnerController->SetHUDAmmoCount(Ammo);
 		}
@@ -149,24 +157,43 @@ void AWeapons::SetHUDAmmo()
 void AWeapons::AmmoSpend()
 {
 	Ammo = FMath::Clamp( Ammo-1 , 0, MagCapacity);
+	SetHUDAmmo();
 
 	//if (GEngine)
 	//{
 	//	GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Yellow, FString("Inside Set Ammo Spend"));
 	//}
 
-	SetHUDAmmo();
 
+	if (HasAuthority())
+	{
+		ClientAmmoSpend(Ammo);
+	}
+	else
+	{
+		++Sequence;
+	}
+
+}
+
+void AWeapons::ClientAmmoSpend_Implementation(int32 ServerAmmo)
+{
+	if (HasAuthority()) return;
+
+	Ammo = ServerAmmo;
+	--Sequence;
+	Ammo -= Sequence;
+	SetHUDAmmo();
 }
 
 /// <summary>
 /// Rep Notifier called when Ammo Count is updated
 /// </summary>
-void AWeapons::OnRep_Ammo()
-{
-	OwnerCharacter = OwnerCharacter == nullptr ? Cast<AMPPlayer>(GetOwner()) : OwnerCharacter;
-	SetHUDAmmo();
-}
+//void AWeapons::OnRep_Ammo()
+//{
+//	OwnerCharacter = OwnerCharacter == nullptr ? Cast<AMPPlayer>(GetOwner()) : OwnerCharacter;
+//	SetHUDAmmo();
+//}
 
 void AWeapons::OnSphereOverlap
 (

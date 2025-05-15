@@ -30,7 +30,6 @@ void AMPPlayerController::BeginPlay()
 	PlayerHUD = Cast<AMPPlayerHUD>(GetHUD());
 
 	ServerCheckMatchState();
-
 }
 
 void AMPPlayerController::PollInit()
@@ -76,8 +75,9 @@ void AMPPlayerController::Tick(float DeltaTime)
 void AMPPlayerController::CheckForLatestPing(float DeltaTime)
 {
 	HighPingCheckRunningTime += DeltaTime;
-	if (HighPingCheckRunningTime > HighPingCheckFrequencyTime)
+	if (HighPingCheckRunningTime > HighPingCheckFrequencyTime || bIsCheckingFirstTime)
 	{
+
 		if (PlayerState != nullptr)
 		{
 			LatestPing = PlayerState->GetPingInMilliseconds();
@@ -90,6 +90,7 @@ void AMPPlayerController::CheckForLatestPing(float DeltaTime)
 				if (PlayerHUD != nullptr && PlayerHUD->PlayerOverlay != nullptr)
 				{
 					PlayerHUD->PlayerOverlay->ShowHighPingWarning();
+					bIsCheckingFirstTime = false;
 				}
 
 				HighPingCheckRunningTime = 0.0f;
@@ -526,6 +527,7 @@ void AMPPlayerController::OnRep_MatchState()
 	if (Ctrl_MatchState == MatchState::InProgress)
 	{
 		HandleMatchHasStarted();
+		CheckForLatestPing(0.0f);
 	}
 	else if (Ctrl_MatchState == MatchState::Cooldown)
 	{

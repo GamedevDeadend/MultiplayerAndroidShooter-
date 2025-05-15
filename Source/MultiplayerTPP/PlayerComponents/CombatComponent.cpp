@@ -91,9 +91,19 @@ void UCombatComponent::OnRep_CombatState()
 {
 	switch (CombatState)
 	{
-		case ECombatState::ECS_Reloading : 
-			HandleReload();
+		case ECombatState::ECS_Reloading :
+			if (MPPlayer && MPPlayer->IsLocallyControlled() == false)
+			{
+				HandleReload();
+			}
 		break;
+	}
+}
+void UCombatComponent::OnRep_Aiming()
+{
+	if (MPPlayer != nullptr && MPPlayer->IsLocallyControlled())
+	{
+		 bAim = bIsAimPressed;
 	}
 }
 /// <summary>
@@ -105,6 +115,7 @@ void UCombatComponent::Reload()
 	if (CarriedAmmo > 0 && CombatState != ECombatState::ECS_Reloading)
 	{
 		ServerReload();
+		HandleReload();
 	}
 }
 /// <summary>
@@ -113,7 +124,11 @@ void UCombatComponent::Reload()
 void UCombatComponent::ServerReload_Implementation()
 {
 	CombatState = ECombatState::ECS_Reloading;
-	HandleReload();
+
+	if (MPPlayer != nullptr && MPPlayer->IsLocallyControlled() == false)
+	{
+		HandleReload();
+	}
 }
 
 void UCombatComponent::FinishReloading()
@@ -470,7 +485,12 @@ void UCombatComponent::SetAiming(bool bIsAiming)
 	bAim = bIsAiming;
 	//It is not neccessary to call server rpc on client only as calling it on server will execute on server only. 
 	// For More Info https://docs.unrealengine.com/5.1/en-US/rpcs-in-unreal-engine/
-	ServerSetAiming(bIsAiming); 
+	ServerSetAiming(bIsAiming);
+
+	if (MPPlayer != nullptr && MPPlayer->IsLocallyControlled())
+	{
+		bIsAimPressed = bAim;
+	}
 
 }
 

@@ -112,8 +112,10 @@ private:
 	UPROPERTY(ReplicatedUsing = OnRep_EquippedWeapon)
 		AWeapons* EquippedWeapon;
 
-	UPROPERTY(Replicated)
+	UPROPERTY(ReplicatedUsing = OnRep_Aiming)
 		bool bAim;
+
+		bool bIsAimPressed = false;
 
 	//Zooming Parameters
 
@@ -145,6 +147,9 @@ private:
 
 	UFUNCTION()
 		void OnRep_CombatState();
+
+	UFUNCTION()
+		void OnRep_Aiming();
 
 
 	//Getters And Setters
