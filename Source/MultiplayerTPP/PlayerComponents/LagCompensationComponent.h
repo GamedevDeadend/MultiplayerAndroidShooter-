@@ -7,16 +7,56 @@
 #include "LagCompensationComponent.generated.h"
 
 
+USTRUCT(BlueprintType)
+struct FBoxInformation
+{
+	GENERATED_BODY();
+
+	UPROPERTY()
+		FVector Location;
+
+	UPROPERTY()
+		FRotator Rotation;
+
+	UPROPERTY()
+		FVector BoxExtent;
+};
+
+USTRUCT(BlueprintType)
+struct FFramePackage
+{
+	GENERATED_BODY();
+
+	UPROPERTY()
+		float Time;
+
+	UPROPERTY()
+		TMap<FName, FBoxInformation> HitBoxInfo;
+};
+
+
+
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class MULTIPLAYERTPP_API ULagCompensationComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
-public:	
+public:
+
+	friend class AMPPlayer;
+
 	ULagCompensationComponent();
 
 protected:
 	virtual void BeginPlay() override;
+
+private: 
+
+	UPROPERTY()
+		AMPPlayer* Character;
+
+	UPROPERTY()
+		class AMPPlayerController* CharacterController;
 
 public:	
 

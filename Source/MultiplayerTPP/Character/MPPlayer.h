@@ -157,8 +157,14 @@ private:
 	UPROPERTY(ReplicatedUsing = OnRep_HealthChange,VisibleAnywhere, Category = "Player Stats")
 		float CurrentHealth = MaxHealth;
 
+	/*
+	* Custom Player Components
+	*/
 	UPROPERTY(EditAnywhere, Category = Combat, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 		UCombatComponent* CombatComponent;
+
+	UPROPERTY(EditAnywhere, Category = Combat, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+		class ULagCompensationComponent* LagCompensationComponent;
 
 	UPROPERTY(VisibleAnywhere, Category = Camera)
 		USpringArmComponent* CameraBoom;

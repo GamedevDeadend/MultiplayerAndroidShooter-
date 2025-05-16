@@ -22,6 +22,7 @@
 #include "MultiplayerTPP/PlayerState/MPPlayerState.h"
 #include "MultiplayerTPP/Types/WeaponType.h"
 #include "Components/BoxComponent.h"
+#include "MultiplayerTPP/PlayerComponents/LagCompensationComponent.h"
 
 
 
@@ -59,6 +60,9 @@ AMPPlayer::AMPPlayer()
 	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
 
 	DissolveTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("DissolveTimeline Component "));
+
+	LagCompensationComponent = CreateDefaultSubobject<ULagCompensationComponent>(TEXT("Lag Compensation Component"));
+
 
 
 	NetUpdateFrequency = 66.0f;
@@ -156,6 +160,16 @@ void AMPPlayer::PostInitializeComponents()
 	if (CombatComponent)
 	{
 		CombatComponent->MPPlayer = this;
+	}
+
+	if (LagCompensationComponent != nullptr)
+	{
+		LagCompensationComponent->Character = this;
+		
+		if (Controller != nullptr)
+		{
+			LagCompensationComponent->CharacterController = Cast<AMPPlayerController>(Controller);
+		}
 	}
 }
 
