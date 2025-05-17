@@ -35,7 +35,7 @@ public:
 		float Time;
 
 	UPROPERTY()
-		TMap<FName, FBoxInformation> HitBoxInfo;
+		TMap<FName, FBoxInformation> HitBoxInfoMap;
 };
 
 
@@ -53,6 +53,7 @@ public:
 
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	void ServerSideRewind(class AMPPlayer* HitCharacter, const FVector_NetQuantize& TraceStart, const FVector_NetQuantize& HitLocation, float HitTime);
+	FFramePackage InterpFrames(const FFramePackage& OlderFrame, const FFramePackage& YoungerFrame, float HitTime);
 
 protected:
 	virtual void BeginPlay() override;

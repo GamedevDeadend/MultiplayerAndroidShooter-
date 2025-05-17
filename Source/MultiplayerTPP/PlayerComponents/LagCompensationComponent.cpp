@@ -107,6 +107,34 @@ void ULagCompensationComponent::ServerSideRewind(AMPPlayer* HitCharacter, const 
 	}
 }
 
+FFramePackage ULagCompensationComponent::InterpFrames(const FFramePackage& OlderFrame, const FFramePackage& YoungerFrame, float HitTime)
+{
+	const float Difference = YoungerFrame.Time - OlderFrame.Time;
+	const float InterpFraction = (HitTime - OlderFrame.Time) / Difference;
+
+	FFramePackage InterpFramePackage;
+	InterpFramePackage.Time = HitTime;
+
+	for (auto& YougerPair : YoungerFrame.HitBoxInfoMap)
+	{
+		const FName& BoxName = YougerPair.Key;
+
+		const FBoxInformation& OlderBoxInfo = OlderFrame.HitBoxInfoMap[BoxName];
+		const FBoxInformation& YoungerBoxInfo = YougerPair.Value;
+
+		FBoxInformation InterpBoxInfo;
+
+		InterpBoxInfo.Location = FMath::VInterpTo(OlderBoxInfo.Location, YoungerBoxInfo.Location, 1.0f, InterpFraction);
+		InterpBoxInfo.Rotation = FMath::RInterpTo(OlderBoxInfo.Rotation, YoungerBoxInfo.Rotation, 1.0f, InterpFraction);
+		InterpBoxInfo.BoxExtent = YoungerBoxInfo.BoxExtent;
+
+		InterpFramePackage.HitBoxInfoMap.Add(BoxName, InterpBoxInfo);
+	}
+
+
+	return InterpFramePackage;
+}
+
 void ULagCompensationComponent::SaveFramePackage(FFramePackage& Package)
 {
 	Character = Character == nullptr ? Cast<AMPPlayer>(GetOwner()) : Character;
@@ -119,14 +147,14 @@ void ULagCompensationComponent::SaveFramePackage(FFramePackage& Package)
 			BoxInfo.Location = BoxPair.Value->GetComponentLocation();
 			BoxInfo.Rotation = BoxPair.Value->GetComponentRotation();
 			BoxInfo.BoxExtent = BoxPair.Value->GetScaledBoxExtent();
-			Package.HitBoxInfo.Add(BoxPair.Key, BoxInfo);
+			Package.HitBoxInfoMap.Add(BoxPair.Key, BoxInfo);
 		}
 	}
 }
 
 void ULagCompensationComponent::ShowFramePackage(const FFramePackage& Package, const FColor& Color)
 {
-	for (auto& BoxInfo : Package.HitBoxInfo)
+	for (auto& BoxInfo : Package.HitBoxInfoMap)
 	{
 		DrawDebugBox(
 			GetWorld(),
