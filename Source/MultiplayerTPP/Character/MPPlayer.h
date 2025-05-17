@@ -23,6 +23,8 @@ class MULTIPLAYERTPP_API AMPPlayer : public ACharacter, public IInteractWithCros
 
 public:
 
+	TMap<FName, class UBoxComponent*> HitCollisionBoxes;
+
 	AMPPlayer();
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	void PlayFireMontage(bool bAiming);
@@ -269,6 +271,7 @@ public:
 	FORCEINLINE float GetHealth()const { return CurrentHealth; }
 	FORCEINLINE float GetMaxHealth()const { return MaxHealth; }
 	FORCEINLINE UCombatComponent* GetCombatComponent()const { return CombatComponent; }
+	FORCEINLINE ULagCompensationComponent* GetLagCompensationComponent()const { return LagCompensationComponent; }
 	AWeapons* GetEquippedWeapon();
 	FVector GetHitTarget()const;
 	ECombatState GetCombatState()const;

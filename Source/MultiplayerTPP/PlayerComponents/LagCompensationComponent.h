@@ -12,6 +12,8 @@ struct FBoxInformation
 {
 	GENERATED_BODY();
 
+public:
+
 	UPROPERTY()
 		FVector Location;
 
@@ -26,6 +28,8 @@ USTRUCT(BlueprintType)
 struct FFramePackage
 {
 	GENERATED_BODY();
+
+public:
 
 	UPROPERTY()
 		float Time;
@@ -47,20 +51,30 @@ public:
 
 	ULagCompensationComponent();
 
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	void ServerSideRewind(class AMPPlayer* HitCharacter, const FVector_NetQuantize& TraceStart, const FVector_NetQuantize& HitLocation, float HitTime);
+
 protected:
 	virtual void BeginPlay() override;
 
 private: 
 
+	TDoubleLinkedList<FFramePackage> FrameHistory;
+
+	UPROPERTY(EditAnywhere)
+		float MaxFrameHistoryTime = 4.0f;
+
 	UPROPERTY()
-		AMPPlayer* Character;
+		class AMPPlayer* Character;
 
 	UPROPERTY()
 		class AMPPlayerController* CharacterController;
 
-public:	
+		void SaveFramePackage(FFramePackage& Package);
 
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+		void ShowFramePackage(const FFramePackage& Package, const FColor& Color);
+
+public:	
 
 		
 };
