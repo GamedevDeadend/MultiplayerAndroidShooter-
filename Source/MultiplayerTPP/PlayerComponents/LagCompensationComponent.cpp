@@ -52,7 +52,7 @@ void ULagCompensationComponent::BuildFrameHistory()
 	}
 }
 
-void ULagCompensationComponent::ServerScoreRequest(AMPPlayer* HitPlayer, const FVector_NetQuantize& TraceStart, const FVector_NetQuantize& HitLocation, float HitTime, AWeapons* DamageCauser)
+void ULagCompensationComponent::ServerScoreRequest_Implementation(AMPPlayer* HitPlayer, const FVector_NetQuantize& TraceStart, const FVector_NetQuantize& HitLocation, float HitTime, AWeapons* DamageCauser)
 {
 	FHitResult_SSR Confirm = ServerSideRewind(HitPlayer, TraceStart, HitLocation, HitTime);
 

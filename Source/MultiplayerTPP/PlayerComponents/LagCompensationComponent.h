@@ -103,7 +103,7 @@ private:
 
 		void CacheFrame(AMPPlayer* HitPlayer, FFramePackage& CurrentFrame);
 
-		UFUNCTION()
+		UFUNCTION(Server, Reliable)
 		void ServerScoreRequest
 		(
 			AMPPlayer* HitPlayer,
