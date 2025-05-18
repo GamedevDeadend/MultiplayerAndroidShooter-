@@ -38,6 +38,22 @@ public:
 		TMap<FName, FBoxInformation> HitBoxInfoMap;
 };
 
+USTRUCT(BlueprintType)
+struct FHitResult_SSR
+{
+	GENERATED_BODY();
+
+public:
+
+	UPROPERTY()
+	bool bIsHit = false;
+
+	UPROPERTY()
+	bool bIsHeadShot = false;
+};
+
+
+
 
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
@@ -52,8 +68,8 @@ public:
 	ULagCompensationComponent();
 
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-	void ServerSideRewind(class AMPPlayer* HitCharacter, const FVector_NetQuantize& TraceStart, const FVector_NetQuantize& HitLocation, float HitTime);
-	FFramePackage InterpFrames(const FFramePackage& OlderFrame, const FFramePackage& YoungerFrame, float HitTime);
+	void BuildFrameHistory();
+	FHitResult_SSR ServerSideRewind(class AMPPlayer* HitCharacter, const FVector_NetQuantize& TraceStart, const FVector_NetQuantize& HitLocation, float HitTime);
 
 protected:
 	virtual void BeginPlay() override;
@@ -74,6 +90,28 @@ private:
 		void SaveFramePackage(FFramePackage& Package);
 
 		void ShowFramePackage(const FFramePackage& Package, const FColor& Color);
+
+		void EnableCharacterMeshCollision(AMPPlayer* HitCharacter, ECollisionEnabled::Type CollisionEnabled);
+
+		FFramePackage InterpFrames(const FFramePackage& OlderFrame, const FFramePackage& YoungerFrame, float HitTime);
+
+		FHitResult_SSR ConfirmHit_SSR(const FFramePackage& FrameToCheck, AMPPlayer* HitPlayer, const FVector_NetQuantize& TraceStart, const FVector_NetQuantize& HitLocation);
+
+		void MoveBoxes(AMPPlayer* HitPlayer, const FFramePackage& FrameToCheck);
+
+		void ResetBoxes(AMPPlayer* HitPlayer, const FFramePackage& OrignalFrame);
+
+		void CacheFrame(AMPPlayer* HitPlayer, FFramePackage& CurrentFrame);
+
+		UFUNCTION()
+		void ServerScoreRequest
+		(
+			AMPPlayer* HitPlayer,
+			const FVector_NetQuantize& TraceStart,
+			const FVector_NetQuantize& HitLocation,
+			float HitTime,
+			class AWeapons* DamageCauser
+		);
 
 public:	
 

@@ -23,7 +23,7 @@ class MULTIPLAYERTPP_API AMPPlayer : public ACharacter, public IInteractWithCros
 
 public:
 
-	TMap<FName, class UBoxComponent*> HitCollisionBoxes;
+	TMap<FName, class UBoxComponent*> HitCollisionBoxesMap;
 
 	AMPPlayer();
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;

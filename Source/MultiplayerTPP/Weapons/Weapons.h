@@ -85,6 +85,9 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties")
 		class USphereComponent* OverlapAreaSphere;
 
+	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties")
+		int32 Damage = 20.0f;
+
 
 	UPROPERTY(ReplicatedUsing = OnRep_WeaponState, VisibleAnywhere, Category = "Weapon Properties")
 		EWeaponState WeaponState;
@@ -164,5 +167,6 @@ public:
 	FORCEINLINE int32 GetMagCapacity()const { return MagCapacity; }
 	FORCEINLINE EWeaponType GetWeaponType()const { return WeaponType; }
 	FORCEINLINE UWeaponDataAsset* GetWeaponDataAsset()const { return WeaponAsset; }
+	FORCEINLINE int32 GetDamage()const { return Damage; }
 
 };
