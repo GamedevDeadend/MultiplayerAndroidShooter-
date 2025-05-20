@@ -14,6 +14,8 @@ class MULTIPLAYERTPP_API AProjectileBullet : public AProjectile
 {
 	GENERATED_BODY()
 
+	virtual void BeginPlay()override;
+
 protected:
 
 	virtual void OnHit

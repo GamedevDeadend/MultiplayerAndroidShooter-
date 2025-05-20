@@ -5,6 +5,26 @@
 #include "Kismet/GameplayStatics.h"
 #include "GameFrameWork/Character.h"
 
+void AProjectileBullet::BeginPlay()
+{
+	Super::BeginPlay();
+
+	FPredictProjectilePathParams PathParams;
+	PathParams.ActorsToIgnore.Add(this);
+	PathParams.bTraceWithChannel = true;
+	PathParams.DrawDebugTime = 5.0f;
+	PathParams.DrawDebugType = EDrawDebugTrace::ForDuration;
+	PathParams.LaunchVelocity = GetActorForwardVector() * InitialSpeed;
+	PathParams.MaxSimTime = 4.0f;
+	PathParams.ProjectileRadius = 0.0f;
+	PathParams.StartLocation = GetActorLocation();
+	PathParams.TraceChannel = ECollisionChannel::ECC_Visibility;
+
+	FPredictProjectilePathResult PathResult;
+
+	UGameplayStatics::PredictProjectilePath(this, PathParams, PathResult);
+}
+
 void AProjectileBullet::OnHit
 (
 	UPrimitiveComponent* HitComponent,

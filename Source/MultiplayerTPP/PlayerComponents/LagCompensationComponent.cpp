@@ -10,8 +10,6 @@
 ULagCompensationComponent::ULagCompensationComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
-
-
 }
 
 
@@ -48,7 +46,7 @@ void ULagCompensationComponent::BuildFrameHistory()
 		SaveFramePackage(Package);
 		FrameHistory.AddHead(Package);
 
-		ShowFramePackage(Package, FColor::Green);
+		//ShowFramePackage(Package, FColor::Green);
 	}
 }
 

@@ -31,6 +31,8 @@ AProjectile::AProjectile()
 
 	ProjectileMovement = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("Projectile Movement"));
 	ProjectileMovement->bRotationFollowsVelocity = true;
+	ProjectileMovement->InitialSpeed = InitialSpeed;
+	ProjectileMovement->MaxSpeed = InitialSpeed;
 
 	if (HasAuthority())
 	{
@@ -38,6 +40,21 @@ AProjectile::AProjectile()
 	}
 
 }
+
+#if WITH_EDITOR
+void AProjectile::PostEditChangeProperty(FPropertyChangedEvent& Event)
+{
+	Super::PostEditChangeProperty(Event);
+	
+	FName PropertyName = Event.Property == nullptr ? NAME_None:Event.Property->GetFName();
+
+	if (PropertyName == GET_MEMBER_NAME_CHECKED(AProjectile, InitialSpeed))
+	{
+		ProjectileMovement->InitialSpeed = InitialSpeed;
+		ProjectileMovement->MaxSpeed = InitialSpeed;
+	}
+}
+#endif
 
 // Called when the game starts or when spawned
 void AProjectile::BeginPlay()

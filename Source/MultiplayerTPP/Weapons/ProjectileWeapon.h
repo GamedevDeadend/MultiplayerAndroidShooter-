@@ -23,5 +23,8 @@ private:
 	UPROPERTY(EditAnywhere)
 		TSubclassOf<class AProjectile> ProjectileClass;
 
+	UPROPERTY(EditAnywhere)
+		TSubclassOf<class AProjectile> SSR_ProjectileClass;
+
 
 };

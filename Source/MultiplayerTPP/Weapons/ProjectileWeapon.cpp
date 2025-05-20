@@ -11,12 +11,11 @@ void AProjectileWeapon:: Fire(const FVector& HitTarget)
 
 	//UE_LOG(LogTemp, Warning, TEXT("FireSuccess"));
 
-	if (!HasAuthority()) return;
-
 	const USkeletalMeshSocket* MuzzleFlashSocket = GetWeaponMesh()->GetSocketByName("MuzzleFlash");
 	APawn* ProjectileInstigator = Cast<APawn>(GetOwner());
+	UWorld* World = GetWorld();
 
-	if (MuzzleFlashSocket)
+	if (World != nullptr &&MuzzleFlashSocket != nullptr )
 	{
 		FTransform MFSocketTransform = MuzzleFlashSocket->GetSocketTransform(GetWeaponMesh());
 		FVector ToTarget = HitTarget - MFSocketTransform.GetLocation();
@@ -26,22 +25,52 @@ void AProjectileWeapon:: Fire(const FVector& HitTarget)
 		ProjectileSpawnParams.Owner = GetOwner();
 		ProjectileSpawnParams.Instigator = ProjectileInstigator;
 
-		if (ProjectileClass && ProjectileInstigator)
-		{
-			UWorld* World = GetWorld();
+		AProjectile* SpawnedProjectile = nullptr;
 
-			if (World)
+		if (bIsUsingSSR == true)
+		{
+
+			if (ProjectileInstigator->HasAuthority())
 			{
-				World->SpawnActor<AProjectile>
-					(
-						ProjectileClass,
-						MFSocketTransform.GetLocation(),
-						ProjectileOrientation,
-						ProjectileSpawnParams
-					);
+				if (ProjectileInstigator->IsLocallyControlled())
+				{
+					SpawnedProjectile = World->SpawnActor<AProjectile>(ProjectileClass, MFSocketTransform.GetLocation(), ProjectileOrientation, ProjectileSpawnParams);
+					SpawnedProjectile->bUseSSR = false;
+					SpawnedProjectile->Damage = Damage;
+				}
+				else // server, not locally controlled - spawn non-replicated projectile, no SSR
+				{
+					SpawnedProjectile = World->SpawnActor<AProjectile>(SSR_ProjectileClass, MFSocketTransform.GetLocation(), ProjectileOrientation, ProjectileSpawnParams);
+					SpawnedProjectile->bUseSSR = false;
+				}
+
+			}
+			else
+			{
+				if (ProjectileInstigator->IsLocallyControlled()) // client, locally controlled - spawn non-replicated projectile, use SSR
+				{
+					SpawnedProjectile = World->SpawnActor<AProjectile>(SSR_ProjectileClass, MFSocketTransform.GetLocation(), ProjectileOrientation, ProjectileSpawnParams);
+					SpawnedProjectile->bUseSSR = true;
+					SpawnedProjectile->TraceStart = MFSocketTransform.GetLocation();
+					SpawnedProjectile->InitialVelocity = SpawnedProjectile->GetActorForwardVector() * SpawnedProjectile->InitialSpeed;
+					SpawnedProjectile->Damage = Damage;
+				}
+				else // client, not locally controlled - spawn non-replicated projectile, no SSR
+				{
+					SpawnedProjectile = World->SpawnActor<AProjectile>(SSR_ProjectileClass, MFSocketTransform.GetLocation(), ProjectileOrientation, ProjectileSpawnParams);
+					SpawnedProjectile->bUseSSR = false;
+				}
 			}
 		}
-
+		else
+		{
+			if (ProjectileInstigator->HasAuthority())
+			{
+				SpawnedProjectile = World->SpawnActor<AProjectile>(ProjectileClass, MFSocketTransform.GetLocation(), ProjectileOrientation, ProjectileSpawnParams);
+				SpawnedProjectile->bUseSSR = false;
+				SpawnedProjectile->Damage = Damage;
+			}
+		}
 	}
 
 }

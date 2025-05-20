@@ -15,9 +15,23 @@ public:
 	// Sets default values for this actor's properties
 	AProjectile();
 
+
+	bool bUseSSR = false;
+
+	FVector_NetQuantize TraceStart;
+	FVector_NetQuantize100 InitialVelocity;
+
+
+	UPROPERTY(EditAnywhere, Category = "Bullet Deatils")
+	float Damage = 10.0f;
+
+	UPROPERTY(EditAnywhere)
+	float InitialSpeed = 20000.0f;
+
 private:
 
 	bool bIsHittingPlayer = false;
+
 
 	UPROPERTY(EditAnywhere)
 		class UBoxComponent* CollisionBox;
@@ -39,12 +53,12 @@ private:
 	UPROPERTY(EditAnywhere)
 		class USoundCue* ImpactSound;
 
+#if WITH_EDITOR
+		virtual void PostEditChangeProperty(FPropertyChangedEvent& Event)override;
+#endif
 
 
 protected:
-
-	UPROPERTY(EditAnywhere, Category = "Bullet Deatils")
-	float Damage = 10.0f;
 
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -56,6 +70,7 @@ protected:
 			AActor* OtherActor, UPrimitiveComponent* OtherComp,
 			FVector NormalImpulse, const FHitResult& Hit
 		);
+
 
 public:
 	// Called every frame

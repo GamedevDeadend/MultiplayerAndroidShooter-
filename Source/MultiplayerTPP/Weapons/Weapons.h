@@ -85,9 +85,6 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties")
 		class USphereComponent* OverlapAreaSphere;
 
-	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties")
-		int32 Damage = 20.0f;
-
 
 	UPROPERTY(ReplicatedUsing = OnRep_WeaponState, VisibleAnywhere, Category = "Weapon Properties")
 		EWeaponState WeaponState;
@@ -126,6 +123,12 @@ private:
 			
 
 protected:
+
+	UPROPERTY(EditAnywhere)
+		bool bIsUsingSSR = false;
+
+	UPROPERTY(EditAnywhere, Category = "Weapon Properties")
+		int32 Damage = 20.0f;
 
 	virtual void OnRep_Owner() override;
 	virtual void BeginPlay() override;
