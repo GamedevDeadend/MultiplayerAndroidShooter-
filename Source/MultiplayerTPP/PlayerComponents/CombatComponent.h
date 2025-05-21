@@ -154,4 +154,6 @@ private:
 
 	//Getters And Setters
 public:
+
+	FORCEINLINE AWeapons* GetEquippedWeapon()const { return EquippedWeapon; }
 };

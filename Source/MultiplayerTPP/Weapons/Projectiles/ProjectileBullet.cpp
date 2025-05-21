@@ -3,26 +3,31 @@
 
 #include "ProjectileBullet.h"
 #include "Kismet/GameplayStatics.h"
+#include "MultiplayerTPP/Character/MPPlayer.h"
+#include "MultiplayerTPP/Controllers/MPPlayerController.h"
+#include "MultiplayerTPP/PlayerComponents/LagCompensationComponent.h"
 #include "GameFrameWork/Character.h"
 
 void AProjectileBullet::BeginPlay()
 {
 	Super::BeginPlay();
 
-	FPredictProjectilePathParams PathParams;
-	PathParams.ActorsToIgnore.Add(this);
-	PathParams.bTraceWithChannel = true;
-	PathParams.DrawDebugTime = 5.0f;
-	PathParams.DrawDebugType = EDrawDebugTrace::ForDuration;
-	PathParams.LaunchVelocity = GetActorForwardVector() * InitialSpeed;
-	PathParams.MaxSimTime = 4.0f;
-	PathParams.ProjectileRadius = 0.0f;
-	PathParams.StartLocation = GetActorLocation();
-	PathParams.TraceChannel = ECollisionChannel::ECC_Visibility;
+	/*
+		FPredictProjectilePathParams PathParams;
+		PathParams.ActorsToIgnore.Add(this);
+		PathParams.bTraceWithChannel = true;
+		PathParams.DrawDebugTime = 5.0f;
+		PathParams.DrawDebugType = EDrawDebugTrace::ForDuration;
+		PathParams.LaunchVelocity = GetActorForwardVector() * InitialSpeed;
+		PathParams.MaxSimTime = 4.0f;
+		PathParams.ProjectileRadius = 0.0f;
+		PathParams.StartLocation = GetActorLocation();
+		PathParams.TraceChannel = ECollisionChannel::ECC_Visibility;
 
-	FPredictProjectilePathResult PathResult;
+		FPredictProjectilePathResult PathResult;
 
-	UGameplayStatics::PredictProjectilePath(this, PathParams, PathResult);
+		UGameplayStatics::PredictProjectilePath(this, PathParams, PathResult);
+	*/
 }
 
 void AProjectileBullet::OnHit
@@ -32,13 +37,33 @@ void AProjectileBullet::OnHit
 	FVector NormalImpulse, const FHitResult& Hit
 )
 {
-	ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
-	if (OwnerCharacter)
+	AMPPlayer* OwnerCharacter = Cast<AMPPlayer>(GetOwner());
+	if (OwnerCharacter != nullptr)
 	{
-		AController* DamageInstigatorController = OwnerCharacter->GetController();
-		if (DamageInstigatorController)
+		AMPPlayerController* DamageInstigatorController = Cast<AMPPlayerController>(OwnerCharacter->GetController());
+
+		if (DamageInstigatorController != nullptr)
 		{
-			UGameplayStatics::ApplyDamage(OtherActor, Damage, DamageInstigatorController, this, UDamageType::StaticClass());
+			if (OwnerCharacter->HasAuthority() && !bUseSSR)
+			{
+				//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, TEXT("On Server and SSR OFF"));
+				UGameplayStatics::ApplyDamage(OtherActor, Damage, DamageInstigatorController, this, UGameplayStatics::StaticClass());
+				Super::OnHit(HitComponent, OtherActor, OtherComp, NormalImpulse, Hit);
+				return;
+			}
+
+			AMPPlayer* HitPlayer = Cast<AMPPlayer>(OtherActor);
+			if (bUseSSR && OwnerCharacter->GetLagCompensationComponent() && OwnerCharacter->IsLocallyControlled() && HitPlayer)
+			{
+				//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, TEXT("On Local Unit and SSR ON"));
+				OwnerCharacter->GetLagCompensationComponent()->ServerProjectileWeaponScoreRequest
+				(
+					HitPlayer,
+					TraceStart,
+					InitialVelocity,
+					DamageInstigatorController->GetServerTime() - DamageInstigatorController->SingleTripTime
+				);
+			}
 		}
 	}
 

@@ -24,7 +24,6 @@ protected:
 	virtual void Tick(float DeltaTime) override;
 	void CheckForLatestPing(float DeltaTime);
 	void CheckTimeSync(float DeltaTime);
-	virtual float GetServerTime();
 	void SetHUDTime();
 
 	UFUNCTION(Server, Reliable)
@@ -116,6 +115,8 @@ private:
 
 public:
 
+	float SingleTripTime = 0.0f;
+
 	void SetHUDHealth(float MaxHealth, float CurrentHealth);
 
 	void SetHUDScore(float Score);
@@ -140,4 +141,5 @@ public:
 
 	void OnMatchStateSet(FName NewMatchState);
 
+	virtual float GetServerTime();
 };

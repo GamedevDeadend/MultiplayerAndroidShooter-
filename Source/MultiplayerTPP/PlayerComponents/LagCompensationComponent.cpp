@@ -6,6 +6,9 @@
 #include "MultiplayerTPP/Weapons/Weapons.h"
 #include "Kismet/GamePlayStatics.h"
 #include "Components/BoxComponent.h"
+#include "DrawDebugHelpers.h"
+#include "MultiplayerTPP/PlayerComponents/CombatComponent.h"
+#include "MultiplayerTPP/MultiplayerTPP.h"
 
 ULagCompensationComponent::ULagCompensationComponent()
 {
@@ -66,6 +69,31 @@ void ULagCompensationComponent::ServerScoreRequest_Implementation(AMPPlayer* Hit
 	}
 }
 
+void ULagCompensationComponent::ServerProjectileWeaponScoreRequest_Implementation(AMPPlayer* HitPlayer, const FVector_NetQuantize& TraceStart, const FVector_NetQuantize100& InitialVelocity, float HitTime)
+{
+	//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, TEXT("On Server and Projectile Score request RPC"));
+
+	FHitResult_SSR Confirm = ProjectileWeapon_SSR(HitPlayer, TraceStart, InitialVelocity, HitTime);
+
+
+	if (Character != nullptr && HitPlayer != nullptr && Confirm.bIsHit)
+	{
+		AWeapons* DamageCauser = nullptr;
+		if (Character->GetCombatComponent() != nullptr)
+		{
+			DamageCauser = Character->GetCombatComponent()->GetEquippedWeapon();
+		}
+
+		UGameplayStatics::ApplyDamage(
+			HitPlayer,
+			DamageCauser->GetDamage(),
+			Character->Controller,
+			DamageCauser,
+			UDamageType::StaticClass()
+		);
+	}
+}
+
 FHitResult_SSR ULagCompensationComponent::ServerSideRewind(AMPPlayer* HitCharacter, const FVector_NetQuantize& TraceStart, const FVector_NetQuantize& HitLocation, float HitTime)
 {
 	bool bReturn =
@@ -76,6 +104,44 @@ FHitResult_SSR ULagCompensationComponent::ServerSideRewind(AMPPlayer* HitCharact
 	if (bReturn == true) { return FHitResult_SSR{}; }
 
 	FFramePackage FrameToBeChecked;
+	FillFrameToCheck(FrameToBeChecked, HitCharacter, HitTime);
+
+
+
+	return ConfirmHit_SSR(FrameToBeChecked, HitCharacter, TraceStart, HitLocation);
+}
+
+FHitResult_SSR ULagCompensationComponent::ProjectileWeapon_SSR(AMPPlayer* HitCharacter, const FVector_NetQuantize& TraceStart, const FVector_NetQuantize100 InitialVelocity, float HitTime)
+{
+	FFramePackage FrameToBeChecked;
+
+	//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, TEXT("On ProjectileWeapon_SSR"));
+
+	FillFrameToCheck(FrameToBeChecked, HitCharacter, HitTime);
+
+	//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, TEXT("On ProjectileWeapon_SSR FrameToBeChecked Filled"));
+
+	if (FrameToBeChecked.HitBoxInfoMap.IsEmpty() == true)
+	{
+		//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("On ProjectileWeapon_SSR FrameToBeChecked EMPTY"));
+		return FHitResult_SSR{ false, false };
+	}
+
+	return ConfirmHit_Projectile_SSR(FrameToBeChecked, HitCharacter, TraceStart, InitialVelocity, HitTime);
+}
+
+void ULagCompensationComponent::FillFrameToCheck(FFramePackage& Package, AMPPlayer* HitCharacter, float HitTime)
+{
+	bool bReturn =
+		HitCharacter == nullptr ||
+		HitCharacter->GetLagCompensationComponent() == nullptr ||
+		HitCharacter->GetLagCompensationComponent()->FrameHistory.GetHead() == nullptr ||
+		HitCharacter->GetLagCompensationComponent()->FrameHistory.GetTail() == nullptr;
+
+	if (bReturn)
+	{
+		return;
+	}
 
 	bool bShouldInterpolate = true;
 
@@ -84,20 +150,22 @@ FHitResult_SSR ULagCompensationComponent::ServerSideRewind(AMPPlayer* HitCharact
 	const float OldestHistoryTime = History.GetTail()->GetValue().Time;
 	const float NewestHistoryTime = History.GetHead()->GetValue().Time;
 
+	//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Cyan, FString::Printf(TEXT("Oldest Time %f  Hit Time %f nw %f"), OldestHistoryTime, HitTime, NewestHistoryTime) );
+
 	if (OldestHistoryTime > HitTime)
 	{
-		return FHitResult_SSR{};;
+		return;
 	}
 
 	if (OldestHistoryTime == HitTime)
 	{
-		FrameToBeChecked = History.GetTail()->GetValue();
+		Package = History.GetTail()->GetValue();
 		bShouldInterpolate = false;
 	}
 
 	if (NewestHistoryTime <= HitTime)
 	{
-		FrameToBeChecked = History.GetHead()->GetValue();
+		Package = History.GetHead()->GetValue();
 		bShouldInterpolate = false;
 	}
 
@@ -118,16 +186,17 @@ FHitResult_SSR ULagCompensationComponent::ServerSideRewind(AMPPlayer* HitCharact
 	}
 	if (Older->GetValue().Time == HitTime) // highly unlikely, but we found our frame to check
 	{
-		FrameToBeChecked = Older->GetValue();
+		Package = Older->GetValue();
 		bShouldInterpolate = false;
 	}
 	if (bShouldInterpolate)
 	{
 		// Interpolate between Younger and Older
-		FrameToBeChecked = InterpFrames(Older->GetValue(), Younger->GetValue(), HitTime);
+		Package = InterpFrames(Older->GetValue(), Younger->GetValue(), HitTime);
 	}
 
-	return ConfirmHit_SSR(FrameToBeChecked, HitCharacter, TraceStart, HitLocation);
+	Package.Character = HitCharacter;
+	return;
 }
 
 FFramePackage ULagCompensationComponent::InterpFrames(const FFramePackage& OlderFrame, const FFramePackage& YoungerFrame, float HitTime)
@@ -164,6 +233,7 @@ void ULagCompensationComponent::SaveFramePackage(FFramePackage& Package)
 	if (Character != nullptr)
 	{
 		float Time = GetWorld()->GetTimeSeconds();
+		Package.Time = Time;
 		for (auto& BoxPair : Character->HitCollisionBoxesMap)
 		{
 			FBoxInformation BoxInfo;
@@ -193,7 +263,7 @@ FHitResult_SSR ULagCompensationComponent::ConfirmHit_SSR(const FFramePackage& Fr
 	for (auto& pair : HitPlayer->HitCollisionBoxesMap)
 	{
 		pair.Value->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-		pair.Value->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
+		pair.Value->SetCollisionResponseToChannel(ECC_HitBox, ECollisionResponse::ECR_Block);
 	}
 
 	FVector TraceEnd = TraceStart + (HitLocation - TraceStart) * 1.25f;
@@ -202,7 +272,7 @@ FHitResult_SSR ULagCompensationComponent::ConfirmHit_SSR(const FFramePackage& Fr
 	UWorld* World = GetWorld();
 	if (World != nullptr)
 	{
-		World->LineTraceSingleByChannel(HitResult, TraceStart, TraceEnd, ECollisionChannel::ECC_Visibility);
+		World->LineTraceSingleByChannel(HitResult, TraceStart, TraceEnd, ECC_HitBox);
 
 		if (HitResult.bBlockingHit)
 		{
@@ -210,10 +280,15 @@ FHitResult_SSR ULagCompensationComponent::ConfirmHit_SSR(const FFramePackage& Fr
 			UBoxComponent* HitBox = Cast<UBoxComponent>( HitResult.GetComponent());
 			HitBox->GetName(HitBoxName);
 
+			FColor Color = FColor::Red;
+
 			if (HitBoxName == "head")
 			{
+				Color = FColor::Cyan;
 				bIsHeadShot = true;
 			}
+
+			DrawDebugSphere(GetWorld(), HitResult.Location, 5.0f, 12.0f, Color, false, 4.0f, 0.0f, 2.0f);
 
 			ResetBoxes(HitPlayer, CurrentFrame);
 			EnableCharacterMeshCollision(HitPlayer, ECollisionEnabled::QueryAndPhysics);
@@ -238,6 +313,90 @@ FHitResult_SSR ULagCompensationComponent::ConfirmHit_SSR(const FFramePackage& Fr
 	return FHitResult_SSR{ false, false };
 }
 
+FHitResult_SSR ULagCompensationComponent::ConfirmHit_Projectile_SSR(const FFramePackage& FrameToCheck, AMPPlayer* HitPlayer, const FVector_NetQuantize& TraceStart, const FVector_NetQuantize100 InitialVelocity, float HitTime)
+{
+
+	if (HitPlayer == nullptr)
+	{
+		//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Cyan, TEXT("HitPlayer Is Null"));
+		return FHitResult_SSR();
+	}
+
+	FFramePackage CurrentFrame;
+
+	CacheFrame(HitPlayer, CurrentFrame);
+	MoveBoxes(HitPlayer, FrameToCheck);
+	EnableCharacterMeshCollision(HitPlayer, ECollisionEnabled::NoCollision);
+
+	bool bIsHeadShot = false;
+
+	for (auto& pair : HitPlayer->HitCollisionBoxesMap)
+	{
+		if (pair.Value != nullptr)
+		{
+			pair.Value->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+			pair.Value->SetCollisionResponseToChannel(ECC_HitBox, ECollisionResponse::ECR_Block);
+		}
+	}
+
+	FPredictProjectilePathParams PathParams;
+	FPredictProjectilePathResult PathResult;
+
+	PathParams.bTraceWithCollision = true;
+	PathParams.LaunchVelocity = InitialVelocity;
+	PathParams.MaxSimTime = MaxFrameHistoryTime;
+	PathParams.StartLocation = TraceStart;
+	PathParams.SimFrequency = 15.f;
+	PathParams.ProjectileRadius = 5.0f;
+	PathParams.TraceChannel = ECC_HitBox;
+	PathParams.ActorsToIgnore.Add(GetOwner());
+
+	PathParams.DrawDebugTime = MaxFrameHistoryTime;
+	PathParams.DrawDebugType = EDrawDebugTrace::ForDuration;
+
+	//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, TEXT("Predicting Projectile"));
+	UGameplayStatics::PredictProjectilePath(this, PathParams, PathResult);
+
+	if (PathResult.HitResult.bBlockingHit)
+	{
+		//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Cyan, TEXT("Is Blocking Hit True") );
+		FString HitBoxName = "";
+		UBoxComponent* HitBox = Cast<UBoxComponent>(PathResult.HitResult.GetComponent());
+		HitBox->GetName(HitBoxName);
+
+		FColor Color = FColor::Red;
+
+		if (HitBoxName == "head")
+		{
+			Color = FColor::Cyan;
+			bIsHeadShot = true;
+		}
+
+		DrawDebugSphere(GetWorld(), PathResult.HitResult.Location, 25.0f, 12, Color, true, 4.0f, 0.0f, 2.0f);
+
+		ResetBoxes(HitPlayer, CurrentFrame);
+		EnableCharacterMeshCollision(HitPlayer, ECollisionEnabled::QueryAndPhysics);
+
+		for (auto& pair : HitPlayer->HitCollisionBoxesMap)
+		{
+			pair.Value->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		}
+
+
+		return FHitResult_SSR{ true, bIsHeadShot };
+	}
+
+	ResetBoxes(HitPlayer, CurrentFrame);
+	EnableCharacterMeshCollision(HitPlayer, ECollisionEnabled::QueryAndPhysics);
+
+	for (auto& pair : HitPlayer->HitCollisionBoxesMap)
+	{
+		pair.Value->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
+
+	return FHitResult_SSR{ false, false };
+}
+
 /// <summary>
 /// Move Boxes of Hit Player to the Frame that is needed to checked
 /// </summary>
@@ -249,9 +408,12 @@ void ULagCompensationComponent::MoveBoxes(AMPPlayer* HitPlayer, const FFramePack
 	{
 		if (HitPair.Value != nullptr)
 		{
-			HitPair.Value->SetWorldLocation(FrameToCheck.HitBoxInfoMap[HitPair.Key].Location);
-			HitPair.Value->SetWorldRotation(FrameToCheck.HitBoxInfoMap[HitPair.Key].Rotation);
-			HitPair.Value->SetBoxExtent(FrameToCheck.HitBoxInfoMap[HitPair.Key].BoxExtent);
+			if (FrameToCheck.HitBoxInfoMap.Contains(HitPair.Key))
+			{
+				HitPair.Value->SetWorldLocation(FrameToCheck.HitBoxInfoMap[HitPair.Key].Location);
+				HitPair.Value->SetWorldRotation(FrameToCheck.HitBoxInfoMap[HitPair.Key].Rotation);
+				HitPair.Value->SetBoxExtent(FrameToCheck.HitBoxInfoMap[HitPair.Key].BoxExtent);
+			}
 		}
 	}
 }

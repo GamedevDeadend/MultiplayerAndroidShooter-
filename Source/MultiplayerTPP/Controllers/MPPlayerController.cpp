@@ -154,7 +154,8 @@ void AMPPlayerController::ServerRequestServerTime_Implementation(float TimeOfCli
 void AMPPlayerController::ClientReportServerTime_Implementation(float TimeOfClientRequest, float TimeServerRecievedClientRequest)
 {
 	float RountTripTime = GetWorld()->GetTimeSeconds() - TimeOfClientRequest;
-	float CurrentServerTime = TimeServerRecievedClientRequest + (0.5f * RountTripTime);
+	SingleTripTime = (0.5f * RountTripTime);
+	float CurrentServerTime = TimeServerRecievedClientRequest + SingleTripTime;
 	ClientServerDelta = CurrentServerTime - GetWorld()->GetTimeSeconds();
 }
 

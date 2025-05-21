@@ -15,7 +15,6 @@ public:
 	// Sets default values for this actor's properties
 	AProjectile();
 
-
 	bool bUseSSR = false;
 
 	FVector_NetQuantize TraceStart;

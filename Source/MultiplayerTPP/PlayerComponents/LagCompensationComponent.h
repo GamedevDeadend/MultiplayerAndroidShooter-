@@ -32,10 +32,13 @@ struct FFramePackage
 public:
 
 	UPROPERTY()
-		float Time;
+		float Time = 0.0f;
 
 	UPROPERTY()
 		TMap<FName, FBoxInformation> HitBoxInfoMap;
+
+	UPROPERTY()
+		AMPPlayer* Character = nullptr;
 };
 
 USTRUCT(BlueprintType)
@@ -69,7 +72,48 @@ public:
 
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	void BuildFrameHistory();
-	FHitResult_SSR ServerSideRewind(class AMPPlayer* HitCharacter, const FVector_NetQuantize& TraceStart, const FVector_NetQuantize& HitLocation, float HitTime);
+
+	/*
+	*	 HitScans Weapon
+	*/
+	FHitResult_SSR ServerSideRewind
+	(
+		class AMPPlayer* HitCharacter,
+		const FVector_NetQuantize& TraceStart,
+		const FVector_NetQuantize& HitLocation,
+		float HitTime
+	);
+
+	/*
+	* Projectile Weapon SSR
+	*/FHitResult_SSR ProjectileWeapon_SSR
+	(
+		class AMPPlayer* HitCharacter,
+		const FVector_NetQuantize& TraceStart,
+		const FVector_NetQuantize100 InitialVelocity,
+		float HitTime
+	);
+
+
+	UFUNCTION(Server, Reliable)
+	void ServerScoreRequest
+	(
+		AMPPlayer* HitPlayer,
+		const FVector_NetQuantize& TraceStart,
+		const FVector_NetQuantize& HitLocation,
+		float HitTime,
+		class AWeapons* DamageCauser
+	);
+
+	UFUNCTION(Server, Reliable)
+	void ServerProjectileWeaponScoreRequest
+	(
+		AMPPlayer* HitPlayer,
+		const FVector_NetQuantize& TraceStart,
+		const FVector_NetQuantize100& InitialVelocity,
+		float HitTime
+	);
+
 
 protected:
 	virtual void BeginPlay() override;
@@ -87,6 +131,8 @@ private:
 	UPROPERTY()
 		class AMPPlayerController* CharacterController;
 
+		void FillFrameToCheck(FFramePackage& Pakckage, AMPPlayer* HitCharacter, float HitTime);
+
 		void SaveFramePackage(FFramePackage& Package);
 
 		void ShowFramePackage(const FFramePackage& Package, const FColor& Color);
@@ -95,23 +141,37 @@ private:
 
 		FFramePackage InterpFrames(const FFramePackage& OlderFrame, const FFramePackage& YoungerFrame, float HitTime);
 
-		FHitResult_SSR ConfirmHit_SSR(const FFramePackage& FrameToCheck, AMPPlayer* HitPlayer, const FVector_NetQuantize& TraceStart, const FVector_NetQuantize& HitLocation);
+		/*
+		* Confirm Hit SSR Hitscan Weapons
+		*/
+
+		FHitResult_SSR ConfirmHit_SSR
+		(
+			const FFramePackage& FrameToCheck,
+			AMPPlayer* HitPlayer,
+			const FVector_NetQuantize& TraceStart,
+			const FVector_NetQuantize& HitLocation
+		);
+
+		/*
+		* Confirm Hit SSR Projectile Weapons
+		*/
+		FHitResult_SSR ConfirmHit_Projectile_SSR
+		(
+			const FFramePackage& FrameToCheck,
+			class AMPPlayer* HitCharacter,
+			const FVector_NetQuantize& TraceStart,
+			const FVector_NetQuantize100 InitialVelocity,
+			float HitTime
+		);
+
+
 
 		void MoveBoxes(AMPPlayer* HitPlayer, const FFramePackage& FrameToCheck);
 
 		void ResetBoxes(AMPPlayer* HitPlayer, const FFramePackage& OrignalFrame);
 
 		void CacheFrame(AMPPlayer* HitPlayer, FFramePackage& CurrentFrame);
-
-		UFUNCTION(Server, Reliable)
-		void ServerScoreRequest
-		(
-			AMPPlayer* HitPlayer,
-			const FVector_NetQuantize& TraceStart,
-			const FVector_NetQuantize& HitLocation,
-			float HitTime,
-			class AWeapons* DamageCauser
-		);
 
 public:	
 

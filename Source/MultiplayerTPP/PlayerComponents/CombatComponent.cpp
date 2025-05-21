@@ -318,10 +318,14 @@ void UCombatComponent::Fire()
 		}
 	}
 
-	if (bIsWeaponEmpty == false && CombatState == ECombatState::ECS_Unoccupied)
+	if ( !bIsWeaponEmpty && CombatState == ECombatState::ECS_Unoccupied)
 	{
 		ServerFire(HitTarget);
-		LocalFire(HitTarget);
+
+		if (MPPlayer->HasAuthority() == false && MPPlayer->IsLocallyControlled() == true)
+		{
+			LocalFire(HitTarget);
+		}
 	}
 }
 
