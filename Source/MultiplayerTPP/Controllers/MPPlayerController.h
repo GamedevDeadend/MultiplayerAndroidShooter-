@@ -4,16 +4,25 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
+#include "Delegates/Delegate.h"
 #include "MPPlayerController.generated.h"
 
 /**
  * 
  */
 
+
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FHighPingDelegate, bool, bPingTooHigh);
+
 UCLASS()
 class MULTIPLAYERTPP_API AMPPlayerController : public APlayerController
 {
 	GENERATED_BODY()
+
+public:
+
+	 FHighPingDelegate HighPingDelegate;
 
 protected:
 
@@ -94,7 +103,7 @@ private:
 	float HighPingCheckRunningTime = 0.0f;
 
 	UPROPERTY(EditAnywhere, Category = "Lag Settings")
-		float HighPingThreshold = 10.0f;
+		float HighPingThreshold = 100.0f;
 
 	UPROPERTY(EditAnywhere, Category = "Lag Settings")
 		float HighPingCheckFrequencyTime = 30.0f;
@@ -112,6 +121,9 @@ private:
 
 	void ShowWinners();
 	void SetHUDPing();
+
+	UFUNCTION(Server, Reliable)
+	void ServerCheckHighPing(bool bIsPingHigh);
 
 public:
 

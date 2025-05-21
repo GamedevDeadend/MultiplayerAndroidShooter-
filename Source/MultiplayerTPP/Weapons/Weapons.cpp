@@ -73,6 +73,7 @@ void AWeapons::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetime
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(AWeapons, WeaponState);
+	DOREPLIFETIME_CONDITION(AWeapons, bIsUsingSSR, COND_OwnerOnly);
 }
 
 void AWeapons::Fire(const FVector& HitTarget)
@@ -176,6 +177,12 @@ void AWeapons::AmmoSpend()
 
 }
 
+void AWeapons::OnHighPing(bool bIsHighPing)
+{
+	//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, TEXT("On Server SSR IS OFF NOW"));
+	bIsUsingSSR = !bIsHighPing;
+}
+
 void AWeapons::ClientAmmoSpend_Implementation(int32 ServerAmmo)
 {
 	if (HasAuthority()) return;
@@ -242,6 +249,8 @@ void AWeapons::Dropped()
 void AWeapons::SetWeaponState(EWeaponState State)
 {
 	WeaponState = State;
+	//AMPPlayerController* MPPlayerController = Cast<AMPPlayerController>(Cast<AMPPlayer>);
+
 	switch (WeaponState)
 	{
 		case EWeaponState::EWS_Equipped:
@@ -251,6 +260,7 @@ void AWeapons::SetWeaponState(EWeaponState State)
 			Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 			ShowPickupWidget(false);
 			OverlapAreaSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			BindHighPingDelegate();
 		break; 
 
 		case EWeaponState::EWS_Dropped:
@@ -262,7 +272,45 @@ void AWeapons::SetWeaponState(EWeaponState State)
 			Mesh->SetSimulatePhysics(true);
 			Mesh->SetEnableGravity(true);
 			Mesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+			UnbindHighPingDelegate();
 		break;
+	}
+}
+
+void AWeapons::UnbindHighPingDelegate()
+{
+	if (OwnerCharacter != nullptr)
+	{
+
+		OwnerController = OwnerController == nullptr ? Cast<AMPPlayerController>(OwnerCharacter->Controller) : OwnerController;
+		//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, TEXT("UnBinding  Delegate"));
+
+
+		if (OwnerController != nullptr && HasAuthority() && OwnerController->HighPingDelegate.IsBound() == true&& bIsUsingSSR)
+		{
+
+			OwnerController->HighPingDelegate.RemoveDynamic(this, &AWeapons::OnHighPing);
+		}
+	}
+}
+
+void AWeapons::BindHighPingDelegate()
+{
+	OwnerCharacter = OwnerCharacter == nullptr ? Cast<AMPPlayer>(GetOwner()) : OwnerCharacter;
+
+	//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, TEXT("Binding  Delegate"));
+
+	if (OwnerCharacter != nullptr)
+	{
+
+		OwnerController = OwnerController == nullptr ? Cast<AMPPlayerController>(OwnerCharacter->Controller) : OwnerController;
+
+		if (OwnerController != nullptr && HasAuthority() && OwnerController->HighPingDelegate.IsBound() == false && bIsUsingSSR )
+		{
+
+			GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT("Binded DELEGATE"));
+			OwnerController->HighPingDelegate.AddDynamic(this, &AWeapons::OnHighPing);
+		}
 	}
 }
 

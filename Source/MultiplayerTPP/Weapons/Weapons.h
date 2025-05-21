@@ -33,6 +33,9 @@ public:
 	void SetHUDAmmo();
 	void AmmoSpend();
 
+	UFUNCTION()
+	void OnHighPing(bool bIsHighPing);
+
 
 	//Crosshairs
 
@@ -124,7 +127,7 @@ private:
 
 protected:
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(Replicated, EditAnywhere)
 		bool bIsUsingSSR = false;
 
 	UPROPERTY(EditAnywhere, Category = "Weapon Properties")
@@ -160,6 +163,9 @@ protected:
 public:
 
 	void SetWeaponState(EWeaponState State);
+	void UnbindHighPingDelegate();
+	void BindHighPingDelegate();
+	//void SetIsUsingSSR(bool bCanUse) { bIsUsingSSR = bCanUse; }
 	FORCEINLINE void SetAmmo(int32 UpdatedAmmo) { Ammo = UpdatedAmmo; }
 
 	FORCEINLINE USkeletalMeshComponent* GetWeaponMesh() const { return Mesh; }

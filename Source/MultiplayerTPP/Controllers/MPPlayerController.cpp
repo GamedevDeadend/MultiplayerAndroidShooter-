@@ -87,15 +87,40 @@ void AMPPlayerController::CheckForLatestPing(float DeltaTime)
 			{
 				PlayerHUD = PlayerHUD == nullptr ? Cast<AMPPlayerHUD>(GetHUD()) : PlayerHUD;
 
+				if (IsLocalPlayerController())
+				{
+					ServerCheckHighPing(true);
+				}
+
 				if (PlayerHUD != nullptr && PlayerHUD->PlayerOverlay != nullptr)
 				{
 					PlayerHUD->PlayerOverlay->ShowHighPingWarning();
 					bIsCheckingFirstTime = false;
 				}
 
-				HighPingCheckRunningTime = 0.0f;
 			}
+			else
+			{
+				if (IsLocalPlayerController())
+				{
+					ServerCheckHighPing(false);
+				}
+				bIsCheckingFirstTime = false;
+			}
+
+			HighPingCheckRunningTime = 0.0f;
 		}
+	}
+}
+
+void AMPPlayerController::ServerCheckHighPing_Implementation(bool bIsPingHigh)
+{
+	GEngine->AddOnScreenDebugMessage(-1, 0.1f, FColor::Green, TEXT("On Server HighPing"));
+
+	if (HighPingDelegate.IsBound() == true)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Purple, TEXT("On Server HighPing Firing"));
+		HighPingDelegate.Broadcast(bIsPingHigh);
 	}
 }
 
