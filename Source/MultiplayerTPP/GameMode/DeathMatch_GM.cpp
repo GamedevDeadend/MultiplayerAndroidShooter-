@@ -8,7 +8,7 @@
 #include "GameFramework/PlayerStart.h"
 #include "MultiplayerTPP/GameStates/DeathMatch_GS.h"
 #include "MultiplayerTPP/PlayerState/MPPlayerState.h"
-#include <MultiplayerSessionsSubsystem.h>
+#include "MultiplayerSessionsSubsystem.h"
 
 
 namespace MatchState
@@ -51,13 +51,8 @@ void ADeathMatch_GM::Tick(float DeltaTime)
 		CountDownTime = CooldownTime - (GetWorld()->GetTimeSeconds() - (LevelStartTime + WarmupTime + MatchTime));
 		if (CountDownTime <= 0.0f)
 		{
-			UMultiplayerSessionsSubsystem* Subsystem = GetGameInstance()->GetSubsystem<UMultiplayerSessionsSubsystem>();
 
-			if (Subsystem != nullptr)
-			{
-				Subsystem->DestroySessions();
-				UGameplayStatics::OpenLevel(this, *LobbyLvl, true);
-			}
+			SetMatchState(MatchState::WaitingPostMatch);
 		}
 	}
 }

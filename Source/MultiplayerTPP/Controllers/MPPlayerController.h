@@ -24,8 +24,21 @@ public:
 
 	 FHighPingDelegate HighPingDelegate;
 
+	float SingleTripTime = 0.0f;
+
+	void HideAnnouncementOverlay();
+
+	void ShowDefeatMessage(FString DefeatMessage);
+
+	void HideDefeatMessage();
+
+	void OnMatchStateSet(FName NewMatchState);
+
+	void ShowInGameMenu();
+
 protected:
 
+	virtual void SetupInputComponent()override;
 	virtual void BeginPlay() override;
 	void PollInit();
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
@@ -65,6 +78,17 @@ protected:
 	float TimeSyncRunningTime = 0.0f;
 
 private:
+
+	bool bIsInGameMenu = false;
+
+	UPROPERTY()
+	class UMultiplayerSessionsSubsystem* Subsystem = nullptr;
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<class UInGameMenu> InGameMenuClass;
+
+	UPROPERTY()
+	class UInGameMenu* InGameMenu = nullptr;
 
 	UPROPERTY()
 	class AMPPlayerHUD* PlayerHUD = nullptr;
@@ -118,16 +142,23 @@ private:
 
 	void HandleMatchHasStarted();
 	void HandleMatchCooldown();
+	void HandlePostMatch();
 
 	void ShowWinners();
 	void SetHUDPing();
+
+	UFUNCTION()
+	void OnDestroySession(bool bWasSuccess);
 
 	UFUNCTION(Server, Reliable)
 	void ServerCheckHighPing(bool bIsPingHigh);
 
 public:
 
-	float SingleTripTime = 0.0f;
+
+	/*
+	* Setters
+	*/
 
 	void SetHUDHealth(float MaxHealth, float CurrentHealth);
 
@@ -145,13 +176,8 @@ public:
 
 	void SetHUDAnnouncementCountDown(float time);
 
-	void HideAnnouncementOverlay();
-
-	void ShowDefeatMessage(FString DefeatMessage);
-
-	void HideDefeatMessage();
-
-	void OnMatchStateSet(FName NewMatchState);
-
+	/*
+	* Getters
+	*/
 	virtual float GetServerTime();
 };

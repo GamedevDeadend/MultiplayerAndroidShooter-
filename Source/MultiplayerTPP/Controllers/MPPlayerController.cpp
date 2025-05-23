@@ -16,12 +16,15 @@
 #include "MultiplayerTPP/WidgetsHud/AnnouncementOverlay.h"
 #include "MultiplayerTPP/PlayerComponents/CombatComponent.h"
 #include "MultiplayerTPP/GameStates/DeathMatch_GS.h"
+#include "MultiplayerTPP/WidgetsHud/InGameMenu.h"
+#include "MultiplayerSessionsSubsystem.h"
 
 /*
 * Special naming convention
 * Sr_... means variable is from server
 * Ctrl_.. means variables from control. This convention is used to distinguish varibales from Game_Mode classes
 */
+
 
 void AMPPlayerController::BeginPlay()
 {
@@ -57,6 +60,16 @@ void AMPPlayerController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(AMPPlayerController, Ctrl_MatchState);
+}
+
+void AMPPlayerController::SetupInputComponent()
+{
+	Super::SetupInputComponent();
+
+	if (InputComponent != nullptr)
+	{
+		InputComponent->BindAction("ShowMenu", IE_Pressed, this, &AMPPlayerController::ShowInGameMenu);
+	}
 }
 
 void AMPPlayerController::Tick(float DeltaTime)
@@ -115,11 +128,11 @@ void AMPPlayerController::CheckForLatestPing(float DeltaTime)
 
 void AMPPlayerController::ServerCheckHighPing_Implementation(bool bIsPingHigh)
 {
-	GEngine->AddOnScreenDebugMessage(-1, 0.1f, FColor::Green, TEXT("On Server HighPing"));
+	//GEngine->AddOnScreenDebugMessage(-1, 0.1f, FColor::Green, TEXT("On Server HighPing"));
 
 	if (HighPingDelegate.IsBound() == true)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Purple, TEXT("On Server HighPing Firing"));
+		//GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Purple, TEXT("On Server HighPing Firing"));
 		HighPingDelegate.Broadcast(bIsPingHigh);
 	}
 }
@@ -543,7 +556,12 @@ void AMPPlayerController::OnMatchStateSet(FName NewMatchState)
 	{
 		HandleMatchCooldown();
 	}
+	else if (Ctrl_MatchState == MatchState::WaitingPostMatch)
+	{
+		HandlePostMatch();
+	}
 }
+
 
 /// <summary>
 /// Rep Notifier for Match State Variable
@@ -558,6 +576,10 @@ void AMPPlayerController::OnRep_MatchState()
 	else if (Ctrl_MatchState == MatchState::Cooldown)
 	{
 		HandleMatchCooldown();
+	}
+	else if (Ctrl_MatchState == MatchState::WaitingPostMatch)
+	{
+		HandlePostMatch();
 	}
 }
 
@@ -605,6 +627,17 @@ void AMPPlayerController::HandleMatchCooldown()
 		MPPlayer->bIsGameplayDisabled = true;
 		MPPlayer->GetCombatComponent()->FirePressed(false);
 		MPPlayer->GetCombatComponent()->SetAiming(false);
+	}
+}
+
+void AMPPlayerController::HandlePostMatch()
+{
+	Subsystem = Subsystem == nullptr ? GetGameInstance()->GetSubsystem<UMultiplayerSessionsSubsystem>() : Subsystem;
+
+	if (Subsystem != nullptr && Subsystem->MultiplayerOnDestroySessionDelegate.IsBound() == false)
+	{
+		Subsystem->MultiplayerOnDestroySessionDelegate.AddDynamic(this, &AMPPlayerController::OnDestroySession);
+		Subsystem->DestroySessions();
 	}
 }
 
@@ -671,6 +704,60 @@ void AMPPlayerController::OnPossess(APawn* InPawn)
 		if (MPPlayerState)
 		{
 			MPPlayerState->SetCanReplicateDefeat(false);
+		}
+	}
+
+}
+
+void AMPPlayerController::OnDestroySession(bool bWasSuccess)
+{
+	if (!bWasSuccess)
+	{
+		return;
+	}
+
+	UWorld* World = GetWorld();
+
+	if (World != nullptr)
+	{
+		AGameModeBase* GameMode = World->GetAuthGameMode<AGameModeBase>();
+
+		if (GameMode != nullptr)
+		{
+			GameMode->ReturnToMainMenuHost();
+		}
+		else
+		{
+			if (this != nullptr)
+			{
+				ClientReturnToMainMenuWithTextReason(FText::FromString("Gracefull Exit"));
+			}
+		}
+	}
+}
+
+void AMPPlayerController::ShowInGameMenu()
+{
+	GEngine->AddOnScreenDebugMessage(-1, 0.1f, FColor::Green, TEXT("On Show In  Game Menu"));
+
+	if (InGameMenuClass == nullptr) return;
+
+	if (InGameMenu == nullptr)
+	{
+		InGameMenu = CreateWidget<UInGameMenu>(this, InGameMenuClass);
+	}
+
+	if (InGameMenu != nullptr)
+	{
+		bIsInGameMenu = !bIsInGameMenu;
+
+		if (bIsInGameMenu)
+		{
+			InGameMenu->MenuSetup();
+		}
+		else
+		{
+			InGameMenu->MenuTeardown();
 		}
 	}
 

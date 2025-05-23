@@ -41,18 +41,20 @@ public:
 	FMultiplayerOnStartSessionDelegate MultiplayerOnStartSessionDelegate;
 	FMultiplayerOnDestroySessionDelegate MultiplayerOnDestroySessionDelegate;
 
-private:
-
-	IOnlineSessionPtr SessionInterface;
-	TSharedPtr<FOnlineSessionSettings> LastSessionSettings;
-	TSharedPtr<FOnlineSessionSearch> LastSessionSearch;
-
 	//Delegates
 	FOnCreateSessionCompleteDelegate CreateSessionCompleteDelegate;
 	FOnFindSessionsCompleteDelegate FindSessionsCompleteDelegate;
 	FOnJoinSessionCompleteDelegate JoinSessionCompleteDelegate;
 	FOnDestroySessionCompleteDelegate DestroySessionCompleteDelegate;
 	FOnStartSessionCompleteDelegate StartSessionCompleteDelegate;
+
+
+private:
+
+	IOnlineSessionPtr SessionInterface;
+	TSharedPtr<FOnlineSessionSettings> LastSessionSettings;
+	TSharedPtr<FOnlineSessionSearch> LastSessionSearch;
+
 
 	//Delegate Handles
 	FDelegateHandle CreateSessionCompleteDelegateHandle;
