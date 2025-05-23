@@ -39,14 +39,16 @@ void UInGameMenu::MenuSetup()
 		MutiplayerSubsystem = MutiplayerSubsystem == nullptr ? GameInstance->GetSubsystem<UMultiplayerSessionsSubsystem>() : MutiplayerSubsystem;
 	}
 
-	if (MutiplayerSubsystem != nullptr && MutiplayerSubsystem->MultiplayerOnStartSessionDelegate.IsBound() == false)
+	if (MutiplayerSubsystem != nullptr)
 	{
-		MutiplayerSubsystem->MultiplayerOnStartSessionDelegate.AddDynamic(this, &UInGameMenu::OnDestroySession);
+		MutiplayerSubsystem->MultiplayerOnDestroySessionDelegate.AddDynamic(this, &UInGameMenu::OnDestroySession);
 	}
 }
 
 void UInGameMenu::OnDestroySession(bool bWasSuccessful)
 {
+	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT("Destroy Successful"));
+
 	if (!bWasSuccessful)
 	{
 		MenuButton->SetIsEnabled(true);
@@ -77,6 +79,7 @@ void UInGameMenu::OnDestroySession(bool bWasSuccessful)
 
 void UInGameMenu::ReturnToMainMenu()
 {
+	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT("Return To Main Menu"));
 	UGameInstance* GameInstance = GetGameInstance();
 
 	if (MenuButton != nullptr)
@@ -91,14 +94,14 @@ void UInGameMenu::ReturnToMainMenu()
 
 	if (MutiplayerSubsystem != nullptr)
 	{
+		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT("Return To Main Menu Calling DestroySessions"));
 		MutiplayerSubsystem->DestroySessions();
 	}
-
-
 }
 
 void UInGameMenu::MenuTeardown()
 {
+	GEngine->AddOnScreenDebugMessage(-1, 0.1f, FColor::Green, TEXT("On Show In  Game Menu TearDown"));
 	RemoveFromParent();
 
 	UWorld* World = GetWorld();
@@ -128,7 +131,7 @@ void UInGameMenu::MenuTeardown()
 		MutiplayerSubsystem = MutiplayerSubsystem == nullptr ? GameInstance->GetSubsystem<UMultiplayerSessionsSubsystem>() : MutiplayerSubsystem;
 	}
 
-	if (MutiplayerSubsystem != nullptr && MutiplayerSubsystem->MultiplayerOnDestroySessionDelegate.IsBound() == true)
+	if (MutiplayerSubsystem != nullptr)
 	{
 		MutiplayerSubsystem->MultiplayerOnDestroySessionDelegate.RemoveDynamic(this, &UInGameMenu::OnDestroySession);
 	}

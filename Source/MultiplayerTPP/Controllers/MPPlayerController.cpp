@@ -634,7 +634,7 @@ void AMPPlayerController::HandlePostMatch()
 {
 	Subsystem = Subsystem == nullptr ? GetGameInstance()->GetSubsystem<UMultiplayerSessionsSubsystem>() : Subsystem;
 
-	if (Subsystem != nullptr && Subsystem->MultiplayerOnDestroySessionDelegate.IsBound() == false)
+	if (Subsystem != nullptr)
 	{
 		Subsystem->MultiplayerOnDestroySessionDelegate.AddDynamic(this, &AMPPlayerController::OnDestroySession);
 		Subsystem->DestroySessions();
