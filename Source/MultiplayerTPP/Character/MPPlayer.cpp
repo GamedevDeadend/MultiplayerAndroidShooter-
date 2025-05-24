@@ -15,6 +15,7 @@
 #include "MultiplayerTPP/MultiplayerTPP.h"
 #include "MultiplayerTPP/Controllers/MPPlayerController.h"
 #include "MultiplayerTPP/GameMode/DeathMatch_GM.h"
+#include "MultiplayerTPP/GameStates/DeathMatch_GS.h"
 #include "TimerManager.h"
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundCue.h"
@@ -23,6 +24,8 @@
 #include "MultiplayerTPP/Types/WeaponType.h"
 #include "Components/BoxComponent.h"
 #include "MultiplayerTPP/PlayerComponents/LagCompensationComponent.h"
+#include "NiagaraComponent.h"
+#include "NiagaraFunctionLibrary.h"
 
 
 
@@ -187,6 +190,11 @@ void AMPPlayer::PostInitializeComponents()
 		CombatComponent->MPPlayer = this;
 	}
 
+	if (LeadGainParticleComponent != nullptr)
+	{
+		LeadGainParticleComponent->DestroyComponent();
+	}
+
 	if (LagCompensationComponent != nullptr)
 	{
 		LagCompensationComponent->Character = this;
@@ -224,7 +232,17 @@ void AMPPlayer::BeginPlay()
 	if (HasAuthority())
 	{
 		OnTakeAnyDamage.AddDynamic(this, &AMPPlayer::TakeDamage);
+
 	}
+
+	ADeathMatch_GS* GameState = Cast<ADeathMatch_GS>(UGameplayStatics::GetGameState(this));
+	MPPlayerState = MPPlayerState == nullptr ? GetPlayerState<AMPPlayerState>() : MPPlayerState;
+
+	if (GameState != nullptr && GameState->TopScoringPlayers.Contains(MPPlayerState))
+	{
+		Mulitcast_GainLead();
+	}
+
 }
 
 void AMPPlayer::Tick(float DeltaTime)
@@ -599,6 +617,7 @@ void AMPPlayer::Elim(bool bIsLeaving)
 	MulticastElim(bIsLeaving);
 }
 
+
 void AMPPlayer::MulticastElim_Implementation(bool bIsLeaving)
 {
 	//GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT("On MulticastElim"));
@@ -832,6 +851,39 @@ void AMPPlayer::TurnInPlace(float DeltaTime)
 			TurningInplace = ETurningInPlace::ETIP_NotTurning;
 			StartAimRotation = FRotator(0.0f, GetBaseAimRotation().Yaw, 0.0f);
 		}
+	}
+}
+
+void AMPPlayer::Mulitcast_GainLead_Implementation()
+{
+	if (LeadGainParticleSystem != nullptr)
+	{
+		if (LeadGainParticleComponent == nullptr)
+		{
+			LeadGainParticleComponent = UNiagaraFunctionLibrary::SpawnSystemAttached
+			(
+				LeadGainParticleSystem,
+				GetCapsuleComponent(),
+				FName(),
+				GetActorLocation() + LeadGainOffset,
+				GetActorRotation(),
+				EAttachLocation::KeepWorldPosition,
+				false
+			);
+		}
+	}
+
+	if (LeadGainParticleComponent != nullptr)
+	{
+		LeadGainParticleComponent->Activate();
+	}
+}
+
+void AMPPlayer::Multicast_LossLead_Implementation()
+{
+	if (LeadGainParticleComponent != nullptr)
+	{
+		LeadGainParticleComponent->DestroyComponent();
 	}
 }
 

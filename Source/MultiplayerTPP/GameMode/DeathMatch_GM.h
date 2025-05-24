@@ -56,6 +56,8 @@ public:
 	virtual void BeginPlay()override;
 	virtual void Tick(float DeltaTime)override;
 	virtual void PlayerEliminated(class AMPPlayer* EliminatedCharacter, class AMPPlayerController* EliminatedPlayerController, class AMPPlayerController* AttackingPlayerController);
+	void CheckForGainLead(AMPPlayerState*& AttackerPlayerState, AMPPlayerController* AttackingPlayerController);
+	void CheckForLossLeads(AMPPlayerState* AttackerPlayerState);
 	virtual void RequestRespawn(ACharacter* ElimCharacter, AController* ElimPlayerController);
 	virtual void OnMatchStateSet()override;
 

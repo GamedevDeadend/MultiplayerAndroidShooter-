@@ -115,12 +115,16 @@ void ADeathMatch_GM::PlayerEliminated(AMPPlayer* EliminatedCharacter, AMPPlayerC
 	AMPPlayerState* EliminatedPlayerState = EliminatedPlayerController ? Cast<AMPPlayerState>(EliminatedPlayerController->PlayerState) : nullptr;
 	Curr_GameState = Curr_GameState == nullptr ? GetGameState<ADeathMatch_GS>() : Curr_GameState;
 
+	CheckForLossLeads(AttackerPlayerState);
+
 
 	if (AttackerPlayerState && AttackerPlayerState != EliminatedPlayerState && Curr_GameState != nullptr)
 	{
 		AttackerPlayerState->AddToScore(1.0f);
 		Curr_GameState->UpdateTopScore(AttackerPlayerState);
 		Curr_GameState->UpdatePlayersInfo(AttackerPlayerState);
+
+		CheckForGainLead(AttackerPlayerState, AttackingPlayerController);
 	}
 		
 	if (EliminatedPlayerState)
@@ -130,6 +134,33 @@ void ADeathMatch_GM::PlayerEliminated(AMPPlayer* EliminatedCharacter, AMPPlayerC
 
 	if(EliminatedCharacter)
 	EliminatedCharacter->Elim();
+}
+
+void ADeathMatch_GM::CheckForGainLead(AMPPlayerState*& AttackerPlayerState, AMPPlayerController* AttackingPlayerController)
+{
+	if (Curr_GameState->TopScoringPlayers.Contains(AttackerPlayerState) == true)
+	{
+		AMPPlayer* AttackerPlayer = Cast<AMPPlayer>(AttackingPlayerController->GetPawn());
+		if (AttackerPlayer != nullptr)
+		{
+			AttackerPlayer->Mulitcast_GainLead();
+		}
+	}
+}
+
+void ADeathMatch_GM::CheckForLossLeads(AMPPlayerState* AttackerPlayerState)
+{
+	if (Curr_GameState != nullptr)
+	{
+		for (auto& PlayerState : Curr_GameState->TopScoringPlayers)
+		{
+			if ( PlayerState != AttackerPlayerState && PlayerState->GetScore() < (AttackerPlayerState->GetScore() + 1.0f))
+			{
+				AMPPlayer* Player = Cast<AMPPlayer>(PlayerState->GetPawn());
+				Player->Multicast_LossLead();
+			}
+		}
+	}
 }
 
 void ADeathMatch_GM::RequestRespawn(ACharacter* ElimCharacter, AController* ElimPlayerController)

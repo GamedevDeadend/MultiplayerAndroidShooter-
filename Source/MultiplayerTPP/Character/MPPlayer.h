@@ -37,6 +37,12 @@ public:
 	void PlayElimMontage();
 	void Elim(bool bIsLeaving = false);
 
+	UFUNCTION(Netmulticast, Reliable)
+	void Mulitcast_GainLead();
+
+	UFUNCTION(Netmulticast, Reliable)
+	void Multicast_LossLead();
+
 	UFUNCTION(NetMulticast, Reliable)
 		void MulticastElim(bool bIsLeaving);
 
@@ -157,6 +163,15 @@ private:
 
 	UFUNCTION()
 		void UpdateDissolveMaterial(float DissolveValue);
+
+	UPROPERTY(EditAnywhere)
+			FVector LeadGainOffset;
+
+	UPROPERTY(EditAnywhere)
+		class UNiagaraSystem* LeadGainParticleSystem = nullptr;
+
+	UPROPERTY()
+		class UNiagaraComponent* LeadGainParticleComponent = nullptr;
 
 
 
