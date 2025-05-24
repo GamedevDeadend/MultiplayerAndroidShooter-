@@ -26,9 +26,9 @@ void ADeathMatch_GM::RegisterAllPlayers()
 {
 	Curr_GameState = Curr_GameState == nullptr ? GetGameState<ADeathMatch_GS>() : Curr_GameState;
 
-	auto AvailablePlayers = GetWorld()->GetGameState()->PlayerArray;
+	auto AvailablePlayers = Curr_GameState->PlayerArray;
 
-	for (auto PlayerState : AvailablePlayers)
+	for (auto& PlayerState : AvailablePlayers)
 	{
 		AMPPlayerState* NewPlayerState = Cast<AMPPlayerState>(PlayerState);
 		if (NewPlayerState != nullptr)
@@ -76,8 +76,8 @@ void ADeathMatch_GM::Tick(float DeltaTime)
 		CountDownTime = WarmupTime - (GetWorld()->GetTimeSeconds() - LevelStartTime);
 		if (CountDownTime <= 0.0f)
 		{
-			RegisterAllPlayers();
 			StartMatch();
+			RegisterAllPlayers();
 		}
 	}
 	else if (MatchState == MatchState::InProgress)

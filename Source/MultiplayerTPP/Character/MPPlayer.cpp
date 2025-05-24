@@ -601,7 +601,7 @@ void AMPPlayer::Elim(bool bIsLeaving)
 
 void AMPPlayer::MulticastElim_Implementation(bool bIsLeaving)
 {
-	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT("On MulticastElim"));
+	//GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT("On MulticastElim"));
 
 	this->bIsPlayerLeaving = bIsLeaving;
 	if (MPPlayerController != nullptr)
@@ -658,7 +658,7 @@ void AMPPlayer::MulticastElim_Implementation(bool bIsLeaving)
 
 void AMPPlayer::EliminationFinished()
 {
-	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT(" ElimPlayer Finished"));
+	//GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT(" ElimPlayer Finished"));
 
 	ADeathMatch_GM* DeathMatchGM = GetWorld()->GetAuthGameMode<ADeathMatch_GM>();
 
@@ -669,7 +669,7 @@ void AMPPlayer::EliminationFinished()
 
 	if (IsLocallyControlled() == true && bIsPlayerLeaving == true)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT("Fired OnLeaving Match Delegate"));
+		//GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT("Fired OnLeaving Match Delegate"));
 		OnLeavingMatch.Broadcast();
 	}
 }
@@ -730,7 +730,7 @@ void AMPPlayer::ServerLeaveGame_Implementation()
 {
 	UWorld* World = GetWorld();
 
-	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT("Called ServerLeaveGame"));
+	//GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT("Called ServerLeaveGame"));
 
 	if (World != nullptr)
 	{
@@ -739,7 +739,7 @@ void AMPPlayer::ServerLeaveGame_Implementation()
 
 		if (GameMode != nullptr)
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT("Called KickPlayer"));
+			//GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT("Called KickPlayer"));
 			GameMode->KickPlayer(MPPlayerState);
 		}
 	}

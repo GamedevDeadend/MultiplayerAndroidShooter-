@@ -69,6 +69,8 @@ void AMPPlayerController::SetupInputComponent()
 	if (InputComponent != nullptr)
 	{
 		InputComponent->BindAction("ShowMenu", IE_Pressed, this, &AMPPlayerController::ShowInGameMenu);
+		InputComponent->BindAction("ShowScoreBoard", IE_Pressed, this, &AMPPlayerController::ShowPlayersStats);
+		//InputComponent->BindAction("ShowScoreBoard", IE_Released, this, &AMPPlayerController::HidePlayerStats);
 	}
 }
 
@@ -688,9 +690,25 @@ void AMPPlayerController::SetHUDPing()
 	}
 }
 
-void AMPPlayerController::ShowPlayerState()
+void AMPPlayerController::ShowPlayersStats()
 {
+	//UWorld* World = GetWorld();
 
+	//if (World != nullptr)
+	//{
+	//	ADeathMatch_GS* DM_GameState = Cast<ADeathMatch_GS>(World->GetGameState());
+
+	//	if (DM_GameState != nullptr)
+	//	{
+	//		for (auto& Stat : DM_GameState->PlayersInfo)
+	//		{
+	//			if (GEngine)
+	//			{
+	//				GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, FString::Printf(TEXT( "Player Name : %s Player Score : %f PlayerTeam : %d"), *Stat.PlayerName, Stat.CurrScore, Stat.PlayerTeam));
+	//			}
+	//		}
+	//	}
+	//}
 }
 
 void AMPPlayerController::OnPossess(APawn* InPawn)

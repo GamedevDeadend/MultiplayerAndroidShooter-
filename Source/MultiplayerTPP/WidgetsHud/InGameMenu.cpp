@@ -50,7 +50,7 @@ void UInGameMenu::MenuSetup()
 
 void UInGameMenu::OnDestroySession(bool bWasSuccessful)
 {
-	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT("Destroy Successful"));
+	//GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT("Destroy Successful"));
 
 	if (!bWasSuccessful)
 	{
@@ -83,7 +83,7 @@ void UInGameMenu::OnDestroySession(bool bWasSuccessful)
 void UInGameMenu::ReturnToMainMenu()
 {
 	
-	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT("Return To Main Menu"));
+	//GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT("Return To Main Menu"));
 
 	if (MenuButton != nullptr)
 	{
@@ -101,7 +101,7 @@ void UInGameMenu::ReturnToMainMenu()
 		{
 			Player->OnLeavingMatch.AddUObject(this, &UInGameMenu::OnMatchLeft);
 			AMPPlayerState* PlayerState = Cast<AMPPlayerState>(Player->GetPlayerState());
-			GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT("Return To Main Menu Calling ServerLeaveGame"));
+			//GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT("Return To Main Menu Calling ServerLeaveGame"));
 			Player->ServerLeaveGame();
 		}
 	}
@@ -109,7 +109,7 @@ void UInGameMenu::ReturnToMainMenu()
 
 void UInGameMenu::MenuTeardown()
 {
-	GEngine->AddOnScreenDebugMessage(-1, 0.1f, FColor::Green, TEXT("On Show In  Game Menu TearDown"));
+	//GEngine->AddOnScreenDebugMessage(-1, 0.1f, FColor::Green, TEXT("On Show In  Game Menu TearDown"));
 	RemoveFromParent();
 
 	UWorld* World = GetWorld();
@@ -147,7 +147,7 @@ void UInGameMenu::MenuTeardown()
 void UInGameMenu::OnMatchLeft()
 {
 	UGameInstance* GameInstance = GetGameInstance();
-	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT("Reached On Match Left"));
+	//GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT("Reached On Match Left"));
 
 
 	if (GameInstance != nullptr)
