@@ -146,6 +146,7 @@ private:
 
 	void ShowWinners();
 	void SetHUDPing();
+	void ShowPlayerState();
 
 	UFUNCTION()
 	void OnDestroySession(bool bWasSuccess);

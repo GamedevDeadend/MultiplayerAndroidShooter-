@@ -4,6 +4,8 @@
 #include "InGameMenu.h"
 #include "Components/Button.h"
 #include "MultiplayerSessionsSubsystem.h"
+#include "MultiplayerTPP/Character/MPPlayer.h"
+#include "MultiplayerTPP/PlayerState/MPPlayerState.h"
 #include "GameFrameWork/GameModeBase.h"
 
 
@@ -45,6 +47,7 @@ void UInGameMenu::MenuSetup()
 	}
 }
 
+
 void UInGameMenu::OnDestroySession(bool bWasSuccessful)
 {
 	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT("Destroy Successful"));
@@ -79,23 +82,28 @@ void UInGameMenu::OnDestroySession(bool bWasSuccessful)
 
 void UInGameMenu::ReturnToMainMenu()
 {
+	
 	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT("Return To Main Menu"));
-	UGameInstance* GameInstance = GetGameInstance();
 
 	if (MenuButton != nullptr)
 	{
 		MenuButton->SetIsEnabled(false);
 	}
 
-	if (GameInstance != nullptr)
-	{
-		MutiplayerSubsystem = MutiplayerSubsystem == nullptr ? GameInstance->GetSubsystem<UMultiplayerSessionsSubsystem>() : MutiplayerSubsystem;
-	}
+	UWorld* World = GetWorld();
 
-	if (MutiplayerSubsystem != nullptr)
+	if (World != nullptr)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT("Return To Main Menu Calling DestroySessions"));
-		MutiplayerSubsystem->DestroySessions();
+		PlayerController = PlayerController == nullptr ? Cast<APlayerController>(World->GetFirstPlayerController()) : PlayerController;
+		AMPPlayer* Player = Cast<AMPPlayer>(PlayerController->GetPawn());
+
+		if (Player != nullptr)
+		{
+			Player->OnLeavingMatch.AddUObject(this, &UInGameMenu::OnMatchLeft);
+			AMPPlayerState* PlayerState = Cast<AMPPlayerState>(Player->GetPlayerState());
+			GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT("Return To Main Menu Calling ServerLeaveGame"));
+			Player->ServerLeaveGame();
+		}
 	}
 }
 
@@ -134,5 +142,21 @@ void UInGameMenu::MenuTeardown()
 	if (MutiplayerSubsystem != nullptr)
 	{
 		MutiplayerSubsystem->MultiplayerOnDestroySessionDelegate.RemoveDynamic(this, &UInGameMenu::OnDestroySession);
+	}
+}
+void UInGameMenu::OnMatchLeft()
+{
+	UGameInstance* GameInstance = GetGameInstance();
+	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT("Reached On Match Left"));
+
+
+	if (GameInstance != nullptr)
+	{
+		MutiplayerSubsystem = MutiplayerSubsystem == nullptr ? GameInstance->GetSubsystem<UMultiplayerSessionsSubsystem>() : MutiplayerSubsystem;
+	}
+
+	if (MutiplayerSubsystem != nullptr)
+	{
+		MutiplayerSubsystem->DestroySessions();
 	}
 }

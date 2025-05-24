@@ -16,9 +16,50 @@ namespace MatchState
 	const FName Cooldown = FName("Cooldown");
 }
 
+
 ADeathMatch_GM::ADeathMatch_GM()
 {
 	bDelayedStart = true;
+}
+
+void ADeathMatch_GM::RegisterAllPlayers()
+{
+	Curr_GameState = Curr_GameState == nullptr ? GetGameState<ADeathMatch_GS>() : Curr_GameState;
+
+	auto AvailablePlayers = GetWorld()->GetGameState()->PlayerArray;
+
+	for (auto PlayerState : AvailablePlayers)
+	{
+		AMPPlayerState* NewPlayerState = Cast<AMPPlayerState>(PlayerState);
+		if (NewPlayerState != nullptr)
+		{
+			Curr_GameState->AddNewPlayer(NewPlayerState);
+		}
+	}
+}
+
+void ADeathMatch_GM::KickPlayer(AMPPlayerState* PlayerState)
+{
+	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT("On KickPlayer"));
+
+	if (PlayerState != nullptr)
+	{
+		Curr_GameState = Curr_GameState == nullptr ? GetGameState<ADeathMatch_GS>() : Curr_GameState;
+
+		if(Curr_GameState != nullptr && Curr_GameState->TopScoringPlayers.Contains(PlayerState) == true)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT("Top Player Updated"));
+			Curr_GameState->TopScoringPlayers.Remove(PlayerState);
+		}
+
+		AMPPlayer* LeavingPlayer = Cast<AMPPlayer>(PlayerState->GetPawn());
+
+		if (LeavingPlayer != nullptr)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT("Called ElimPlayer"));
+			LeavingPlayer->Elim(true);
+		}
+	}
 }
 
 void ADeathMatch_GM::BeginPlay()
@@ -35,6 +76,7 @@ void ADeathMatch_GM::Tick(float DeltaTime)
 		CountDownTime = WarmupTime - (GetWorld()->GetTimeSeconds() - LevelStartTime);
 		if (CountDownTime <= 0.0f)
 		{
+			RegisterAllPlayers();
 			StartMatch();
 		}
 	}
@@ -71,13 +113,14 @@ void ADeathMatch_GM::PlayerEliminated(AMPPlayer* EliminatedCharacter, AMPPlayerC
 
 	AMPPlayerState* AttackerPlayerState = AttackingPlayerController ? Cast<AMPPlayerState>(AttackingPlayerController->PlayerState) : nullptr;
 	AMPPlayerState* EliminatedPlayerState = EliminatedPlayerController ? Cast<AMPPlayerState>(EliminatedPlayerController->PlayerState) : nullptr;
-	ADeathMatch_GS* Curr_GameState = GetGameState<ADeathMatch_GS>();
+	Curr_GameState = Curr_GameState == nullptr ? GetGameState<ADeathMatch_GS>() : Curr_GameState;
 
 
 	if (AttackerPlayerState && AttackerPlayerState != EliminatedPlayerState && Curr_GameState != nullptr)
 	{
 		AttackerPlayerState->AddToScore(1.0f);
 		Curr_GameState->UpdateTopScore(AttackerPlayerState);
+		Curr_GameState->UpdatePlayersInfo(AttackerPlayerState);
 	}
 		
 	if (EliminatedPlayerState)

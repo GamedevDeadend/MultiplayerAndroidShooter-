@@ -589,19 +589,21 @@ void AMPPlayer::UpdateHealthHUD()
 	}
 }
 
-void AMPPlayer::Elim()
+void AMPPlayer::Elim(bool bIsLeaving)
 {
 	if (CombatComponent && CombatComponent->EquippedWeapon)
 	{
 		CombatComponent->EquippedWeapon->Dropped();
 	}
 
-	MulticastElim();
-	GetWorldTimerManager().SetTimer(ElimDelayTimer, this, &ThisClass::EliminationFinished, ElimDelay);
+	MulticastElim(bIsLeaving);
 }
 
-void AMPPlayer::MulticastElim_Implementation()
+void AMPPlayer::MulticastElim_Implementation(bool bIsLeaving)
 {
+	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT("On MulticastElim"));
+
+	this->bIsPlayerLeaving = bIsLeaving;
 	if (MPPlayerController != nullptr)
 	{
 		MPPlayerController->SetHUDAmmoCount(0);
@@ -650,15 +652,25 @@ void AMPPlayer::MulticastElim_Implementation()
 	//Disable Collision
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	GetWorldTimerManager().SetTimer(ElimDelayTimer, this, &ThisClass::EliminationFinished, ElimDelay);
 }
 
 void AMPPlayer::EliminationFinished()
 {
+	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT(" ElimPlayer Finished"));
+
 	ADeathMatch_GM* DeathMatchGM = GetWorld()->GetAuthGameMode<ADeathMatch_GM>();
 
-	if (DeathMatchGM)
+	if (DeathMatchGM && bIsPlayerLeaving == false)
 	{
 		DeathMatchGM->RequestRespawn(this, Controller);
+	}
+
+	if (IsLocallyControlled() == true && bIsPlayerLeaving == true)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT("Fired OnLeaving Match Delegate"));
+		OnLeavingMatch.Broadcast();
 	}
 }
 
@@ -712,6 +724,25 @@ void AMPPlayer::TakeDamage(AActor* DamagedActor, float Damage, const UDamageType
 		}
 	}
 
+}
+
+void AMPPlayer::ServerLeaveGame_Implementation()
+{
+	UWorld* World = GetWorld();
+
+	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT("Called ServerLeaveGame"));
+
+	if (World != nullptr)
+	{
+		ADeathMatch_GM* GameMode = World->GetAuthGameMode<ADeathMatch_GM>();
+		MPPlayerState = MPPlayerState == nullptr ? GetPlayerState<AMPPlayerState>() : MPPlayerState;
+
+		if (GameMode != nullptr)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT("Called KickPlayer"));
+			GameMode->KickPlayer(MPPlayerState);
+		}
+	}
 }
 
 void AMPPlayer::Destroyed()

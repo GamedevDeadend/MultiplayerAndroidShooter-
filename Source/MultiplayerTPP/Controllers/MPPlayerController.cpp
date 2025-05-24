@@ -592,7 +592,6 @@ void AMPPlayerController::HandleMatchHasStarted()
 			HideAnnouncementOverlay();
 			PlayerHUD->AddPlayerOverlay();
 		}
-
 }
 
 void AMPPlayerController::HandleMatchCooldown()
@@ -687,6 +686,11 @@ void AMPPlayerController::SetHUDPing()
 	{
 		PlayerHUD->PlayerOverlay->Ping_Count->SetText(  FText::FromString( FString::Printf(TEXT("%d ms"), (int32)LatestPing ) )  );
 	}
+}
+
+void AMPPlayerController::ShowPlayerState()
+{
+
 }
 
 void AMPPlayerController::OnPossess(APawn* InPawn)

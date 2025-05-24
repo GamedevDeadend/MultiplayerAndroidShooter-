@@ -18,6 +18,8 @@ private:
 
 	APlayerController* PlayerController;
 
+	void OnMatchLeft();
+
 	UPROPERTY(meta = (BindWidget))
 	class UButton* MenuButton;
 

@@ -23,6 +23,8 @@ class MULTIPLAYERTPP_API ADeathMatch_GM : public AGameMode
 	GENERATED_BODY()
 
 public:
+
+
 	float LevelStartTime = 0.0f;
 
 	UPROPERTY(EditDefaultsOnly)
@@ -43,9 +45,14 @@ private :
 	UPROPERTY(EditAnywhere)
 		FString LobbyLvl = "Lobby";
 
+	UPROPERTY()
+		class ADeathMatch_GS* Curr_GameState = nullptr;
+
+	void RegisterAllPlayers();
 
 public:
 	ADeathMatch_GM();
+	void KickPlayer(class AMPPlayerState* PlayerState);
 	virtual void BeginPlay()override;
 	virtual void Tick(float DeltaTime)override;
 	virtual void PlayerEliminated(class AMPPlayer* EliminatedCharacter, class AMPPlayerController* EliminatedPlayerController, class AMPPlayerController* AttackingPlayerController);

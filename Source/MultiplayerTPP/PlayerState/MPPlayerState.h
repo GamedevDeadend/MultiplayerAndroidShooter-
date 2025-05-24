@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerState.h"
+#include "MultiplayerTPP/Types/PlayerTeam.h"
 #include "MPPlayerState.generated.h"
 
 /**
@@ -37,19 +38,26 @@ private:
 
 
 	UFUNCTION()
-	void HideLossingMessage();
+		void HideLossingMessage();
 
 	UPROPERTY()
-	class AMPPlayer* Character = nullptr;
+		class AMPPlayer* Character = nullptr;
 
 	UPROPERTY()
-	class AMPPlayerController* Controller = nullptr;
+		class AMPPlayerController* Controller = nullptr;
 
 	UPROPERTY(ReplicatedUsing = OnRep_Defeats)
-	int32 DefeatsAmt;
+		int32 DefeatsAmt;
 
 	UPROPERTY(EditAnywhere, Category = "Defeated Message")
-	FString DisplayMessage = "You were Killed";
+		FString DisplayMessage = "You were Killed";
+
+	UPROPERTY()
+		EPlayerTeam Team = EPlayerTeam::EPT_MAX;
+
+public:
+
+	FORCEINLINE EPlayerTeam GetPlayerTeam()const { return Team; };
 
 };
  

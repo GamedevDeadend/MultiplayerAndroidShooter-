@@ -10,6 +10,21 @@ void ADeathMatch_GS::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(ADeathMatch_GS, TopScoringPlayers);
+	DOREPLIFETIME(ADeathMatch_GS, PlayersInfo);
+}
+
+void ADeathMatch_GS::AddNewPlayer(AMPPlayerState* PlayerState)
+{
+	if (PlayerState != nullptr)
+	{
+		FPlayerScoreInfo CurrPlayer{};
+
+		CurrPlayer.CurrScore = PlayerState->GetScore();
+		CurrPlayer.PlayerName = PlayerState->GetName();
+		CurrPlayer.PlayerTeam = PlayerState->GetPlayerTeam();
+
+		PlayersInfo.Add(CurrPlayer);
+	}
 }
 
 void ADeathMatch_GS::UpdateTopScore(AMPPlayerState* ScoringPlayerState)
@@ -31,6 +46,40 @@ void ADeathMatch_GS::UpdateTopScore(AMPPlayerState* ScoringPlayerState)
 		TopScoringPlayers.AddUnique(ScoringPlayerState);
 		TopScore = CurrScore;
 	}
+}
 
+void ADeathMatch_GS::UpdatePlayersInfo(AMPPlayerState* ScoringPlayerState)
+{
+	auto CurrScore = ScoringPlayerState->GetScore();
 
+	for (auto Player : PlayersInfo)
+	{
+		if (Player.PlayerName == ScoringPlayerState->GetPlayerName())
+		{
+			Player.CurrScore = ScoringPlayerState->GetScore();
+		}
+	}
+
+	SortPlayerInfo();
+}
+
+void ADeathMatch_GS::SortPlayerInfo()
+{
+	if (PlayersInfo.IsEmpty() == false)
+	{
+		PlayersInfo.Sort
+		(
+			[](const FPlayerScoreInfo& A, const FPlayerScoreInfo& B)
+			{
+				if (A.PlayerTeam < B.PlayerTeam)
+				{
+					return A.Priority > B.Priority;
+				}
+				else if (A.PlayerTeam == B.PlayerTeam)
+				{
+					return A.CurrScore > B.CurrScore;
+				}
+			}
+		);
+	}
 }

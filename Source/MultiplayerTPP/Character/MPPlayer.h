@@ -16,6 +16,8 @@ class UCameraComponent;
 class UWidgetComponent;
 class USpotLightComponent;
 
+DECLARE_MULTICAST_DELEGATE(FOnLeavingMatch);
+
 UCLASS()
 class MULTIPLAYERTPP_API AMPPlayer : public ACharacter, public IInteractWithCrosshairs
 {
@@ -23,6 +25,8 @@ class MULTIPLAYERTPP_API AMPPlayer : public ACharacter, public IInteractWithCros
 
 public:
 
+	FOnLeavingMatch OnLeavingMatch;
+	bool bIsPlayerLeaving = false;
 	TMap<FName, class UBoxComponent*> HitCollisionBoxesMap;
 
 	AMPPlayer();
@@ -31,10 +35,13 @@ public:
 	void PlayReloadMontage();
 	void PlayHitReactMontage();
 	void PlayElimMontage();
-	void Elim();
+	void Elim(bool bIsLeaving = false);
 
 	UFUNCTION(NetMulticast, Reliable)
-		void MulticastElim();
+		void MulticastElim(bool bIsLeaving);
+
+	UFUNCTION(Server, Reliable)
+	void ServerLeaveGame();
 
 	virtual void Destroyed() override;
 
