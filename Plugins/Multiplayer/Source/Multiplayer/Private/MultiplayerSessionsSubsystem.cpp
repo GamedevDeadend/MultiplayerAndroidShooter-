@@ -78,7 +78,7 @@ void UMultiplayerSessionsSubsystem::FindSessions(int32 MaxSearchResults)
 	LastSessionSearch = MakeShareable(new FOnlineSessionSearch());
 	if (GEngine)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString::Printf(TEXT("JoinButtonClicked1 %d sessions found"), LastSessionSearch->SearchResults.Num()));
+		//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString::Printf(TEXT("JoinButtonClicked1 %d sessions found"), LastSessionSearch->SearchResults.Num()));
 	}
 	LastSessionSearch->MaxSearchResults = MaxSearchResults;
 
@@ -98,7 +98,7 @@ void UMultiplayerSessionsSubsystem::JoinSessions(const FOnlineSessionSearchResul
 {
 	if (GEngine)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString("JoinButtonClicked5"));
+		//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString("JoinButtonClicked5"));
 	}
 
 	if (!SessionInterface.IsValid())
@@ -172,7 +172,7 @@ void UMultiplayerSessionsSubsystem::OnFindSessionsComplete(bool bWasSuccessful)
 {
 	if (GEngine)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString::Printf(TEXT( "Search Results %d"), LastSessionSearch->SearchResults.Num() ));
+		//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString::Printf(TEXT( "Search Results %d"), LastSessionSearch->SearchResults.Num() ));
 	}
 
 	if (SessionInterface.IsValid())
@@ -193,7 +193,7 @@ void UMultiplayerSessionsSubsystem::OnJoinSessionComplete(FName SessionName, EOn
 {
 	if (GEngine)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString("JoinButtonClicked6"));
+		//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString("JoinButtonClicked6"));
 	}
 
 	if (SessionInterface)

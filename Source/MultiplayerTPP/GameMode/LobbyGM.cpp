@@ -15,7 +15,7 @@ void ALobbyGM::PostLogin(APlayerController* NewPlayer)
 	if (PlayerCount >= MaxPlayerCount)
 	{
 		
-		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString("Our dunction worked"));
+		//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString("Our dunction worked"));
 		//RestartGame();
 
 		UWorld* World = GetWorld();
@@ -23,7 +23,7 @@ void ALobbyGM::PostLogin(APlayerController* NewPlayer)
 		{
 			bUseSeamlessTravel = true;
 			World->ServerTravel(FString::Printf(TEXT("/Game/Maps/%s?listen"), *DeatMatchLvl));
-			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Cyan, FString("Our dunction worked 2"));
+			//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Cyan, FString("Our dunction worked 2"));
 		}
 
 	}
@@ -36,7 +36,7 @@ void ALobbyGM::StartLvlTravel()
 	{
 		bUseSeamlessTravel = true;
 		World->ServerTravel(FString::Printf(TEXT("/Game/Maps/%s?listen"), *DeatMatchLvl));
-		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Cyan, FString("Our dunction worked 2"));
+		//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Cyan, FString("Our dunction worked 2"));
 	}
 
 }

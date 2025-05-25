@@ -24,6 +24,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Bullet Deatils")
 	float Damage = 10.0f;
 
+	UPROPERTY(EditAnywhere, Category = "Bullet Deatils")
+	float HeadDamage = 20.0f;
+
 	UPROPERTY(EditAnywhere)
 	float InitialSpeed = 20000.0f;
 

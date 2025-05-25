@@ -39,13 +39,13 @@ void AProjectileWeapon:: Fire(const FVector& HitTarget)
 					SpawnedProjectile = World->SpawnActor<AProjectile>(ProjectileClass, MFSocketTransform.GetLocation(), ProjectileOrientation, ProjectileSpawnParams);
 					SpawnedProjectile->bUseSSR = false;
 					SpawnedProjectile->Damage = Damage;
+					SpawnedProjectile->HeadDamage = HeadDamage;
 				}
 				else // server, not locally controlled - spawn non-replicated projectile, SSR
 				{
 					//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, TEXT("On Server and  NOT Locally Controlled"));
 					SpawnedProjectile = World->SpawnActor<AProjectile>(SSR_ProjectileClass, MFSocketTransform.GetLocation(), ProjectileOrientation, ProjectileSpawnParams);
 					SpawnedProjectile->bUseSSR = true;
-					SpawnedProjectile->Damage = Damage;
 				}
 
 			}
@@ -58,13 +58,11 @@ void AProjectileWeapon:: Fire(const FVector& HitTarget)
 					SpawnedProjectile->bUseSSR = true;
 					SpawnedProjectile->TraceStart = MFSocketTransform.GetLocation();
 					SpawnedProjectile->InitialVelocity = SpawnedProjectile->GetActorForwardVector() * SpawnedProjectile->InitialSpeed;
-					SpawnedProjectile->Damage = Damage;
 				}
 				else // client, not locally controlled - spawn non-replicated projectile, no SSR
 				{
 					//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, TEXT("On Client and  NOT Locally Controlled"));
 					SpawnedProjectile = World->SpawnActor<AProjectile>(SSR_ProjectileClass, MFSocketTransform.GetLocation(), ProjectileOrientation, ProjectileSpawnParams);
-					SpawnedProjectile->Damage = Damage;
 					SpawnedProjectile->bUseSSR = false;
 				}
 			}
@@ -77,6 +75,7 @@ void AProjectileWeapon:: Fire(const FVector& HitTarget)
 				SpawnedProjectile = World->SpawnActor<AProjectile>(ProjectileClass, MFSocketTransform.GetLocation(), ProjectileOrientation, ProjectileSpawnParams);
 				SpawnedProjectile->bUseSSR = false;
 				SpawnedProjectile->Damage = Damage;
+				SpawnedProjectile->HeadDamage = HeadDamage;
 			}
 		}
 	}

@@ -40,7 +40,7 @@ void ADeathMatch_GM::RegisterAllPlayers()
 
 void ADeathMatch_GM::KickPlayer(AMPPlayerState* PlayerState)
 {
-	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT("On KickPlayer"));
+	//GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT("On KickPlayer"));
 
 	if (PlayerState != nullptr)
 	{
@@ -48,7 +48,7 @@ void ADeathMatch_GM::KickPlayer(AMPPlayerState* PlayerState)
 
 		if(Curr_GameState != nullptr && Curr_GameState->TopScoringPlayers.Contains(PlayerState) == true)
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT("Top Player Updated"));
+			//GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT("Top Player Updated"));
 			Curr_GameState->TopScoringPlayers.Remove(PlayerState);
 		}
 
@@ -56,7 +56,7 @@ void ADeathMatch_GM::KickPlayer(AMPPlayerState* PlayerState)
 
 		if (LeavingPlayer != nullptr)
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT("Called ElimPlayer"));
+			//GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT("Called ElimPlayer"));
 			LeavingPlayer->Elim(true);
 		}
 	}
@@ -154,8 +154,9 @@ void ADeathMatch_GM::CheckForLossLeads(AMPPlayerState* AttackerPlayerState)
 	{
 		for (auto& PlayerState : Curr_GameState->TopScoringPlayers)
 		{
-			if ( PlayerState != AttackerPlayerState && PlayerState->GetScore() < (AttackerPlayerState->GetScore() + 1.0f))
+			if ( PlayerState != AttackerPlayerState && (PlayerState->GetScore()) < (AttackerPlayerState->GetScore() + 1.0f))
 			{
+				GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, TEXT("Calling Loss Laid"));
 				AMPPlayer* Player = Cast<AMPPlayer>(PlayerState->GetPawn());
 				Player->Multicast_LossLead();
 			}

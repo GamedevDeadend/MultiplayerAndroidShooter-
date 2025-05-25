@@ -47,7 +47,10 @@ void AProjectileBullet::OnHit
 			if (OwnerCharacter->HasAuthority() && !bUseSSR)
 			{
 				//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, TEXT("On Server and SSR OFF"));
-				UGameplayStatics::ApplyDamage(OtherActor, Damage, DamageInstigatorController, this, UGameplayStatics::StaticClass());
+				const float DamageCaused = Hit.BoneName.ToString() == FString("head") ? HeadDamage : Damage;
+
+
+				UGameplayStatics::ApplyDamage(OtherActor, DamageCaused, DamageInstigatorController, this, UGameplayStatics::StaticClass());
 				Super::OnHit(HitComponent, OtherActor, OtherComp, NormalImpulse, Hit);
 				return;
 			}

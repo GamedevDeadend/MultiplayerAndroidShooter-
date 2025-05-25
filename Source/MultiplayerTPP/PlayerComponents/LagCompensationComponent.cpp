@@ -82,15 +82,22 @@ void ULagCompensationComponent::ServerProjectileWeaponScoreRequest_Implementatio
 		if (Character->GetCombatComponent() != nullptr)
 		{
 			DamageCauser = Character->GetCombatComponent()->GetEquippedWeapon();
+
+			if (DamageCauser != nullptr)
+			{
+				const float DamageCaused = Confirm.bIsHeadShot == true ? DamageCauser->GetHeadDamage() : DamageCauser->GetDamage();
+
+				UGameplayStatics::ApplyDamage(
+					HitPlayer,
+					DamageCaused,
+					Character->Controller,
+					DamageCauser,
+					UDamageType::StaticClass()
+				);
+
+			}
 		}
 
-		UGameplayStatics::ApplyDamage(
-			HitPlayer,
-			DamageCauser->GetDamage(),
-			Character->Controller,
-			DamageCauser,
-			UDamageType::StaticClass()
-		);
 	}
 }
 

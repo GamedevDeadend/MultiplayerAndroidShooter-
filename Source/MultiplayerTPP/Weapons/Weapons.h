@@ -133,6 +133,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Weapon Properties")
 		int32 Damage = 20.0f;
 
+	UPROPERTY(EditAnywhere, Category = "Weapon Properties")
+		int32 HeadDamage = 40.0f;
+
 	virtual void OnRep_Owner() override;
 	virtual void BeginPlay() override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
@@ -177,5 +180,6 @@ public:
 	FORCEINLINE EWeaponType GetWeaponType()const { return WeaponType; }
 	FORCEINLINE UWeaponDataAsset* GetWeaponDataAsset()const { return WeaponAsset; }
 	FORCEINLINE int32 GetDamage()const { return Damage; }
+	FORCEINLINE int32 GetHeadDamage()const { return HeadDamage; }
 
 };

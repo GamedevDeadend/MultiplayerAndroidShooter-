@@ -234,15 +234,6 @@ void AMPPlayer::BeginPlay()
 		OnTakeAnyDamage.AddDynamic(this, &AMPPlayer::TakeDamage);
 
 	}
-
-	ADeathMatch_GS* GameState = Cast<ADeathMatch_GS>(UGameplayStatics::GetGameState(this));
-	MPPlayerState = MPPlayerState == nullptr ? GetPlayerState<AMPPlayerState>() : MPPlayerState;
-
-	if (GameState != nullptr && GameState->TopScoringPlayers.Contains(MPPlayerState))
-	{
-		Mulitcast_GainLead();
-	}
-
 }
 
 void AMPPlayer::Tick(float DeltaTime)
@@ -662,6 +653,11 @@ void AMPPlayer::MulticastElim_Implementation(bool bIsLeaving)
 		);
 	}
 
+	if (LeadGainParticleComponent != nullptr)
+	{
+		LeadGainParticleComponent->DestroyComponent();
+	}
+
 
 	//Disable Movement
 	GetCharacterMovement()->DisableMovement();//Disable Key Input
@@ -722,6 +718,31 @@ void AMPPlayer::PollInit()
 			MPPlayerState->AddToDefeat(0);
 		}
 	}
+
+	if (LeadGainParticleComponent == nullptr && HasAuthority())
+	{
+		ADeathMatch_GS* GameState = Cast<ADeathMatch_GS>(UGameplayStatics::GetGameState(this));
+		//MPPlayerState = MPPlayerState == nullptr ? GetPlayerState<AMPPlayerState>() : MPPlayerState;
+
+	/*	if (IsLocallyControlled())
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Cyan, FString::Printf(TEXT("%s Curr Score %f"), *MPPlayerState->GetPlayerName(), MPPlayerState->GetScore() ));
+
+		}*/
+
+		//GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT(" On Server Calling Pre Gained"));
+
+		//if (GameState->TopScoringPlayers.Contains(MPPlayerState))
+		//{
+		//	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Cyan, FString::Printf(TEXT("True Curr Score %f"), MPPlayerState->GetScore()));
+		//}
+
+		if (GameState != nullptr && GameState->TopScoringPlayers.Contains(MPPlayerState) == true && HasAuthority() == true)
+		{
+			Mulitcast_GainLead();
+		}
+	}
+
 }
 
 void AMPPlayer::TakeDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, class AController* InstigatorController, AActor* DamageCauser)

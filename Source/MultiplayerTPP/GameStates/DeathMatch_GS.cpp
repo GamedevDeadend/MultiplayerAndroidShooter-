@@ -32,6 +32,8 @@ void ADeathMatch_GS::AddNewPlayer(AMPPlayerState* PlayerState)
 void ADeathMatch_GS::UpdateTopScore(AMPPlayerState* ScoringPlayerState)
 {
 	auto CurrScore = ScoringPlayerState->GetScore();
+	//UE_LOG(LogTemp, Warning, TEXT("Curr Score %f"), CurrScore);
+
 
 	if (TopScoringPlayers.Num() == 0)
 	{

@@ -760,7 +760,7 @@ void AMPPlayerController::OnDestroySession(bool bWasSuccess)
 
 void AMPPlayerController::ShowInGameMenu()
 {
-	GEngine->AddOnScreenDebugMessage(-1, 0.1f, FColor::Green, TEXT("On Show In  Game Menu"));
+	//GEngine->AddOnScreenDebugMessage(-1, 0.1f, FColor::Green, TEXT("On Show In  Game Menu"));
 
 	if (InGameMenuClass == nullptr) return;
 
