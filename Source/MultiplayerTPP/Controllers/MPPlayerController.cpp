@@ -2,22 +2,28 @@
 
 
 #include "MPPlayerController.h"
-#include "MultiplayerTPP/PlayerState/MPPlayerState.h"
-#include "MultiplayerTPP/WidgetsHud/Hud/MPPlayerHUD.h"
-#include "MultiplayerTPP/WidgetsHud/PlayerOverlay.h"
+
+#include "Kismet/GameplayStatics.h"
+#include "Net/UnrealNetwork.h"
+
 #include "Components/ProgressBar.h"
 #include "Components/TextBlock.h"
 #include "Components/Image.h"
-#include "Net/UnrealNetwork.h"
+#include "Components/Border.h"
+
+#include "MultiplayerTPP/PlayerState/MPPlayerState.h"
+#include "MultiplayerTPP/WidgetsHud/Hud/MPPlayerHUD.h"
+#include "MultiplayerTPP/WidgetsHud/PlayerOverlay.h"
 #include "MultiplayerTPP/DataAssets/WeaponDataAsset.h"
 #include "MultiplayerTPP/Character/MPPlayer.h"
 #include "MultiplayerTPP/GameMode/DeathMatch_GM.h"
-#include "Kismet/GameplayStatics.h"
 #include "MultiplayerTPP/WidgetsHud/AnnouncementOverlay.h"
 #include "MultiplayerTPP/PlayerComponents/CombatComponent.h"
 #include "MultiplayerTPP/GameStates/DeathMatch_GS.h"
 #include "MultiplayerTPP/GameInstance/Multiplayer_GI.h"
 #include "MultiplayerTPP/WidgetsHud/InGameMenu.h"
+#include "MultiplayerTPP/GameStates/TeamDeathMatch_GS.h"
+
 #include "MultiplayerSessionsSubsystem.h"
 
 /*
@@ -34,7 +40,7 @@ void AMPPlayerController::BeginPlay()
 	/*
 * This code is for testing Only
 */
-	//UMultiplayer_GI* Curr_GI = GetGameInstance<UMultiplayer_GI>();
+	//Curr_GI = Curr_GI == nullptr ? GetGameInstance<UMultiplayer_GI>() : Curr_GI;
 
 	//if (Curr_GI != nullptr)
 	//{
@@ -81,7 +87,7 @@ void AMPPlayerController::SetupInputComponent()
 	{
 		InputComponent->BindAction("ShowMenu", IE_Pressed, this, &AMPPlayerController::ShowInGameMenu);
 		InputComponent->BindAction("ShowScoreBoard", IE_Pressed, this, &AMPPlayerController::ShowPlayersStats);
-		//InputComponent->BindAction("ShowScoreBoard", IE_Released, this, &AMPPlayerController::HidePlayerStats);
+		InputComponent->BindAction("ShowScoreBoard", IE_Released, this, &AMPPlayerController::HidePlayersStats);
 	}
 }
 
@@ -649,7 +655,7 @@ void AMPPlayerController::HandleMatchHasStarted()
 			HideAnnouncementOverlay();
 			PlayerHUD->AddPlayerOverlay();
 
-			UMultiplayer_GI* Curr_GI = GetGameInstance<UMultiplayer_GI>();
+			Curr_GI = GetGameInstance<UMultiplayer_GI>();
 			if (PlayerHUD != nullptr && Curr_GI != nullptr && Curr_GI->CurrentGameModeType == EGameModeType::EGM_TDM)
 			{
 				PlayerHUD->PlayerOverlay->ShowTeamStats();
@@ -676,7 +682,7 @@ void AMPPlayerController::HandleMatchCooldown()
 		if (PlayerHUD->AnnouncementOverlay != nullptr)
 		{
 			PlayerHUD->AnnouncementOverlay->SetVisibility(ESlateVisibility::Visible);
-			FString AnnouncementText("New Match Start In : ");
+			FString AnnouncementText("Returning To Menu In : ");
 			PlayerHUD->AnnouncementOverlay->MatchAnnouncement->SetText(FText::FromString(AnnouncementText));
 			ShowWinners();
 		}
@@ -706,35 +712,74 @@ void AMPPlayerController::HandlePostMatch()
 void AMPPlayerController::ShowWinners()
 {
 	FString InfoString = "";
-	ADeathMatch_GS* GameState = Cast<ADeathMatch_GS>(UGameplayStatics::GetGameState(this));
-	if (GameState != nullptr)
+	Curr_GI = Curr_GI == nullptr ? GetGameInstance<UMultiplayer_GI>() : Curr_GI;
+
+	//FString PlayerScores = "";
+
+	if (Curr_GI != nullptr)
 	{
-		auto TopScoringPlayers = GameState->TopScoringPlayers;
-		auto Curr_PlayerState = GetPlayerState<AMPPlayerState>();
-
-		if (TopScoringPlayers.Num() == 0)
+		switch (Curr_GI->CurrentGameModeType)
 		{
-			InfoString = "No Winner Is There";
-		}
-		else if (TopScoringPlayers.Num() == 1 && TopScoringPlayers[0] == Curr_PlayerState)
-		{
-			InfoString = "You are Winner ;)";
-		}
-		else if (TopScoringPlayers.Num() == 1)
-		{
-			InfoString = FString::Printf(TEXT("Winner is \n%s"), *TopScoringPlayers[0]->GetPlayerName());
-		}
-		else if (TopScoringPlayers.Num() > 1)
-		{
-			InfoString = "We have a Tie :\n";
-
-			for (auto TiedPlayers : TopScoringPlayers)
+			case EGameModeType::EGM_SDM :
 			{
-				InfoString.Append(FString::Printf(TEXT("%s\n"), *TiedPlayers->GetPlayerName()));
+				ADeathMatch_GS* GameState = Cast<ADeathMatch_GS>(UGameplayStatics::GetGameState(this));
+				if (GameState != nullptr)
+				{
+					auto TopScoringPlayers = GameState->TopScoringPlayers;
+					auto Curr_PlayerState = GetPlayerState<AMPPlayerState>();
+
+					if (TopScoringPlayers.Num() == 0)
+					{
+						InfoString = "No Winner Is There";
+					}
+					else if (TopScoringPlayers.Num() == 1 && TopScoringPlayers[0] == Curr_PlayerState)
+					{
+						InfoString = "You are Winner ;)";
+					}
+					else if (TopScoringPlayers.Num() == 1)
+					{
+						InfoString = FString::Printf(TEXT("Winner is \n%s"), *TopScoringPlayers[0]->GetPlayerName());
+					}
+					else if (TopScoringPlayers.Num() > 1)
+					{
+						InfoString = "We have a Tie :\n";
+
+						for (auto TiedPlayers : TopScoringPlayers)
+						{
+							InfoString.Append(FString::Printf(TEXT("%s\n"), *TiedPlayers->GetPlayerName()));
+						}
+					}
+				}
 			}
+			break;
+
+		case EGameModeType::EGM_TDM:
+			{
+				ATeamDeathMatch_GS* GameState = Cast<ATeamDeathMatch_GS>(UGameplayStatics::GetGameState(this));
+				if (GameState != nullptr)
+				{
+					auto RedTeamScore = GameState->GetRedTeamScore();
+					auto BlueTeamScore = GameState->GetBlueTeamScore();
+
+
+					if (BlueTeamScore == RedTeamScore)
+					{
+						InfoString = "No Winner Is There";
+					}
+					else if (RedTeamScore > BlueTeamScore)
+					{
+						InfoString = "Red Team Is Winner ;)";
+					}
+					else
+					{
+						InfoString = "Blue Team Is Winner ;)";
+					}
+				}
+
+				//SetScoreBoardString(GameState, PlayerScores);
+			}
+			break;
 		}
-
-
 	}
 
 	PlayerHUD->AnnouncementOverlay->MatchInfo->SetText(FText::FromString(InfoString));
@@ -753,23 +798,97 @@ void AMPPlayerController::SetHUDPing()
 
 void AMPPlayerController::ShowPlayersStats()
 {
-	//UWorld* World = GetWorld();
+	//if (IsLocalController() == false) return;
 
-	//if (World != nullptr)
-	//{
-	//	ADeathMatch_GS* DM_GameState = Cast<ADeathMatch_GS>(World->GetGameState());
+	UWorld* World = GetWorld();
 
-	//	if (DM_GameState != nullptr)
-	//	{
-	//		for (auto& Stat : DM_GameState->PlayersInfo)
-	//		{
-	//			if (GEngine)
-	//			{
-	//				GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, FString::Printf(TEXT( "Player Name : %s Player Score : %f PlayerTeam : %d"), *Stat.PlayerName, Stat.CurrScore, Stat.PlayerTeam));
-	//			}
-	//		}
-	//	}
-	//}
+	if (World != nullptr)
+	{
+		ADeathMatch_GS* DM_GameState = Cast<ADeathMatch_GS>(World->GetGameState());
+		Curr_GI = Curr_GI == nullptr ? GetGameInstance<UMultiplayer_GI>() : Curr_GI;
+
+		FString ScoreBoardString = "";
+		SetScoreBoardString(DM_GameState, ScoreBoardString);
+
+		PlayerHUD = PlayerHUD == nullptr ? Cast<AMPPlayerHUD>(GetHUD()) : PlayerHUD;
+
+		bool bIsValidPlayerOverlay = 
+			(
+				PlayerHUD != nullptr &&
+				PlayerHUD->PlayerOverlay != nullptr &&
+				PlayerHUD->PlayerOverlay->ScoreBoardText != nullptr &&
+				PlayerHUD->PlayerOverlay->ScoreBoardBorder != nullptr
+			);
+
+		if (bIsValidPlayerOverlay)
+		{
+			PlayerHUD->PlayerOverlay->ScoreBoardBorder->SetVisibility(ESlateVisibility::Visible);
+			PlayerHUD->PlayerOverlay->ScoreBoardText->SetVisibility(ESlateVisibility::Visible);
+			PlayerHUD->PlayerOverlay->ScoreBoardText->SetText(FText::FromString(ScoreBoardString));
+		}
+	}
+}
+
+void AMPPlayerController::SetScoreBoardString(ADeathMatch_GS* DM_GameState, FString& ScoreBoardString)
+{
+	if (DM_GameState != nullptr && Curr_GI != nullptr)
+	{
+		switch (Curr_GI->CurrentGameModeType)
+		{
+			case EGameModeType::EGM_SDM:
+			{
+				ScoreBoardString = "PLAYERS =>\n";
+				for (auto& Stat : DM_GameState->PlayersInfo)
+				{
+					ScoreBoardString.Append(FString::Printf(TEXT("%s\t%02d\n"), *Stat.PlayerName, (int32)Stat.CurrScore));
+				}
+			}
+			break;
+
+			case EGameModeType::EGM_TDM:
+			{
+				ScoreBoardString = "SCOREBOARD ;)\n";
+				ScoreBoardString.Append(FString("Team Red\n"));
+				for (auto& Stat : DM_GameState->PlayersInfo)
+				{
+					if (Stat.PlayerTeam == EPlayerTeam::EPT_RED)
+					{
+						ScoreBoardString.Append(FString::Printf(TEXT("%s\t%02d\n"), *Stat.PlayerName, (int32)Stat.CurrScore));
+					}
+				}
+
+				ScoreBoardString.Append(FString("\n"));
+				ScoreBoardString.Append(FString("Team Blue\n"));
+				for (auto& Stat : DM_GameState->PlayersInfo)
+				{
+					if (Stat.PlayerTeam == EPlayerTeam::EPT_BLUE)
+					{
+						ScoreBoardString.Append(FString::Printf(TEXT("%s\t%02d\n"), *Stat.PlayerName, (int32)Stat.CurrScore));
+					}
+				}
+			}
+
+			break;
+		}
+	}
+}
+
+void AMPPlayerController::HidePlayersStats()
+{
+	PlayerHUD = PlayerHUD == nullptr ? Cast<AMPPlayerHUD>(GetHUD()) : PlayerHUD;
+	bool bIsValidPlayerOverlay =
+		(
+			PlayerHUD != nullptr &&
+			PlayerHUD->PlayerOverlay != nullptr &&
+			PlayerHUD->PlayerOverlay->ScoreBoardText != nullptr &&
+			PlayerHUD->PlayerOverlay->ScoreBoardBorder != nullptr
+			);
+
+	if (bIsValidPlayerOverlay)
+	{
+		PlayerHUD->PlayerOverlay->ScoreBoardBorder->SetVisibility(ESlateVisibility::Hidden);
+		PlayerHUD->PlayerOverlay->ScoreBoardText->SetVisibility(ESlateVisibility::Hidden);
+	}
 }
 
 void AMPPlayerController::OnPossess(APawn* InPawn)

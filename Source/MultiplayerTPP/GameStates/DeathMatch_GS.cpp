@@ -24,8 +24,8 @@ void ADeathMatch_GS::AddNewPlayer(AMPPlayerState* PlayerState)
 		CurrPlayer.PlayerTeam = PlayerState->GetPlayerTeam();
 
 		//UE_LOG(LogTemp, Warning, TEXT("New Player %s"), *PlayerState->GetPlayerName());
+		PlayersInfo.AddUnique(CurrPlayer);
 
-		PlayersInfo.Add(CurrPlayer);
 	}
 }
 
@@ -37,7 +37,7 @@ void ADeathMatch_GS::UpdateTopScore(AMPPlayerState* ScoringPlayerState)
 
 	if (TopScoringPlayers.Num() == 0)
 	{
-		TopScoringPlayers.Add(ScoringPlayerState);
+		TopScoringPlayers.AddUnique(ScoringPlayerState);
 		return;
 	}
 	else if (CurrScore == TopScore)
@@ -59,7 +59,7 @@ void ADeathMatch_GS::UpdatePlayersInfo(AMPPlayerState* ScoringPlayerState)
 
 	for (auto& Player : PlayersInfo)
 	{
-		//UE_LOG(LogTemp, Warning, TEXT("Name Check Passed Score updated for %s:  PlayerState %s"), *Player.PlayerName,*ScoringPlayerState->GetPlayerName());
+		UE_LOG(LogTemp, Warning, TEXT("Name Check Passed Score updated for %s:  PlayerState %s"), *Player.PlayerName,*ScoringPlayerState->GetPlayerName());
 		if (Player.PlayerName == ScoringPlayerState->GetPlayerName())
 		{
 			Player.CurrScore = CurrScore;

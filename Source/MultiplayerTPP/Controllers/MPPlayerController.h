@@ -82,25 +82,28 @@ private:
 	bool bIsInGameMenu = false;
 
 	UPROPERTY()
-	class UMultiplayerSessionsSubsystem* Subsystem = nullptr;
+		class UMultiplayer_GI* Curr_GI = nullptr;
+
+	UPROPERTY()
+		class UMultiplayerSessionsSubsystem* Subsystem = nullptr;
 
 	UPROPERTY(EditAnywhere)
-	TSubclassOf<class UInGameMenu> InGameMenuClass;
+		TSubclassOf<class UInGameMenu> InGameMenuClass;
 
 	UPROPERTY()
-	class UInGameMenu* InGameMenu = nullptr;
+		class UInGameMenu* InGameMenu = nullptr;
 
 	UPROPERTY()
-	class AMPPlayerHUD* PlayerHUD = nullptr;
+		class AMPPlayerHUD* PlayerHUD = nullptr;
 
 	/// <summary>
 	/// Only exists on server
 	/// </summary>
 	UPROPERTY()
-	class ADeathMatch_GM* DeathMatch_GM = nullptr;
+		class ADeathMatch_GM* DeathMatch_GM = nullptr;
 
 	UPROPERTY()
-	class UPlayerOverlay* PlayerOverlay = nullptr;
+		class UPlayerOverlay* PlayerOverlay = nullptr;
 
 	/*
 	* Cached Values
@@ -147,6 +150,8 @@ private:
 	void ShowWinners();
 	void SetHUDPing();
 	void ShowPlayersStats();
+	void SetScoreBoardString(class ADeathMatch_GS* DM_GameState, FString& ScoreBoardString);
+	void HidePlayersStats();
 
 	UFUNCTION()
 	void OnDestroySession(bool bWasSuccess);

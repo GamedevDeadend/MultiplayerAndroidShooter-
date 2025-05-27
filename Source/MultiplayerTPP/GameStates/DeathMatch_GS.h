@@ -32,6 +32,11 @@ public:
 	{
 		return Priority < Other.Priority; // For max-heap
 	}
+
+	bool operator==(const FPlayerScoreInfo& Other)const
+	{
+		return (PlayerName == Other.PlayerName && CurrScore == Other.CurrScore && PlayerTeam == Other.PlayerTeam);
+	}
 };
 
 

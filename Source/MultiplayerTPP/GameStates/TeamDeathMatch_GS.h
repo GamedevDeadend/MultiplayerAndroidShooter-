@@ -47,6 +47,8 @@ public :
 
 	FORCEINLINE UMaterialInstance* GetRedTeamMaterialDissolve()const { return RedTeamMaterialDissolve; };
 	FORCEINLINE UMaterial* GetRedTeamMaterial()const { return RedTeamMaterial; };
+	FORCEINLINE float GetRedTeamScore()const { return RedTeamScore; };
+	FORCEINLINE float GetBlueTeamScore()const { return BlueTeamScore; };
 	void SetRedTeamScore();
 	void SetBlueTeamScore();
 

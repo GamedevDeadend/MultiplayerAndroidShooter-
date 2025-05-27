@@ -41,8 +41,6 @@ void ATeamDeathMatch_GM::PostLogin(APlayerController* NewPlayer)
 
 void ATeamDeathMatch_GM::HandleMatchHasStarted()
 {
-	Super::HandleMatchHasStarted();
-
 	TDM_GS = TDM_GS == nullptr ? GetGameState<ATeamDeathMatch_GS>() : TDM_GS;
 
 	for (auto& PlayerState : TDM_GS->PlayerArray)
@@ -72,6 +70,7 @@ void ATeamDeathMatch_GM::HandleMatchHasStarted()
 		}
 	}
 
+	Super::HandleMatchHasStarted();
 
 }
 

@@ -25,6 +25,12 @@ public:
 		TObjectPtr<class UTextBlock> HealthText;
 
 	UPROPERTY(meta = (BindWidget))
+		TObjectPtr<class UBorder> ScoreBoardBorder;
+
+	UPROPERTY(meta = (BindWidget))
+		TObjectPtr<class UTextBlock> ScoreBoardText;
+
+	UPROPERTY(meta = (BindWidget))
 		TObjectPtr<class UTextBlock> ScoreAmt = nullptr;
 
 	UPROPERTY(meta = (BindWidget))
@@ -73,6 +79,8 @@ public:
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UHorizontalBox>  TeamStats = nullptr;
+
+	
 		
 
 
