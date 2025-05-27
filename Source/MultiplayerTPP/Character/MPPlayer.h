@@ -145,6 +145,8 @@ private:
 	/// </summary>
 	void PollInit();
 
+	void SetMaterialOnRespawn();
+
 	UFUNCTION()
 		void TakeDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, class AController* InstigatorController, AActor* DamageCauser);
 
@@ -277,13 +279,18 @@ public:
 	UPROPERTY(Replicated)
 		bool bIsGameplayDisabled = false;
 
+	/*
+	* SETTERS
+	*/
+	void SetOverlappingWeapon(AWeapons* Weapon);
+	FORCEINLINE void SetBaseAimRotation(FRotator AimRotation) { StartAimRotation = AimRotation; }
+	FORCEINLINE void SetDissolveMaterial(UMaterialInstance* NewDissolveMaterial) { DissolveMaterialInstance = NewDissolveMaterial; };
+
 	UFUNCTION(BlueprintCallable)
 		FString GetPlayerName();
 
-	void SetOverlappingWeapon(AWeapons* Weapon);
 	bool IsWeaponEquipped();
 	bool IsAiming();
-	FORCEINLINE void SetBaseAimRotation(FRotator AimRotation) { StartAimRotation = AimRotation; }
 
 	FORCEINLINE float GetAimYaw() const { return AO_Yaw; }
 	FORCEINLINE float GetAimPitch() const { return AO_Pitch; }

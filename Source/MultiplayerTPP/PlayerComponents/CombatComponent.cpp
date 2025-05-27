@@ -248,7 +248,6 @@ void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult)
 
 		if (TraceHitResult.GetActor() && TraceHitResult.GetActor()->Implements<UInteractWithCrosshairs>())
 		{
-			//UE_LOG(LogTemp, Warning, TEXT(" Crosshairs Color"));
 			MPPlayerHUDPackage.CrosshairsColor = EnemyAimColor;
 		}
 

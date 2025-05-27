@@ -16,6 +16,7 @@
 #include "MultiplayerTPP/WidgetsHud/AnnouncementOverlay.h"
 #include "MultiplayerTPP/PlayerComponents/CombatComponent.h"
 #include "MultiplayerTPP/GameStates/DeathMatch_GS.h"
+#include "MultiplayerTPP/GameInstance/Multiplayer_GI.h"
 #include "MultiplayerTPP/WidgetsHud/InGameMenu.h"
 #include "MultiplayerSessionsSubsystem.h"
 
@@ -29,6 +30,16 @@
 void AMPPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
+
+	/*
+* This code is for testing Only
+*/
+	//UMultiplayer_GI* Curr_GI = GetGameInstance<UMultiplayer_GI>();
+
+	//if (Curr_GI != nullptr)
+	//{
+	//	Curr_GI->CurrentGameModeType = EGameModeType::EGM_SDM;
+	//}
 
 	PlayerHUD = Cast<AMPPlayerHUD>(GetHUD());
 
@@ -410,6 +421,50 @@ void AMPPlayerController::SetHUDScore(float Score)
 }
 
 /// <summary>
+/// Update Red Team Score in TDM
+/// </summary>
+/// <param name="NewScore"></param>
+void AMPPlayerController::SetRedTeamScore(float NewScore)
+{
+	PlayerHUD = PlayerHUD == nullptr ? Cast<AMPPlayerHUD>(GetHUD()) : PlayerHUD;
+
+
+	bool bIsValidPlayerOverlay = PlayerHUD && PlayerHUD->PlayerOverlay && PlayerHUD->PlayerOverlay->RedTeamScore;
+	//bool bIsValidPlayerOverlayMessage = PlayerHUD && PlayerHUD->PlayerOverlay && PlayerHUD->PlayerOverlay->DisplayMessage;
+
+	if (bIsValidPlayerOverlay)
+	{
+		//if (bIsValidPlayerOverlayMessage != false && Score == 0.0f)
+		//{
+		//	PlayerHUD->PlayerOverlay->DisplayMessage->SetVisibility(ESlateVisibility::Visible);
+		//}
+
+		FString ScoreAmt = FString::Printf(TEXT("%02d"), FMath::FloorToInt(NewScore));
+		PlayerHUD->PlayerOverlay->RedTeamScore->SetText(FText::FromString(ScoreAmt));
+	}
+}
+
+void AMPPlayerController::SetBlueTeamScore(float NewScore)
+{
+	PlayerHUD = PlayerHUD == nullptr ? Cast<AMPPlayerHUD>(GetHUD()) : PlayerHUD;
+
+
+	bool bIsValidPlayerOverlay = PlayerHUD && PlayerHUD->PlayerOverlay && PlayerHUD->PlayerOverlay->BlueTeamScore;
+	//bool bIsValidPlayerOverlayMessage = PlayerHUD && PlayerHUD->PlayerOverlay && PlayerHUD->PlayerOverlay->DisplayMessage;
+
+	if (bIsValidPlayerOverlay)
+	{
+		//if (bIsValidPlayerOverlayMessage != false && Score == 0.0f)
+		//{
+		//	PlayerHUD->PlayerOverlay->DisplayMessage->SetVisibility(ESlateVisibility::Visible);
+		//}
+
+		FString ScoreAmt = FString::Printf(TEXT("%02d"), FMath::FloorToInt(NewScore));
+		PlayerHUD->PlayerOverlay->BlueTeamScore->SetText(FText::FromString(ScoreAmt));
+	}
+}
+
+/// <summary>
 /// Function to Set Defeats on HUD
 /// </summary>
 /// <param name="Defeats"></param>
@@ -593,6 +648,12 @@ void AMPPlayerController::HandleMatchHasStarted()
 		{
 			HideAnnouncementOverlay();
 			PlayerHUD->AddPlayerOverlay();
+
+			UMultiplayer_GI* Curr_GI = GetGameInstance<UMultiplayer_GI>();
+			if (PlayerHUD != nullptr && Curr_GI != nullptr && Curr_GI->CurrentGameModeType == EGameModeType::EGM_TDM)
+			{
+				PlayerHUD->PlayerOverlay->ShowTeamStats();
+			}
 		}
 }
 

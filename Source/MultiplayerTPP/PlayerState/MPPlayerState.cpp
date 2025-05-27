@@ -1,4 +1,6 @@
 #include "MPPlayerState.h"
+#include "MultiplayerTPP/GameStates/TeamDeathMatch_GS.h"
+#include "Kismet/GameplayStatics.h"
 #include "MultiplayerTPP/Character/MPPlayer.h"
 #include "MultiplayerTPP/Controllers/MPPlayerController.h"
 #include "Net/UnrealNetwork.h"
@@ -13,6 +15,7 @@ void AMPPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(AMPPlayerState, DefeatsAmt);
+	DOREPLIFETIME(AMPPlayerState, Team);
 }
 
 /// <summary>
@@ -156,6 +159,35 @@ void AMPPlayerState::HideLossingMessage()
 			Controller->HideDefeatMessage();
 		}
 	}
+}
+
+void AMPPlayerState::SetPlayerTeam(EPlayerTeam TeamToSet)
+{
+	Team = TeamToSet;
+	SetTeamRelevantMaterial(TeamToSet);
+}
+
+void AMPPlayerState::SetTeamRelevantMaterial(EPlayerTeam TeamToSet)
+{
+	GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Green, TEXT("Setting Team RedMaterial "));
+	if (TeamToSet == EPlayerTeam::EPT_RED)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Green, TEXT("New Team Is Red Team"));
+		GameState = GameState == nullptr ? Cast<ATeamDeathMatch_GS>(UGameplayStatics::GetGameState(this)) : GameState;
+		Character = Character == nullptr ? Cast<AMPPlayer>(GetPawn()) : Character;
+
+		if (Character != nullptr && GameState != nullptr)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT("Setting Team RedMaterial Condition Passed"));
+			Character->GetMesh()->SetMaterial(0, GameState->GetRedTeamMaterial());
+			Character->SetDissolveMaterial(GameState->GetRedTeamMaterialDissolve());
+		}
+	}
+}
+
+void AMPPlayerState::OnRep_Team_Implementation()
+{
+	SetTeamRelevantMaterial(Team);
 }
 
 

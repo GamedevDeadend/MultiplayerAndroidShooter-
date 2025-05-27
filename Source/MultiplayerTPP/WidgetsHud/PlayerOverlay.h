@@ -58,6 +58,23 @@ public:
 	UPROPERTY(meta = (BingWidget))
 		TObjectPtr<class UTextBlock> Ping_Count = nullptr;
 
-		void ShowHighPingWarning();
+
+	void ShowHighPingWarning();
+	void ShowTeamStats();
+	/*
+	* Widgets for TDM
+	*/
+
+	UPROPERTY(meta = (BingWidget))
+		TObjectPtr<class UTextBlock> RedTeamScore = nullptr;
+
+	UPROPERTY(meta = (BingWidget))
+		TObjectPtr<class UTextBlock> BlueTeamScore = nullptr;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<class UHorizontalBox>  TeamStats = nullptr;
+		
+
+
 	
 };

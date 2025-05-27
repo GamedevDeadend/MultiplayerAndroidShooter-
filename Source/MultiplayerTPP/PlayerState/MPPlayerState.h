@@ -30,9 +30,16 @@ public:
 
 private:
 
+	UPROPERTY()
+	class ATeamDeathMatch_GS* GameState = nullptr;
+
 	virtual void GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const override;
 	void UpdateHUDScore();
 	void UpdateHUDDefeats();
+	void SetTeamRelevantMaterial(EPlayerTeam TeamToSet);
+
+	UFUNCTION(NetMulticast, Reliable)
+		void OnRep_Team();
 
 	bool CanReplicateDefeat = false;
 
@@ -52,12 +59,14 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Defeated Message")
 		FString DisplayMessage = "You were Killed";
 
-	UPROPERTY()
-		EPlayerTeam Team = EPlayerTeam::EPT_MAX;
+	UPROPERTY(ReplicatedUsing  = OnRep_Team)
+		EPlayerTeam Team = EPlayerTeam::EPT_NONE;
 
 public:
 
 	FORCEINLINE EPlayerTeam GetPlayerTeam()const { return Team; };
+	void SetPlayerTeam(EPlayerTeam TeamToSet);
+
 
 };
  

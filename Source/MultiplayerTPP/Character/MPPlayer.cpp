@@ -25,6 +25,7 @@
 #include "Components/BoxComponent.h"
 #include "MultiplayerTPP/PlayerComponents/LagCompensationComponent.h"
 #include "NiagaraComponent.h"
+#include "MultiplayerTPP/GameStates/TeamDeathMatch_GS.h"
 #include "NiagaraFunctionLibrary.h"
 
 
@@ -717,52 +718,72 @@ void AMPPlayer::PollInit()
 			MPPlayerState->AddToScore(0.f);
 			MPPlayerState->AddToDefeat(0);
 		}
+
+		if (LeadGainParticleComponent == nullptr && HasAuthority())
+		{
+			ADeathMatch_GS* GameState = Cast<ADeathMatch_GS>(UGameplayStatics::GetGameState(this));
+
+			if (GameState != nullptr && GameState->TopScoringPlayers.Contains(MPPlayerState) == true && HasAuthority() == true)
+			{
+				Mulitcast_GainLead();
+			}
+		}
+
+		SetMaterialOnRespawn();
 	}
 
-	if (LeadGainParticleComponent == nullptr && HasAuthority())
+
+}
+
+/// <summary>
+/// Function for setting material for TDM according to team selected
+/// </summary>
+void AMPPlayer::SetMaterialOnRespawn()
+{
+	if (MPPlayerState != nullptr && MPPlayerState->GetPlayerTeam() == EPlayerTeam::EPT_RED)
 	{
-		ADeathMatch_GS* GameState = Cast<ADeathMatch_GS>(UGameplayStatics::GetGameState(this));
-		//MPPlayerState = MPPlayerState == nullptr ? GetPlayerState<AMPPlayerState>() : MPPlayerState;
+		ATeamDeathMatch_GS* TDM_GS = Cast<ATeamDeathMatch_GS>( UGameplayStatics::GetGameState(this) );
 
-	/*	if (IsLocallyControlled())
+		if (TDM_GS != nullptr)
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Cyan, FString::Printf(TEXT("%s Curr Score %f"), *MPPlayerState->GetPlayerName(), MPPlayerState->GetScore() ));
-
-		}*/
-
-		//GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT(" On Server Calling Pre Gained"));
-
-		//if (GameState->TopScoringPlayers.Contains(MPPlayerState))
-		//{
-		//	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Cyan, FString::Printf(TEXT("True Curr Score %f"), MPPlayerState->GetScore()));
-		//}
-
-		if (GameState != nullptr && GameState->TopScoringPlayers.Contains(MPPlayerState) == true && HasAuthority() == true)
-		{
-			Mulitcast_GainLead();
+			if (GetMesh() != nullptr)
+			{
+				GetMesh()->SetMaterial(0, TDM_GS->GetRedTeamMaterial());
+				DissolveMaterialInstance = TDM_GS->GetRedTeamMaterialDissolve();
+			}
 		}
 	}
-
 }
 
 void AMPPlayer::TakeDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, class AController* InstigatorController, AActor* DamageCauser)
 {
-	CurrentHealth = FMath::Clamp(CurrentHealth - Damage, 0.0f, MaxHealth);
-	PlayHitReactMontage();
-	UpdateHealthHUD();
+	
+	ADeathMatch_GM* DeathMatch_GM = GetWorld()->GetAuthGameMode<ADeathMatch_GM>();
 
-	if (CurrentHealth == 0.0f)
+	if (DeathMatch_GM)
 	{
-		ADeathMatch_GM* DeathMatch_GM = GetWorld()->GetAuthGameMode<ADeathMatch_GM>();
+		MPPlayerController = MPPlayerController ? MPPlayerController : Cast<AMPPlayerController>(Controller);
+		AMPPlayerController* AttackPlayercontroller = Cast<AMPPlayerController>(InstigatorController);
 
-		if (DeathMatch_GM)
+		AMPPlayerState* VictimState = MPPlayerController->GetPlayerState<AMPPlayerState>();
+		AMPPlayerState* AttackerState = AttackPlayercontroller->GetPlayerState<AMPPlayerState>();
+
+		if (DeathMatch_GM->CheckIsFriendlyFire(AttackerState, VictimState) == true)
 		{
-			MPPlayerController = MPPlayerController ? MPPlayerController : Cast<AMPPlayerController>(Controller);
-			AMPPlayerController* AttackPlayercontroller = Cast<AMPPlayerController>(InstigatorController);
+			return;
+		}
 
+		CurrentHealth = FMath::Clamp(CurrentHealth - Damage, 0.0f, MaxHealth);
+
+		PlayHitReactMontage();
+		UpdateHealthHUD();
+
+		if (CurrentHealth == 0.0f)
+		{
 			DeathMatch_GM->PlayerEliminated(this, MPPlayerController, AttackPlayercontroller);
 		}
-	}
+	};
+
 
 }
 

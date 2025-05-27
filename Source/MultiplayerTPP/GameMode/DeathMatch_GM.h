@@ -24,6 +24,7 @@ class MULTIPLAYERTPP_API ADeathMatch_GM : public AGameMode
 
 public:
 
+	ADeathMatch_GM();
 
 	float LevelStartTime = 0.0f;
 
@@ -40,6 +41,17 @@ public:
 		float CountDownTime = 0.0f;
 
 
+	virtual bool CheckIsFriendlyFire(class AMPPlayerState* AttackerState, class AMPPlayerState* VictimPlayerState);
+	void KickPlayer(class AMPPlayerState* PlayerState);
+	virtual void BeginPlay()override;
+	virtual void Tick(float DeltaTime)override;
+	virtual void PlayerEliminated(class AMPPlayer* EliminatedCharacter, class AMPPlayerController* EliminatedPlayerController, class AMPPlayerController* AttackingPlayerController);
+	void CheckForGainLead(AMPPlayerState*& AttackerPlayerState, AMPPlayerController* AttackingPlayerController);
+	void CheckForLossLeads(AMPPlayerState* AttackerPlayerState);
+	virtual void RequestRespawn(ACharacter* ElimCharacter, AController* ElimPlayerController);
+	virtual void UpdateTeamScore(class AMPPlayerState* AttackerState, class AMPPlayerState* VictimPlayerState);
+	virtual void OnMatchStateSet()override;
+
 private : 
 
 	UPROPERTY(EditAnywhere)
@@ -48,17 +60,12 @@ private :
 	UPROPERTY()
 		class ADeathMatch_GS* Curr_GameState = nullptr;
 
-	void RegisterAllPlayers();
+
+protected:
+
+	virtual void RegisterAllPlayers();
+	virtual void HandleMatchHasStarted()override;
 
 public:
-	ADeathMatch_GM();
-	void KickPlayer(class AMPPlayerState* PlayerState);
-	virtual void BeginPlay()override;
-	virtual void Tick(float DeltaTime)override;
-	virtual void PlayerEliminated(class AMPPlayer* EliminatedCharacter, class AMPPlayerController* EliminatedPlayerController, class AMPPlayerController* AttackingPlayerController);
-	void CheckForGainLead(AMPPlayerState*& AttackerPlayerState, AMPPlayerController* AttackingPlayerController);
-	void CheckForLossLeads(AMPPlayerState* AttackerPlayerState);
-	virtual void RequestRespawn(ACharacter* ElimCharacter, AController* ElimPlayerController);
-	virtual void OnMatchStateSet()override;
 
 };

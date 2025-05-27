@@ -177,6 +177,10 @@ public:
 
 	void SetHUDAnnouncementCountDown(float time);
 
+	void SetRedTeamScore(float NewScore);
+
+	void SetBlueTeamScore(float NewScore);
+
 	/*
 	* Getters
 	*/

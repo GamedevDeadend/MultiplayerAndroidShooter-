@@ -9,6 +9,7 @@
 #include "MultiplayerTPP/GameStates/DeathMatch_GS.h"
 #include "MultiplayerTPP/PlayerState/MPPlayerState.h"
 #include "MultiplayerSessionsSubsystem.h"
+#include "MultiplayerTPP/GameInstance/Multiplayer_GI.h"
 
 
 namespace MatchState
@@ -20,6 +21,13 @@ namespace MatchState
 ADeathMatch_GM::ADeathMatch_GM()
 {
 	bDelayedStart = true;
+}
+
+void ADeathMatch_GM::BeginPlay()
+{
+	Super::BeginPlay();
+
+	LevelStartTime = GetWorld()->GetTimeSeconds();
 }
 
 void ADeathMatch_GM::RegisterAllPlayers()
@@ -36,6 +44,18 @@ void ADeathMatch_GM::RegisterAllPlayers()
 			Curr_GameState->AddNewPlayer(NewPlayerState);
 		}
 	}
+}
+
+void ADeathMatch_GM::HandleMatchHasStarted()
+{
+	Super::HandleMatchHasStarted();
+
+	RegisterAllPlayers();
+}
+
+bool ADeathMatch_GM::CheckIsFriendlyFire(AMPPlayerState* AttackerState, AMPPlayerState* VictimPlayerState)
+{
+	return false;
 }
 
 void ADeathMatch_GM::KickPlayer(AMPPlayerState* PlayerState)
@@ -62,12 +82,6 @@ void ADeathMatch_GM::KickPlayer(AMPPlayerState* PlayerState)
 	}
 }
 
-void ADeathMatch_GM::BeginPlay()
-{
-	Super::BeginPlay();
-
-	LevelStartTime = GetWorld()->GetTimeSeconds();
-}
 
 void ADeathMatch_GM::Tick(float DeltaTime)
 {
@@ -77,7 +91,6 @@ void ADeathMatch_GM::Tick(float DeltaTime)
 		if (CountDownTime <= 0.0f)
 		{
 			StartMatch();
-			RegisterAllPlayers();
 		}
 	}
 	else if (MatchState == MatchState::InProgress)
@@ -125,12 +138,14 @@ void ADeathMatch_GM::PlayerEliminated(AMPPlayer* EliminatedCharacter, AMPPlayerC
 		Curr_GameState->UpdatePlayersInfo(AttackerPlayerState);
 
 		CheckForGainLead(AttackerPlayerState, AttackingPlayerController);
+		UpdateTeamScore(AttackerPlayerState, EliminatedPlayerState);
 	}
 		
 	if (EliminatedPlayerState)
 	{
 		EliminatedPlayerState->AddToDefeat(1);
 	}
+
 
 	if(EliminatedCharacter)
 	EliminatedCharacter->Elim();
@@ -183,6 +198,7 @@ void ADeathMatch_GM::RequestRespawn(ACharacter* ElimCharacter, AController* Elim
 	}
 }
 
+
 void ADeathMatch_GM::OnMatchStateSet()
 {
 	Super::OnMatchStateSet();
@@ -195,4 +211,9 @@ void ADeathMatch_GM::OnMatchStateSet()
 			MPPlayerController->OnMatchStateSet(MatchState);
 		}
 	}
+}
+
+void ADeathMatch_GM::UpdateTeamScore(AMPPlayerState* AttackerState, AMPPlayerState* VictimPlayerState)
+{
+	return;
 }
