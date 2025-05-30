@@ -6,6 +6,7 @@
 #include "MultiplayerSessionsSubsystem.h"
 #include "MultiplayerTPP/Character/MPPlayer.h"
 #include "MultiplayerTPP/PlayerState/MPPlayerState.h"
+#include "EOS_VoiceSettings_UI.h"
 #include "GameFrameWork/GameModeBase.h"
 
 
@@ -32,6 +33,11 @@ void UInGameMenu::MenuSetup()
 	if (MenuButton != nullptr)
 	{
 		MenuButton->OnClicked.AddDynamic(this, &UInGameMenu::ReturnToMainMenu);
+	}
+
+	if (VoiceChat != nullptr)
+	{
+		MenuButton->OnClicked.AddDynamic(this, &UInGameMenu::ShowVoiceChat);
 	}
 
 	UGameInstance* GameInstance = GetGameInstance();
@@ -77,6 +83,33 @@ void UInGameMenu::OnDestroySession(bool bWasSuccessful)
 				PlayerController->ClientReturnToMainMenuWithTextReason( FText::FromString("Gracefull Exit") );
 			}
 		}
+	}
+}
+
+void UInGameMenu::ShowVoiceChat()
+{
+	//if (InGameMenuClass == nullptr) return;
+
+	if (VoiceChatClass != nullptr)
+	{
+		//VoiceChatMenu = CreateWidget<UEOS_VoiceSettings_UI>(this, VoiceChatClass);
+		//GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT("Calling MEnu Setup"));
+		//VoiceChatMenu->MenuSetup();
+
+	}
+
+	if (VoiceChatMenu != nullptr)
+	{
+		//bIsInGameMenu = !bIsInGameMenu;
+
+		//if (bIsInGameMenu)
+		//{
+			//InGameMenu->MenuSetup();
+		//}
+		//else
+		//{
+			//InGameMenu->MenuTeardown();
+		//}
 	}
 }
 

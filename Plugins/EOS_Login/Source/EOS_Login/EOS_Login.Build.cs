@@ -2,9 +2,9 @@
 
 using UnrealBuildTool;
 
-public class Multiplayer : ModuleRules
+public class EOS_Login : ModuleRules
 {
-	public Multiplayer(ReadOnlyTargetRules Target) : base(Target)
+	public EOS_Login(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 		
@@ -26,12 +26,11 @@ public class Multiplayer : ModuleRules
 			new string[]
 			{
 				"Core",
-                "OnlineSubsystem",
+				"OnlineSubsystem",
                 "OnlineSubsystemUtils",
-                "OnlineSubsystemEOS",
+				"OnlineSubsystemEOS",
+				"VoiceChat",
                 "UMG",
-				"Slate",
-				"SlateCore"
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);

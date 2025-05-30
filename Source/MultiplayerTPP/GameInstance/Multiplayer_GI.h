@@ -21,5 +21,6 @@ public :
 	EGameModeType CurrentGameModeType = EGameModeType::EGM_TDM;
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	virtual void Init()override;
 	
 };

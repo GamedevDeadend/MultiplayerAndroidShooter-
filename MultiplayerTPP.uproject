@@ -23,12 +23,24 @@
 			]
 		},
 		{
-			"Name": "OnlineSubsystemSteam",
+			"Name": "Multiplayer",
+			"Enabled": true
+		},
+		{
+			"Name": "EOSVoiceChat",
 			"Enabled": true
 		},
 		{
 			"Name": "OnlineSubsystemEOS",
 			"Enabled": true
+		},
+		{
+			"Name": "EOSShared",
+			"Enabled": true
+		},
+		{
+			"Name": "OnlineSubsystemNull",
+			"Enabled": false
 		}
 	]
 }

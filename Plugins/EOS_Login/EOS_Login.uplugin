@@ -2,10 +2,10 @@
 	"FileVersion": 3,
 	"Version": 1,
 	"VersionName": "1.0",
-	"FriendlyName": "Multiplayer",
-	"Description": "A Plugin for Handling Multiplayer Sessions",
+	"FriendlyName": "EOS_VoiceAndLogin",
+	"Description": "Plugin to handle Account longin related functionality",
 	"Category": "Other",
-	"CreatedBy": "TanmayAgrawal",
+	"CreatedBy": "Tanmay Agrawal",
 	"CreatedByURL": "",
 	"DocsURL": "",
 	"MarketplaceURL": "",
@@ -16,12 +16,11 @@
 	"Installed": false,
 	"Modules": [
 		{
-			"Name": "Multiplayer",
+			"Name": "EOS_Login",
 			"Type": "Runtime",
 			"LoadingPhase": "Default"
 		}
 	],
-
 	"Plugins": [
 		{
 			"Name": "OnlineSubsystem",
@@ -36,6 +35,4 @@
 			"Enabled": true
 		}
 	]
-
-
 }
