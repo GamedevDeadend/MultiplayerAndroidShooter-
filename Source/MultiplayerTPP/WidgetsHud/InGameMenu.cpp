@@ -37,7 +37,7 @@ void UInGameMenu::MenuSetup()
 
 	if (VoiceChat != nullptr)
 	{
-		MenuButton->OnClicked.AddDynamic(this, &UInGameMenu::ShowVoiceChat);
+		VoiceChat->OnClicked.AddDynamic(this, &UInGameMenu::ShowVoiceChat);
 	}
 
 	UGameInstance* GameInstance = GetGameInstance();
@@ -88,28 +88,14 @@ void UInGameMenu::OnDestroySession(bool bWasSuccessful)
 
 void UInGameMenu::ShowVoiceChat()
 {
-	//if (InGameMenuClass == nullptr) return;
-
-	if (VoiceChatClass != nullptr)
-	{
-		//VoiceChatMenu = CreateWidget<UEOS_VoiceSettings_UI>(this, VoiceChatClass);
-		//GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT("Calling MEnu Setup"));
-		//VoiceChatMenu->MenuSetup();
-
-	}
 
 	if (VoiceChatMenu != nullptr)
 	{
-		//bIsInGameMenu = !bIsInGameMenu;
-
-		//if (bIsInGameMenu)
-		//{
-			//InGameMenu->MenuSetup();
-		//}
-		//else
-		//{
-			//InGameMenu->MenuTeardown();
-		//}
+		if (VoiceChatMenu->GetVisibility() == ESlateVisibility::Hidden)
+		{
+			VoiceChatMenu->SetVisibility(ESlateVisibility::Visible);
+			VoiceChatMenu->MenuSetup();
+		}
 	}
 }
 
@@ -175,6 +161,11 @@ void UInGameMenu::MenuTeardown()
 	if (MutiplayerSubsystem != nullptr)
 	{
 		MutiplayerSubsystem->MultiplayerOnDestroySessionDelegate.RemoveDynamic(this, &UInGameMenu::OnDestroySession);
+	}
+
+	if (VoiceChat != nullptr)
+	{
+		VoiceChat->OnClicked.RemoveDynamic(this, &UInGameMenu::ShowVoiceChat);
 	}
 }
 void UInGameMenu::OnMatchLeft()

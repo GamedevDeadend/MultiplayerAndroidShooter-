@@ -9,7 +9,7 @@ void UMultiplayer_GI::Init()
 {
 	Super::Init();
 
-	UEOS_Auth_Subsystem* Subsystem = GetSubsystem<UEOS_Auth_Subsystem>();
+	UEOS_VoiceAuth_Subsystem* Subsystem = GetSubsystem<UEOS_VoiceAuth_Subsystem>();
 	if (Subsystem != nullptr)
 	{
 		Subsystem->Login();

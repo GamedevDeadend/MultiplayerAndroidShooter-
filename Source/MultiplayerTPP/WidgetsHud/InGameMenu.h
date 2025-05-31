@@ -16,35 +16,33 @@ class MULTIPLAYERTPP_API UInGameMenu : public UUserWidget
 
 private:
 
-	UPROPERTY()
-	class UEOS_VoiceSettings_UI* VoiceChatMenu = nullptr;
-
-	UPROPERTY(EditAnywhere)
-		TSubclassOf<class UEOS_VoiceSettings_UI> VoiceChatClass = nullptr;
 
 	APlayerController* PlayerController;
 
 	void OnMatchLeft();
 
 	UPROPERTY(meta = (BindWidget))
-	class UButton* MenuButton;
+		class UEOS_VoiceSettings_UI* VoiceChatMenu;
 
 	UPROPERTY(meta = (BindWidget))
-	class UButton* VoiceChat;
+		class UButton* MenuButton;
+
+	UPROPERTY(meta = (BindWidget))
+		class UButton* VoiceChat;
 
 	UPROPERTY()
-	class UMultiplayerSessionsSubsystem* MutiplayerSubsystem = nullptr;
+		class UMultiplayerSessionsSubsystem* MutiplayerSubsystem = nullptr;
 
 	UFUNCTION()
-	void OnDestroySession(bool bWasSuccessful);
+		void OnDestroySession(bool bWasSuccessful);
 
 	UFUNCTION()
-	void ShowVoiceChat();
+		void ShowVoiceChat();
 
 public:
 
 	UFUNCTION()
-	void ReturnToMainMenu();
+		void ReturnToMainMenu();
 
 	void MenuSetup();
 	void MenuTeardown();

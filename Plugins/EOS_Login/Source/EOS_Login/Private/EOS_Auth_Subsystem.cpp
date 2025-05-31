@@ -6,13 +6,13 @@
 #include "VoiceChat.h"
 
 
-UEOS_Auth_Subsystem::UEOS_Auth_Subsystem()
+UEOS_VoiceAuth_Subsystem::UEOS_VoiceAuth_Subsystem()
 {
     Subsystem = Online::GetSubsystem(GetWorld());
     OnLoginCompleteDelegate = FOnLoginCompleteDelegate::CreateUObject(this, &ThisClass::HandleLoginComplete);
 }
 
-void UEOS_Auth_Subsystem::Login()
+void UEOS_VoiceAuth_Subsystem::Login()
 {
     if (bIsLoginInProgress == true) return;
 	if (GEngine == nullptr) return;
@@ -85,7 +85,7 @@ void UEOS_Auth_Subsystem::Login()
 
 }
 
-void UEOS_Auth_Subsystem::HandleLoginComplete(int32 LocalUserNum, bool bWasSuccessful, const FUniqueNetId& UserId, const FString& Error)
+void UEOS_VoiceAuth_Subsystem::HandleLoginComplete(int32 LocalUserNum, bool bWasSuccessful, const FUniqueNetId& UserId, const FString& Error)
 {
     Subsystem = Online::GetSubsystem(GetWorld());
     IOnlineIdentityPtr Identity = Subsystem->GetIdentityInterface();
@@ -115,7 +115,7 @@ void UEOS_Auth_Subsystem::HandleLoginComplete(int32 LocalUserNum, bool bWasSucce
     LoginDelegateHandle.Reset();
 }
 
-void UEOS_Auth_Subsystem::VoiceChatSetup(const FUniqueNetId& UserId)
+void UEOS_VoiceAuth_Subsystem::VoiceChatSetup(const FUniqueNetId& UserId)
 {
     if (Subsystem && Subsystem->GetSubsystemName() == TEXT("EOS"))
     {
@@ -123,16 +123,43 @@ void UEOS_Auth_Subsystem::VoiceChatSetup(const FUniqueNetId& UserId)
         if (EOSSubsystem)
         {
             VoiceChatUser = EOSSubsystem->GetVoiceChatUserInterface(UserId);
+
             if (VoiceChatUser != nullptr && VoiceChatUser->IsLoggedIn())
             {
-                VoiceChatUser->GetChannels();
+                //if (VoiceChatUser->())
+                //{
+                //    VoiceChatUser->TransmitToSpecificChannel("Lobby");
+                //}
+
+                VoiceChatUser->TransmitToAllChannels();
+                if (GEngine != nullptr)
+                {
+                    //GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Green, FString::Printf(TEXT("%s Channel Logging into EOS Successful"), *VoiceChatUser->GetChannels();
+                }
+
+                VoiceChatUser->OnVoiceChatPlayerTalkingUpdated().AddLambda([](const FString& Channel, const FString& Player, bool bIsTalking)
+                    {
+                        if (GEngine != nullptr)
+                        {
+                            GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Green, FString::Printf(TEXT("[%s] %s is %s"), *Channel, *Player, bIsTalking ? TEXT("talking") : TEXT("silent")));
+                        }
+                    });
+
             }
         }
     }
 }
 
-void UEOS_Auth_Subsystem::BeginDestroy()
+void UEOS_VoiceAuth_Subsystem::BeginDestroy()
 {
     UE_LOG(LogTemp, Warning, TEXT("Auth subsystem being destroyed!"));
     Super::BeginDestroy();
+}
+
+void UEOS_VoiceAuth_Subsystem::TestingUpdate(const FString& ChannelName, const FString& CurrPlayerName , bool bIsTalking)
+{
+    if (GEngine != nullptr)
+    {
+        GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Green, FString::Printf(TEXT("%s Logging into EOS Successful"), *PlayerName));
+    }
 }

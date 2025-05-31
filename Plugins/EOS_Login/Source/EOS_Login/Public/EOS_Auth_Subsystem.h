@@ -14,18 +14,23 @@
  * 
  */
 UCLASS()
-class EOS_LOGIN_API UEOS_Auth_Subsystem : public UGameInstanceSubsystem
+class EOS_LOGIN_API UEOS_VoiceAuth_Subsystem : public UGameInstanceSubsystem
 {
 	GENERATED_BODY()
 
 public: 
 
-	UEOS_Auth_Subsystem();
+	UEOS_VoiceAuth_Subsystem();
 
 	void Login();
 	virtual void BeginDestroy()override;
 
 private:
+
+	/*
+	* OnlyForTesting
+	*/
+	void TestingUpdate(const FString& ChannelName , const FString& CurrPlayerName, bool bIsTalking);
 
 	class IOnlineSubsystem* Subsystem = nullptr;
 
