@@ -9,10 +9,10 @@ void UMultiplayer_GI::Init()
 {
 	Super::Init();
 
-	UEOS_VoiceAuth_Subsystem* Subsystem = GetSubsystem<UEOS_VoiceAuth_Subsystem>();
-	if (Subsystem != nullptr)
+	UEOS_VoiceAuth_Subsystem* EOS_Subsystem = GetSubsystem<UEOS_VoiceAuth_Subsystem>();
+	if (EOS_Subsystem != nullptr)
 	{
-		Subsystem->Login();
+		EOS_Subsystem->VoiceSetup();
 	}
 }
 

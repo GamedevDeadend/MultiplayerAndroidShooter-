@@ -43,7 +43,7 @@ void UMultiplayerSessionsSubsystem::CreateSession(int32 NumPublicConnections, FS
 	CreateSessionCompleteDelegateHandle = SessionInterface->AddOnCreateSessionCompleteDelegate_Handle(CreateSessionCompleteDelegate);
 
 	LastSessionSettings = MakeShareable(new FOnlineSessionSettings());
-	LastSessionSettings->bIsLANMatch = IOnlineSubsystem::Get()->GetSubsystemName() == "NULL" ? true : false;
+	LastSessionSettings->bIsLANMatch = false;
 	LastSessionSettings->NumPublicConnections = NumPublicConnections;
 	LastSessionSettings->bAllowJoinInProgress = true;
 	LastSessionSettings->bAllowJoinViaPresence = true;
@@ -51,17 +51,19 @@ void UMultiplayerSessionsSubsystem::CreateSession(int32 NumPublicConnections, FS
 	LastSessionSettings->bUsesPresence = true;
 	LastSessionSettings->Set(FName("MatchType"), MatchType, EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
 	LastSessionSettings->BuildUniqueId = 1;
-	LastSessionSettings->bUseLobbiesIfAvailable = true;
+	LastSessionSettings->bUseLobbiesIfAvailable = false;
 	LastSessionSettings->bUseLobbiesVoiceChatIfAvailable = true;
 
 	const ULocalPlayer *LocalPlayer= GetWorld()->GetFirstLocalPlayerFromController();
 	bool bIsCreated = SessionInterface->CreateSession(*LocalPlayer->GetPreferredUniqueNetId(), NAME_GameSession, *LastSessionSettings);
 	if (bIsCreated)
 	{
-		/*GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, FString(printf("Session has been created 1007 SessionName: %s")));*/
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString("Session is Created"));
+		//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, FString(printf("Session has been created 1007 SessionName: %s")));
 	}
 	if (bIsCreated == false)
 	{
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString("Session is Not Created"));
 		SessionInterface->ClearOnCreateSessionCompleteDelegate_Handle(CreateSessionCompleteDelegateHandle);
 		MultiplayerOnCreateSessionDelegate.Broadcast(false);
 	}
@@ -77,19 +79,23 @@ void UMultiplayerSessionsSubsystem::FindSessions(int32 MaxSearchResults)
 
 	FindSessionsCompleteDelegateHandle = SessionInterface->AddOnFindSessionsCompleteDelegate_Handle(FindSessionsCompleteDelegate);
 	LastSessionSearch = MakeShareable(new FOnlineSessionSearch());
+	LastSessionSearch->QuerySettings.SearchParams.Empty();
+
 	if (GEngine)
 	{
-		//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString::Printf(TEXT("JoinButtonClicked1 %d sessions found"), LastSessionSearch->SearchResults.Num()));
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString::Printf(TEXT("JoinButtonClicked1 %d sessions found"), LastSessionSearch->SearchResults.Num()));
 	}
+
 	LastSessionSearch->MaxSearchResults = MaxSearchResults;
 
-	LastSessionSearch->bIsLanQuery = false;
+	LastSessionSearch->bIsLanQuery = IOnlineSubsystem::Get()->GetSubsystemName() == "NULL" ? true : false;
 	LastSessionSearch->QuerySettings.Set(SEARCH_PRESENCE, true, EOnlineComparisonOp::Equals);
 
 	//Local Player To Get Net PLayer Id
 	const ULocalPlayer* LocalPlayer = GetWorld()->GetFirstLocalPlayerFromController();
 	if (!SessionInterface->FindSessions(*LocalPlayer->GetPreferredUniqueNetId(), LastSessionSearch.ToSharedRef()))
 	{
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString("FindSessions Failed"));
 		SessionInterface->ClearOnFindSessionsCompleteDelegate_Handle(FindSessionsCompleteDelegateHandle);
 		MultiplayerOnFindSessionDelegate.Broadcast(TArray<FOnlineSessionSearchResult>(), false);
 	}
@@ -99,7 +105,7 @@ void UMultiplayerSessionsSubsystem::JoinSessions(const FOnlineSessionSearchResul
 {
 	if (GEngine)
 	{
-		//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString("JoinButtonClicked5"));
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString("JoinButtonClicked5"));
 	}
 
 	if (!SessionInterface.IsValid())
@@ -173,7 +179,7 @@ void UMultiplayerSessionsSubsystem::OnFindSessionsComplete(bool bWasSuccessful)
 {
 	if (GEngine)
 	{
-		//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString::Printf(TEXT( "Search Results %d"), LastSessionSearch->SearchResults.Num() ));
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString::Printf(TEXT( "Find Search Results %d"), LastSessionSearch->SearchResults.Num() ));
 	}
 
 	if (SessionInterface.IsValid())

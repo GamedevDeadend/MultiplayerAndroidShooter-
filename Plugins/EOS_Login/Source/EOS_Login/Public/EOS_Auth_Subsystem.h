@@ -8,6 +8,7 @@
 #include "OnlineSubsystemUtils.h"
 #include "OnlineSubsystemTypes.h"
 #include "Interfaces/OnlineIdentityInterface.h"
+#include "VoiceChat.h"
 #include "EOS_Auth_Subsystem.generated.h"
 
 /**
@@ -22,14 +23,19 @@ public:
 
 	UEOS_VoiceAuth_Subsystem();
 
+	UFUNCTION(BlueprintCallable)
+		void VoiceSetup();
+
 	void Login();
 	virtual void BeginDestroy()override;
+	void CheckChannels();
 
 private:
 
 	/*
 	* OnlyForTesting
 	*/
+
 	void TestingUpdate(const FString& ChannelName , const FString& CurrPlayerName, bool bIsTalking);
 
 	class IOnlineSubsystem* Subsystem = nullptr;
@@ -41,9 +47,22 @@ private:
 	FOnLoginCompleteDelegate OnLoginCompleteDelegate;
 	FDelegateHandle LoginDelegateHandle;
 	bool bIsLoginInProgress = false;
+	IVoiceChat* VoiceChat = nullptr;
 
 	void HandleLoginComplete(int32 LocalUserNum, bool bWasSuccessful, const FUniqueNetId& UserId, const FString& Error);
-	void VoiceChatSetup(const FUniqueNetId& UserId);
+	void SetVoiceChatUserInterface(const FUniqueNetId& UserId);
+
+	//UFUNCTION()
+		void OnVoiceConnection(const FVoiceChatResult& ChatResult);
+
+	//UFUNCTION()
+		void OnVoiceInitalization(const FVoiceChatResult& ChatResult);
+
+	/*
+	* DELEGATES
+	*/
+	FOnVoiceChatInitializeCompleteDelegate OnVoiceChatIntialization;
+	FOnVoiceChatConnectCompleteDelegate OnVoiceChatConnect;
 
 public:
 

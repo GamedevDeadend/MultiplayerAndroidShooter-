@@ -95,10 +95,10 @@ void UMenuSystem::HostButtonClicked()
 void UMenuSystem::JoinButtonClicked()
 {
     Join->SetIsEnabled(false);
-    //if (GEngine)
-    //{
-    //    GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString("JoinButtonClicked"));
-    //}
+    if (GEngine)
+    {
+        GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString("JoinButtonClicked"));
+    }
     //UE_LOG(LogTemp, Warning, TEXT("JOIN BUTTON CLICKED"));
     if (MultiplayerSessionsSubsystem)
     {
@@ -153,10 +153,11 @@ void UMenuSystem::OnCreateSession(bool bWasSuccessful)
 
 void UMenuSystem::OnJoinSession(EOnJoinSessionCompleteResult::Type Result)
 {
-    //if (GEngine)
-    //{
-    //    GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString("JoinButtonClicked7"));
-    //}
+    if (GEngine)
+    {
+        GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString("JoinButtonClicked7"));
+    }
+
     IOnlineSubsystem* OnlineSubsystem = IOnlineSubsystem::Get();
     if (OnlineSubsystem)
     {
@@ -173,13 +174,13 @@ void UMenuSystem::OnJoinSession(EOnJoinSessionCompleteResult::Type Result)
                 PlayerController->ClientTravel(IPAddress, ETravelType::TRAVEL_Absolute);
                 if (GEngine)
                 {
-                    //GEngine->AddOnScreenDebugMessage
-                    //(
-                    //    -1,
-                    //    15.0f,
-                    //    FColor::Green,
-                    //    FString::Printf(TEXT("Connected to IP : %s"), *IPAddress)
-                    //);
+                    GEngine->AddOnScreenDebugMessage
+                    (
+                        -1,
+                        15.0f,
+                        FColor::Green,
+                        FString::Printf(TEXT("Connected to IP : %s"), *IPAddress)
+                    );
                 }
 
             }
@@ -196,10 +197,10 @@ void UMenuSystem::OnStartSession(bool bWasSuccessful)
 {
     if (bWasSuccessful == true)
     {
-        //if (GEngine)
-        //{
-        //    GEngine->AddOnScreenDebugMessage(-1, 30.0f, FColor::Yellow, FString("Session Has Started and Progression is True"));
-        //}
+        if (GEngine)
+        {
+            GEngine->AddOnScreenDebugMessage(-1, 30.0f, FColor::Yellow, FString("Session Has Started and Progression is True"));
+        }
     }
 }
 
@@ -210,18 +211,18 @@ void UMenuSystem::OnDestroySession(bool bWasSuccessful)
 void UMenuSystem::OnFindSession(const TArray<FOnlineSessionSearchResult>& SessionResult, bool bWasSuccessful)
 {
 
-    //if (GEngine)
-    //{
-    //    
-    //    GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString::Printf(TEXT("JoinButtonClicked4 %d"), SessionResult.Num()));
-    //}
+    if (GEngine)
+    {
+        
+        GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString::Printf(TEXT("JoinButtonClicked4 %d"), SessionResult.Num()));
+    }
 
     for (auto Result : SessionResult)
     {
-  /*      if (GEngine)
+        if (GEngine)
         {
             GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString("JoinButtonClicked4.1"));
-        }*/
+        }
 
         FString Id = Result.GetSessionIdStr();
         FString User = Result.Session.OwningUserName;
@@ -230,7 +231,7 @@ void UMenuSystem::OnFindSession(const TArray<FOnlineSessionSearchResult>& Sessio
 
         if (MatchMode == FString("FreeForAll"))
         {
-   /*         if (GEngine)
+            if (GEngine)
             {
                 GEngine->AddOnScreenDebugMessage
                 (
@@ -239,9 +240,9 @@ void UMenuSystem::OnFindSession(const TArray<FOnlineSessionSearchResult>& Sessio
                     FColor::Green,
                     FString::Printf(TEXT("User:%s, Id:%s"), *Id, *User)
                 );
-            }*/
+            }
 
- /*           if (GEngine)
+            if (GEngine)
             {
                 GEngine->AddOnScreenDebugMessage
                 (
@@ -250,7 +251,7 @@ void UMenuSystem::OnFindSession(const TArray<FOnlineSessionSearchResult>& Sessio
                     FColor::Green,
                     FString::Printf(TEXT("Joined %s Match"), *MatchType)
                 );
-            }*/
+            }
 
             MultiplayerSessionsSubsystem->JoinSessions(Result);
         }
