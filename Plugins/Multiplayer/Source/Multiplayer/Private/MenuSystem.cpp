@@ -88,7 +88,10 @@ void UMenuSystem::HostButtonClicked()
 
     if (MultiplayerSessionsSubsystem)
     {
+#if !P2PMODE
         MultiplayerSessionsSubsystem->CreateSession(NumConnections,MatchType);
+#endif
+        MultiplayerSessionsSubsystem->CreateLobby();
     }
 }
 
@@ -182,7 +185,6 @@ void UMenuSystem::OnJoinSession(EOnJoinSessionCompleteResult::Type Result)
                         FString::Printf(TEXT("Connected to IP : %s"), *IPAddress)
                     );
                 }
-
             }
         }
     }

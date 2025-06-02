@@ -2,8 +2,11 @@
 
 
 #include "EOS_Auth_Subsystem.h"
-#include "OnlineSubsystemEos.h"
-#include "VoiceChat.h"
+#include "OnlineSubsystemEOS.h"
+#include "VoiceChat.h"   
+#include "OnlineSubsystemTypes.h"
+#include "Interfaces/OnlineIdentityInterface.h"
+#include "OnlineSubsystem.h"
 
 
 UEOS_VoiceAuth_Subsystem::UEOS_VoiceAuth_Subsystem()
@@ -12,6 +15,7 @@ UEOS_VoiceAuth_Subsystem::UEOS_VoiceAuth_Subsystem()
     OnLoginCompleteDelegate = FOnLoginCompleteDelegate::CreateUObject(this, &ThisClass::HandleLoginComplete);
     OnVoiceChatIntialization = FOnVoiceChatInitializeCompleteDelegate::CreateUObject(this, &ThisClass::OnVoiceInitalization);
     OnVoiceChatConnect = FOnVoiceChatConnectCompleteDelegate::CreateUObject(this, &ThisClass::OnVoiceConnection);
+    OnVoiceChatLogin = FOnVoiceChatLoginCompleteDelegate::CreateUObject(this, &ThisClass::OnVoiceChatUserLogin);
 }
 
 void UEOS_VoiceAuth_Subsystem::VoiceSetup()
@@ -50,7 +54,7 @@ void UEOS_VoiceAuth_Subsystem::Login()
 
 	GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Green, FString("Identity Interface Fetched For EOS Login"));
 
-	FUniqueNetIdPtr NetId = Identity->GetUniquePlayerId(0);
+	NetId = Identity->GetUniquePlayerId(0);
 
 	if (NetId != nullptr && Identity->GetLoginStatus(0) == ELoginStatus::LoggedIn)
 	{
@@ -113,11 +117,8 @@ void UEOS_VoiceAuth_Subsystem::HandleLoginComplete(int32 LocalUserNum, bool bWas
 
     if (bWasSuccessful)
     {
-    
         PlayerName = Identity->GetPlayerNickname(UserId);
-        GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Green, FString::Printf(TEXT("%s Logging into EOS Successful"),*PlayerName));
-
-        SetVoiceChatUserInterface(UserId);
+        GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Green, FString::Printf(TEXT("%s Logging into EOS Successful"), *PlayerName));
     }
     else 
     {
@@ -141,21 +142,9 @@ void UEOS_VoiceAuth_Subsystem::SetVoiceChatUserInterface(const FUniqueNetId& Use
     }
  }
 
-void UEOS_VoiceAuth_Subsystem::OnVoiceConnection(const FVoiceChatResult& ChatResult)
-{
-    if (VoiceChat != nullptr)
-    {
-        if (GEngine != nullptr)
-        {
-            GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Green, FString::Printf(TEXT("Connection Completed")));
-        }
-        //VoiceChat->Connect(OnVoiceChatConnect);
-    }
-}
-
 void UEOS_VoiceAuth_Subsystem::OnVoiceInitalization(const FVoiceChatResult& ChatResult)
 {
-    if (VoiceChat != nullptr && VoiceChat->IsInitialized())
+    if (VoiceChat != nullptr && ChatResult.IsSuccess())
     {
         if (GEngine != nullptr)
         {
@@ -168,6 +157,62 @@ void UEOS_VoiceAuth_Subsystem::OnVoiceInitalization(const FVoiceChatResult& Chat
         if (GEngine != nullptr)
         {
             GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Green, FString::Printf(TEXT("Intialization Failed")));
+        }
+    }
+}
+
+void UEOS_VoiceAuth_Subsystem::OnVoiceConnection(const FVoiceChatResult& ChatResult)
+{
+    if (VoiceChat != nullptr && ChatResult.IsSuccess())
+    {
+        if (GEngine != nullptr)
+        {
+            GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Green, FString::Printf(TEXT("Connected to %d Server"), ChatResult.ResultCode));
+        }
+
+        VoiceChatUser = VoiceChat->CreateUser();
+        
+        if (VoiceChatUser != nullptr)
+        {
+            if (GEngine != nullptr)
+            {
+                GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Green, FString::Printf(TEXT("Valid User Created")));
+            }
+
+            IOnlineIdentityPtr Identity = Subsystem->GetIdentityInterface();
+
+            if (Identity == nullptr)
+            {
+                return;
+            }
+
+            Login();
+        }
+
+    }
+    else
+    {
+        if (GEngine != nullptr)
+        {
+            GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Green, FString::Printf(TEXT("Failedt to Connect to server")));
+        }
+    }
+}
+
+void UEOS_VoiceAuth_Subsystem::OnVoiceChatUserLogin(const FString& LoggedInPlayerName, const FVoiceChatResult& Result)
+{
+    if (Result.IsSuccess())
+    {
+        if (GEngine != nullptr)
+        {
+            GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Green, FString::Printf(TEXT("Player Is Logged In")));
+        }
+    }
+    else
+    {
+        if (GEngine != nullptr)
+        {
+            GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Green, FString::Printf(TEXT("Player Is LoggedIn Failed")));
         }
     }
 }

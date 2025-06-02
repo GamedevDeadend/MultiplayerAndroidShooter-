@@ -7,36 +7,36 @@ public class Multiplayer : ModuleRules
 	public Multiplayer(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
-		
+
 		PublicIncludePaths.AddRange(
 			new string[] {
 				// ... add public include paths required here ...
 			}
 			);
-				
-		
+
+
 		PrivateIncludePaths.AddRange(
 			new string[] {
 				// ... add other private include paths required here ...
 			}
 			);
-			
-		
+
+
 		PublicDependencyModuleNames.AddRange(
 			new string[]
 			{
 				"Core",
-                "OnlineSubsystem",
-                "OnlineSubsystemUtils",
-                "OnlineSubsystemEOS",
-                "UMG",
+				"OnlineSubsystem",
+				"OnlineSubsystemUtils",
+				"OnlineSubsystemEOS",
+				"UMG",
 				"Slate",
 				"SlateCore"
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);
-			
-		
+
+
 		PrivateDependencyModuleNames.AddRange(
 			new string[]
 			{
@@ -47,13 +47,15 @@ public class Multiplayer : ModuleRules
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);
-		
-		
+
+
 		DynamicallyLoadedModuleNames.AddRange(
 			new string[]
 			{
 				// ... add any modules that your module loads dynamically here ...
 			}
 			);
-	}
+
+			PrivateDefinitions.Add("P2PMODE=1");
+    }
 }

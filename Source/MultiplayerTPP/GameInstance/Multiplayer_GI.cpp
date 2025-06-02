@@ -5,6 +5,7 @@
 #include "Net/UnrealNetwork.h"
 #include "EOS_Auth_Subsystem.h"
 
+
 void UMultiplayer_GI::Init()
 {
 	Super::Init();
@@ -12,7 +13,7 @@ void UMultiplayer_GI::Init()
 	UEOS_VoiceAuth_Subsystem* EOS_Subsystem = GetSubsystem<UEOS_VoiceAuth_Subsystem>();
 	if (EOS_Subsystem != nullptr)
 	{
-		EOS_Subsystem->VoiceSetup();
+		EOS_Subsystem->Login();
 	}
 }
 

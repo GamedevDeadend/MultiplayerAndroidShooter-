@@ -26,7 +26,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 		void VoiceSetup();
 
-	void Login();
+	UFUNCTION(BlueprintCallable)
+		void Login();
 	virtual void BeginDestroy()override;
 	void CheckChannels();
 
@@ -37,6 +38,8 @@ private:
 	*/
 
 	void TestingUpdate(const FString& ChannelName , const FString& CurrPlayerName, bool bIsTalking);
+
+	FUniqueNetIdPtr NetId;
 
 	class IOnlineSubsystem* Subsystem = nullptr;
 
@@ -53,16 +56,18 @@ private:
 	void SetVoiceChatUserInterface(const FUniqueNetId& UserId);
 
 	//UFUNCTION()
-		void OnVoiceConnection(const FVoiceChatResult& ChatResult);
 
 	//UFUNCTION()
 		void OnVoiceInitalization(const FVoiceChatResult& ChatResult);
+		void OnVoiceConnection(const FVoiceChatResult& ChatResult);
+		void OnVoiceChatUserLogin(const FString& LoggedInPlayerName, const FVoiceChatResult& Result);
 
 	/*
 	* DELEGATES
 	*/
 	FOnVoiceChatInitializeCompleteDelegate OnVoiceChatIntialization;
 	FOnVoiceChatConnectCompleteDelegate OnVoiceChatConnect;
+	FOnVoiceChatLoginCompleteDelegate OnVoiceChatLogin;
 
 public:
 

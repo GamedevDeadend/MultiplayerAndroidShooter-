@@ -34,6 +34,26 @@ public:
 	void DestroySessions();
 	void StartSession();
 
+#if P2PMODE
+
+	/*
+	* Lobby Functionality Voice Chat EOS
+	*/
+
+	FName LobbyName = "LobbyName";
+
+	void CreateLobby(FName KeyName = "KeyName", FString KeyValue = "KeyValue");
+
+	void HandleCreateLobbyCompleted(FName LobbyName, bool bWasSuccessful);
+
+	FDelegateHandle CreateLobbyDelegateHandle;
+
+	void SetupNotifications();
+
+	void HandleParticipantChanged(FName EOSLobbyName, const FUniqueNetId& NetId, bool bJoined);
+
+#endif
+
 
 	FMultiplayerOnCreateSessionDelegate MultiplayerOnCreateSessionDelegate;
 	FMultiplayerOnFindSessionDelegate MultiplayerOnFindSessionDelegate;
