@@ -2,7 +2,7 @@
 
 
 #include "EOS_Auth_Subsystem.h"
-#include "OnlineSubsystemEOS.h"
+#include "IOnlineSubsystemEOS.h"
 #include "VoiceChat.h"   
 #include "OnlineSubsystemTypes.h"
 #include "Interfaces/OnlineIdentityInterface.h"
@@ -134,11 +134,11 @@ void UEOS_VoiceAuth_Subsystem::SetVoiceChatUserInterface(const FUniqueNetId& Use
 {
     if (Subsystem && Subsystem->GetSubsystemName() == TEXT("EOS"))
     {
-        FOnlineSubsystemEOS* EOSSubsystem = static_cast<FOnlineSubsystemEOS*>(Subsystem);
-        if (EOSSubsystem)
-        {
-            VoiceChatUser = EOSSubsystem->GetVoiceChatUserInterface(UserId);
-        }
+        //FOnlineSubsystemEOS* EOSSubsystem = static_cast<FOnlineSubsystemEOS*>(Subsystem);
+        //if (EOSSubsystem)
+        //{
+        //    VoiceChatUser = EOSSubsystem->GetVoiceChatUserInterface(UserId);
+        //}
     }
  }
 

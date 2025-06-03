@@ -18,7 +18,7 @@ private:
 		FTimerHandle LoadDelayHandler;
 
 	UPROPERTY(EditAnywhere)
-	FString DeatMatchLvl = "SoloDeathMatch";
+	FString MapName = "SoloDeathMatch";
 
 	UPROPERTY(EditAnywhere)
 	int32 MaxPlayerCount = 2;

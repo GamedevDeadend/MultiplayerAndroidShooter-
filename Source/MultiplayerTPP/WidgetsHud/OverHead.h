@@ -21,7 +21,6 @@ public:
 
 protected:
 
-	virtual void OnLevelRemovedFromWorld(ULevel* InLevel, UWorld* InWorld) override;
 	void SetDisplayText(FString TextValue);
 
 	UFUNCTION(BlueprintCallable)

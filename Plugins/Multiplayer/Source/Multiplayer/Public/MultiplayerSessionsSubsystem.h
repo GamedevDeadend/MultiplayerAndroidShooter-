@@ -25,10 +25,14 @@ class MULTIPLAYER_API UMultiplayerSessionsSubsystem : public UGameInstanceSubsys
 
 public:
 
+	int32 NumOfConnections = 2;
+
+	FString MatchType = "FreeForAll";
+
 	UMultiplayerSessionsSubsystem();
 
 	//To Be Called With Menu class
-	void CreateSession(int32 NumPublicConnections = 4, FString MatchType = "FreeForAll");
+	void CreateSession();
 	void FindSessions(int32 MaxSearchResults);
 	void JoinSessions(const FOnlineSessionSearchResult& SearchResult);
 	void DestroySessions();
@@ -40,7 +44,7 @@ public:
 	* Lobby Functionality Voice Chat EOS
 	*/
 
-	FName LobbyName = "LobbyName";
+	FName LobbyName = NAME_GameSession;
 
 	void CreateLobby(FName KeyName = "KeyName", FString KeyValue = "KeyValue");
 

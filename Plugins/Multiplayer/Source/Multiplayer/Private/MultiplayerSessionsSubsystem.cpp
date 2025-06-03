@@ -23,7 +23,7 @@ UMultiplayerSessionsSubsystem::UMultiplayerSessionsSubsystem():
 
 //Session Functions
 
-void UMultiplayerSessionsSubsystem::CreateSession(int32 NumPublicConnections, FString MatchType)
+void UMultiplayerSessionsSubsystem::CreateSession()
 {
 
 	if (!SessionInterface)
@@ -35,7 +35,7 @@ void UMultiplayerSessionsSubsystem::CreateSession(int32 NumPublicConnections, FS
 	if (ExistingSessions)
 	{
 		bCreateSessionOnDestroy = true;
-		LastNumPublicConnections = NumPublicConnections;
+		LastNumPublicConnections = NumOfConnections;
 		LastMatchType = MatchType;
 		DestroySessions();
 	}
@@ -44,7 +44,7 @@ void UMultiplayerSessionsSubsystem::CreateSession(int32 NumPublicConnections, FS
 
 	LastSessionSettings = MakeShareable(new FOnlineSessionSettings());
 	LastSessionSettings->bIsLANMatch = false;
-	LastSessionSettings->NumPublicConnections = NumPublicConnections;
+	LastSessionSettings->NumPublicConnections = NumOfConnections;
 	LastSessionSettings->bAllowJoinInProgress = true;
 	LastSessionSettings->bAllowJoinViaPresence = true;
 	LastSessionSettings->bShouldAdvertise = true;
@@ -164,7 +164,7 @@ void UMultiplayerSessionsSubsystem::DestroySessions()
 		return; 
 	}
 
-	DestroySessionCompleteDelegateHandle =  SessionInterface->AddOnDestroySessionCompleteDelegate_Handle(DestroySessionCompleteDelegate);
+	DestroySessionCompleteDelegateHandle = SessionInterface->AddOnDestroySessionCompleteDelegate_Handle(DestroySessionCompleteDelegate);
 
 	if (!SessionInterface->DestroySession(NAME_GameSession))
 	{
@@ -214,7 +214,7 @@ void UMultiplayerSessionsSubsystem::CreateLobby(FName KeyName, FString KeyValue)
 			&ThisClass::HandleCreateLobbyCompleted));
 
 	TSharedRef<FOnlineSessionSettings> SessionSettings = MakeShared<FOnlineSessionSettings>();
-	SessionSettings->NumPublicConnections = 2; //We will test our sessions with 2 players to keep things simple
+	SessionSettings->NumPublicConnections = NumOfConnections; //We will test our sessions with 2 players to keep things simple
 	SessionSettings->bShouldAdvertise = true; //This creates a public match and will be searchable.
 	SessionSettings->bUsesPresence = false;   //No presence on dedicated server. This requires a local user.
 	SessionSettings->bAllowJoinViaPresence = false;
@@ -225,7 +225,7 @@ void UMultiplayerSessionsSubsystem::CreateLobby(FName KeyName, FString KeyValue)
 	SessionSettings->bUseLobbiesIfAvailable = true; //For P2P we will use a lobby instead of a session
 	SessionSettings->bUseLobbiesVoiceChatIfAvailable = true; //We will also enable voice
 	SessionSettings->bUsesStats = true; //Needed to keep track of player stats.
-	SessionSettings->Set(FName("MatchType"), FString("FreeForAll") , EOnlineDataAdvertisementType::ViaOnlineService);
+	SessionSettings->Set(FName("MatchType"), MatchType , EOnlineDataAdvertisementType::ViaOnlineService);
 	SessionSettings->Settings.Add(KeyName, FOnlineSessionSetting((KeyValue), EOnlineDataAdvertisementType::ViaOnlineService));
 
 	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString("Creating Lobby"));
@@ -351,7 +351,7 @@ void UMultiplayerSessionsSubsystem::OnDestroySessionComplete(FName SessionName, 
 	if (bWasSuccessful && bCreateSessionOnDestroy)
 	{
 		bCreateSessionOnDestroy = false;
-		CreateSession(LastNumPublicConnections, LastMatchType);
+		//CreateSession();
 	}
 
 	MultiplayerOnDestroySessionDelegate.Broadcast(true);

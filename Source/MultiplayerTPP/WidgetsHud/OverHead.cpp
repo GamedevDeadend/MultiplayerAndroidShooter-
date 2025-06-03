@@ -41,9 +41,3 @@ void UOverHead::ShowPlayerNetRole(APawn* PlayerPawn)
 	FString RoleDisplayText = FString::Printf(TEXT("Local Role : %s"), *Role);
 	SetDisplayText(RoleDisplayText);
 }
-
-void UOverHead::OnLevelRemovedFromWorld(ULevel* InLevel, UWorld* InWorld)
-{
-	RemoveFromParent();
-	Super::OnLevelRemovedFromWorld(InLevel, InWorld);
-}

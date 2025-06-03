@@ -3,7 +3,11 @@
 
 #include "MenuSystem.h"
 #include "Components/Button.h"
+#include "Components/TextBlock.h"
+#include "Components/Overlay.h"
+#include "Components/EditableTextBox.h"
 #include "MultiplayerSessionsSubsystem.h"
+#include "Components/ComboBoxString.h"
 #include "OnlineSessionSettings.h"
 #include "OnlineSubsystem.h"
 
@@ -15,32 +19,55 @@ bool UMenuSystem::Initialize()
         return false;
     }
 
-    if (Host)
+    if (Host != nullptr)
     {
         //Binding Function To Button
         Host->OnClicked.AddDynamic(this, &ThisClass::HostButtonClicked);
     }
 
-    if (Join)
+    if (Join != nullptr)
     {
         //Binding Function To Button
         Join->OnClicked.AddDynamic(this, &ThisClass::JoinButtonClicked);
     }
 
+    if (ET_NumOfPlayers != nullptr)
+    {
+        ET_NumOfPlayers->OnTextChanged.AddDynamic(this, &ThisClass::InputEntered);
+    }
+
+    if (Close_MatchSettings != nullptr)
+    {
+        Close_MatchSettings->OnClicked.AddDynamic(this, &ThisClass::CloseMatchSettings);
+    }
+
+    if (CreateButton != nullptr)
+    {
+        CreateButton->OnClicked.AddDynamic(this, &ThisClass::CreateSessions);
+    }
+
+    if (MatchTypes != nullptr)
+    {
+        MatchTypes->OnSelectionChanged.AddDynamic(this, &ThisClass::GameModeSelected);
+    }
+
+    if (FindButton != nullptr)
+    {
+        FindButton->OnClicked.AddDynamic(this, &ThisClass::StartFindingSessions);
+    }
+
     return true;
 }
 
-void UMenuSystem::OnLevelRemovedFromWorld(ULevel* Inlevel, UWorld* InWorld)
+void UMenuSystem::NativeDestruct()
 {
     Menuteardown();
-    Super::OnLevelRemovedFromWorld(Inlevel, InWorld);
+	Super::NativeDestruct();
 }
 
-void UMenuSystem :: MenuSetup(int32 INumConnections, FString IMatchType, FString LobbyPath)
+void UMenuSystem :: MenuSetup(FString LobbyPath)
 {
     PathToLobby = FString::Printf(TEXT("%s?listen"), *LobbyPath);
-    NumConnections = INumConnections;
-    MatchType = IMatchType;
     //Menu Widget Setup
     AddToViewport();
     SetVisibility(ESlateVisibility::Visible);
@@ -81,17 +108,14 @@ void UMenuSystem::HostButtonClicked()
 {
     Host->SetIsEnabled(false);
 
-    //if (GEngine)
-    //{
-    //    GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString("HelloHostButtonClicked"));
-    //}
-
-    if (MultiplayerSessionsSubsystem)
+    if (MatchSettings != nullptr && MatchSettings->GetVisibility() == ESlateVisibility::Hidden)
     {
-#if !P2PMODE
-        MultiplayerSessionsSubsystem->CreateSession(NumConnections,MatchType);
-#endif
-        MultiplayerSessionsSubsystem->CreateLobby();
+        if (FindButton != nullptr)
+        {
+            FindButton->SetIsEnabled(false);
+        }
+
+        MatchSettings->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
     }
 }
 
@@ -102,12 +126,96 @@ void UMenuSystem::JoinButtonClicked()
     {
         GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString("JoinButtonClicked"));
     }
+
+    if (MatchSettings != nullptr && MatchSettings->GetVisibility() == ESlateVisibility::Hidden)
+    {
+        if (CreateButton != nullptr)
+        {
+            CreateButton->SetIsEnabled(false);
+        }
+
+        MatchSettings->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+    }
+}
+
+void UMenuSystem::InputEntered(const FText& NewText)
+{
+    bool bIsValid = false;
+    FString InputVal = NewText.ToString();
+
+    for (int i = 2; i < 9; i++)
+    {
+        FString Temp = FString::FromInt(i);
+        if (InputVal.Compare(Temp) == 0)
+        {
+            NumConnections = i;
+            MultiplayerSessionsSubsystem->NumOfConnections = NumConnections;
+            bIsValid = true;
+            Error_Txt->SetText(FText::FromString("Go Ahead...."));
+            break;
+        }
+    }
+
+    if (bIsValid == false)
+    {
+        if (Error_Txt != nullptr)
+        {
+            Error_Txt->SetText(FText::FromString("Please Enter Valid Num of Player (2-8)...."));
+        }
+        return;
+    }
+}
+
+void UMenuSystem::CloseMatchSettings()
+{
+    if (MatchSettings != nullptr && MatchSettings->GetVisibility() == ESlateVisibility::SelfHitTestInvisible)
+    {
+        MatchSettings->SetVisibility(ESlateVisibility::Hidden);
+        Host->SetIsEnabled(true);
+        Join->SetIsEnabled(true);
+    }
+}
+
+void UMenuSystem::GameModeSelected(FString SelectedItem, ESelectInfo::Type SelectionType)
+{
+    MatchType = SelectedItem;
+    MultiplayerSessionsSubsystem->MatchType = MatchType;
+}
+
+void UMenuSystem::CreateSessions()
+{
+    if (MultiplayerSessionsSubsystem)
+    {
+        if (CreateButton != nullptr)
+        {
+            CreateButton->SetIsEnabled(false);
+        }
+
+#if !P2PMODE
+        MultiplayerSessionsSubsystem->CreateSession(MatchType);
+#endif
+        MultiplayerSessionsSubsystem->CreateLobby();
+    }
+}
+
+void UMenuSystem::StartFindingSessions()
+{
+    if (FindButton != nullptr)
+    {
+        FindButton->SetIsEnabled(false);
+    }
+
+    if (GEngine)
+    {
+        GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString("Starting Finding Sessions"));
+    }
     //UE_LOG(LogTemp, Warning, TEXT("JOIN BUTTON CLICKED"));
     if (MultiplayerSessionsSubsystem)
     {
         MultiplayerSessionsSubsystem->FindSessions(10000);
     }
 }
+
 
 void UMenuSystem::Menuteardown()
 {
@@ -150,7 +258,7 @@ void UMenuSystem::OnCreateSession(bool bWasSuccessful)
         //    GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString("Session Creation Failed"));
         //}
 
-        Host->SetIsEnabled(true);
+        CreateButton->SetIsEnabled(true);
     }
 }
 
@@ -212,7 +320,6 @@ void UMenuSystem::OnDestroySession(bool bWasSuccessful)
 
 void UMenuSystem::OnFindSession(const TArray<FOnlineSessionSearchResult>& SessionResult, bool bWasSuccessful)
 {
-
     if (GEngine)
     {
         
@@ -231,7 +338,7 @@ void UMenuSystem::OnFindSession(const TArray<FOnlineSessionSearchResult>& Sessio
         FString MatchMode;
         Result.Session.SessionSettings.Get(FName("MatchType"), MatchMode);
 
-        if (MatchMode == FString("FreeForAll"))
+        if (MatchMode == MatchType)
         {
             if (GEngine)
             {
@@ -251,7 +358,7 @@ void UMenuSystem::OnFindSession(const TArray<FOnlineSessionSearchResult>& Sessio
                     -1,
                     15.0f,
                     FColor::Green,
-                    FString::Printf(TEXT("Joined %s Match"), *MatchType)
+                    FString::Printf(TEXT("Joined %s Match"), *MatchMode)
                 );
             }
 
@@ -261,6 +368,6 @@ void UMenuSystem::OnFindSession(const TArray<FOnlineSessionSearchResult>& Sessio
 
     if (!bWasSuccessful || SessionResult.Num() == 0)
     {
-        Join->SetIsEnabled(true);
+        FindButton->SetIsEnabled(true);
     }
 }

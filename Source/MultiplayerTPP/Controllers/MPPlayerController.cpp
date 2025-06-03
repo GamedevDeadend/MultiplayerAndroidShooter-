@@ -656,6 +656,23 @@ void AMPPlayerController::HandleMatchHasStarted()
 			PlayerHUD->AddPlayerOverlay();
 
 			Curr_GI = GetGameInstance<UMultiplayer_GI>();
+
+
+			FString MapName = GetWorld()->GetMapName();
+			if (MapName.Compare("SoloDeathMatch") == 0)
+			{
+				Curr_GI->CurrentGameModeType = EGameModeType::EGM_SDM;
+			}
+			else if (MapName.Compare("TeamDeathMatch") == 0)
+			{
+				if (Curr_GI != nullptr)
+				{
+					Curr_GI->CurrentGameModeType = EGameModeType::EGM_TDM;
+				}
+			}
+
+
+
 			if (PlayerHUD != nullptr && Curr_GI != nullptr && Curr_GI->CurrentGameModeType == EGameModeType::EGM_TDM)
 			{
 				PlayerHUD->PlayerOverlay->ShowTeamStats();
