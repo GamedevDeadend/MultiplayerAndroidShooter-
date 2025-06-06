@@ -26,9 +26,14 @@ public:
 	virtual void AddToDefeat(int32 DefeatAmt);
 	void DisplayLossingMessage();
 	inline void SetCanReplicateDefeat(bool b) { CanReplicateDefeat = b; };
+
+	virtual void PostInitializeComponents()override;
 	//virtual void DisplayLosingMessage();
 
 private:
+
+	UPROPERTY(Replicated)
+	FString PlayerEosId = "";
 
 	UPROPERTY()
 	class ATeamDeathMatch_GS* GameState = nullptr;
@@ -65,6 +70,7 @@ private:
 public:
 
 	FORCEINLINE EPlayerTeam GetPlayerTeam()const { return Team; };
+	FORCEINLINE FString GetPlayerId()const { return PlayerEosId; };
 	void SetPlayerTeam(EPlayerTeam TeamToSet);
 
 

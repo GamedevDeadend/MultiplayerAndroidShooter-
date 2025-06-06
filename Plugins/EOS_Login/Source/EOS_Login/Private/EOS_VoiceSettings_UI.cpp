@@ -40,7 +40,7 @@ void UEOS_VoiceSettings_UI::MenuSetup()
 		Subsystem = GameInstance->GetSubsystem<UEOS_VoiceAuth_Subsystem>();
 		if (Subsystem != nullptr)
 		{
-			VoiceChatUser  = Subsystem->GetLocalPlayerChatInterface();
+			VoiceChatUser  = Subsystem->GetLocalPlayerChatInterface(); 
 
 			if (VoiceChatUser != nullptr && VoiceChatUser->IsLoggedIn())
 			{

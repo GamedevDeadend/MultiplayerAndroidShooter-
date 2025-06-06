@@ -22,9 +22,11 @@
 #include "MultiplayerTPP/GameStates/DeathMatch_GS.h"
 #include "MultiplayerTPP/GameInstance/Multiplayer_GI.h"
 #include "MultiplayerTPP/WidgetsHud/InGameMenu.h"
-#include "MultiplayerTPP/GameStates/TeamDeathMatch_GS.h"
-
 #include "MultiplayerSessionsSubsystem.h"
+
+#include "MultiplayerTPP/GameStates/TeamDeathMatch_GS.h"
+#include "EOS_Auth_Subsystem.h"
+#include "VoiceChat.h"
 
 /*
 * Special naming convention
@@ -356,6 +358,37 @@ void AMPPlayerController::SetHUDAnnouncementCountDown(float WarmupTime)
 		FString CountDownText = FString::Printf(TEXT("%02d:%02d"), Minutes, Seconds);
 		PlayerHUD->AnnouncementOverlay->WarmupTimer->SetText(FText::FromString(CountDownText));
 	}
+}
+
+void AMPPlayerController::ServerToggleTeamVoiceChat_Implementation(const FString& Name, bool bShouldMute, EPlayerTeam Team)
+{
+	//GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Green, TEXT("Now Calling Multicast to Mute Non team Players"));
+	//MulticastToggleTeamVoiceChat(Name, bShouldMute, Team);
+}
+
+void AMPPlayerController::MulticastToggleTeamVoiceChat_Implementation(const FString& Name, bool bShouldMute, EPlayerTeam Team)
+{
+	//Curr_GI = Curr_GI == nullptr ? GetGameInstance<UMultiplayer_GI>() : Curr_GI;
+	//VoiceSubsystem = VoiceSubsystem == nullptr ? Curr_GI->GetSubsystem<UEOS_VoiceAuth_Subsystem>() : VoiceSubsystem;
+	//VoiceChatUser = VoiceChatUser == nullptr ? VoiceSubsystem->GetLocalPlayerChatInterface() : VoiceChatUser;
+	//TDM_GS = TDM_GS == nullptr ? GetWorld()->GetGameState<ATeamDeathMatch_GS>() : TDM_GS;
+	//AMPPlayerState* CurrentPlayerState = GetPlayerState<AMPPlayerState>();
+
+	//if (CurrentPlayerState->GetPlayerTeam() != Team)
+	//{
+	//	GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Green, TEXT("Muting Non team Players"));
+	//	if (bShouldMute == true)
+	//	{
+	//		GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Green, FString::Printf(TEXT("Player To %s Off"), *Name));
+	//		VoiceChatUser->SetPlayerMuted(Name, true);
+	//	}
+	//	else
+	//	{
+	//		GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Green, FString::Printf(TEXT("Player To %s On"), *Name));
+	//		VoiceChatUser->SetPlayerMuted(Name, false);
+	//	}
+
+	//}
 }
 
 void AMPPlayerController::HideAnnouncementOverlay()
@@ -772,11 +805,11 @@ void AMPPlayerController::ShowWinners()
 
 		case EGameModeType::EGM_TDM:
 			{
-				ATeamDeathMatch_GS* GameState = Cast<ATeamDeathMatch_GS>(UGameplayStatics::GetGameState(this));
-				if (GameState != nullptr)
+				TDM_GS = TDM_GS == nullptr ? Cast<ATeamDeathMatch_GS>(UGameplayStatics::GetGameState(this)) : TDM_GS;
+				if (TDM_GS != nullptr)
 				{
-					auto RedTeamScore = GameState->GetRedTeamScore();
-					auto BlueTeamScore = GameState->GetBlueTeamScore();
+					auto RedTeamScore = TDM_GS->GetRedTeamScore();
+					auto BlueTeamScore = TDM_GS->GetBlueTeamScore();
 
 
 					if (BlueTeamScore == RedTeamScore)
@@ -793,7 +826,7 @@ void AMPPlayerController::ShowWinners()
 					}
 				}
 
-				//SetScoreBoardString(GameState, PlayerScores);
+				//SetScoreBoardString(TDM_GS, PlayerScores);
 			}
 			break;
 		}
@@ -979,5 +1012,127 @@ void AMPPlayerController::ShowInGameMenu()
 			InGameMenu->MenuTeardown();
 		}
 	}
+
+}
+
+void AMPPlayerController::Toggle_Speaker_All()
+{
+	Curr_GI = Curr_GI == nullptr ? GetGameInstance<UMultiplayer_GI>() : Curr_GI;
+	VoiceSubsystem = VoiceSubsystem == nullptr ? Curr_GI->GetSubsystem<UEOS_VoiceAuth_Subsystem>() : VoiceSubsystem;
+	VoiceChatUser = VoiceChatUser == nullptr ? VoiceSubsystem->GetLocalPlayerChatInterface() : VoiceChatUser;
+
+	if( bIsAllSpeakerSwitchedOff == true)
+	{
+		for (auto& Participants : VoiceChatUser->GetPlayersInChannel(VoiceSubsystem->GetCurrentChannel()))
+		{
+			if (Participants != VoiceChatUser->GetLoggedInPlayerName())
+			{
+				VoiceChatUser->SetPlayerMuted(Participants, false);
+				GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Green, FString::Printf(TEXT("Player %s is Unmuted"), *Participants));
+			}
+			else
+			{
+				GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Green, FString::Printf(TEXT("Player %s is not Unmuted"), *Participants));
+			}
+		}
+
+		bIsAllSpeakerSwitchedOff = false;
+		
+	}
+	else
+	{
+
+		for (auto& Participants : VoiceChatUser->GetPlayersInChannel(VoiceSubsystem->GetCurrentChannel()))
+		{
+			if (Participants != VoiceChatUser->GetLoggedInPlayerName())
+			{
+				VoiceChatUser->SetPlayerMuted(Participants, true);
+				GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Green, FString::Printf(TEXT("Player %s is muted"), *Participants));
+			}
+			else
+			{
+				GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Green, FString::Printf(TEXT("Player %s is not muted"), *Participants));
+			}
+		}
+
+		bIsAllSpeakerSwitchedOff = true;
+	}
+
+
+}
+
+void AMPPlayerController::Toggle_Mic_All()
+{
+	Curr_GI = Curr_GI == nullptr ? GetGameInstance<UMultiplayer_GI>() : Curr_GI;
+	VoiceSubsystem = VoiceSubsystem == nullptr ? Curr_GI->GetSubsystem<UEOS_VoiceAuth_Subsystem>() : VoiceSubsystem;
+	VoiceChatUser = VoiceChatUser == nullptr ? VoiceSubsystem->GetLocalPlayerChatInterface() : VoiceChatUser;
+
+	if (bIsMicToAllSwitchedOff == true)
+	{
+		VoiceChatUser->TransmitToAllChannels();
+		bIsMicToAllSwitchedOff = false;
+		GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Green, FString::Printf(TEXT("Mic is Unmuted")));
+	}
+	else
+	{
+		VoiceChatUser->TransmitToNoChannels();
+		bIsMicToAllSwitchedOff = true;
+		GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Green, FString::Printf(TEXT("Mic is Muted")));
+	}
+}
+
+void AMPPlayerController::ToggleVoiceMode()
+{
+	//if (bIsAllSpeakerSwitchedOff == true)
+	//{
+	//	Toggle_Speaker_All();
+	//}
+
+	//if( bIsMicToAllSwitchedOff == true)
+	//{
+	//	Toggle_Mic_All();
+	//}
+
+
+	//Curr_GI = Curr_GI == nullptr ? GetGameInstance<UMultiplayer_GI>() : Curr_GI;
+	//VoiceSubsystem = VoiceSubsystem == nullptr ? Curr_GI->GetSubsystem<UEOS_VoiceAuth_Subsystem>() : VoiceSubsystem;
+	//VoiceChatUser = VoiceChatUser == nullptr ? VoiceSubsystem->GetLocalPlayerChatInterface() : VoiceChatUser;
+	//TDM_GS = TDM_GS == nullptr ? GetWorld()->GetGameState<ATeamDeathMatch_GS>() : TDM_GS;
+	//AMPPlayerState* CurrentPlayerState = GetPlayerState<AMPPlayerState>();
+
+
+
+	//if (bIsTeamVoiceChat == false)
+	//{
+	//	GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Green, FString::Printf(TEXT("Sending Toggle VoiceMode Request To Server Currently All")));
+	//
+	//	ServerToggleTeamVoiceChat(CurrentPlayerState->GetPlayerId(), true, CurrentPlayerState->GetPlayerTeam());
+	//	bIsTeamVoiceChat = true;
+
+	//	for (auto& Participants : TDM_GS->PlayersInfo)
+	//	{
+	//		if (Participants.PlayerTeam != CurrentPlayerState->GetPlayerTeam())
+	//		{
+	//			VoiceChatUser->SetPlayerMuted(Participants.PlayerName, true);
+	//			GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Green, FString::Printf(TEXT("%s to Player Off"), *Participants.PlayerName));
+	//		}
+	//	}
+	//}
+	//else
+	//{
+	//	GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Green, FString::Printf(TEXT("Sending Toggle VoiceMode Request To Server Currently Team")));
+	//	ServerToggleTeamVoiceChat(CurrentPlayerState->GetPlayerId(), false, CurrentPlayerState->GetPlayerTeam());
+	//	bIsTeamVoiceChat = false;
+
+	//	for (auto& Participants : TDM_GS->PlayersInfo)
+	//	{
+	//		if (Participants.PlayerTeam != CurrentPlayerState->GetPlayerTeam())
+	//		{
+	//			VoiceChatUser->SetPlayerMuted(Participants.PlayerName, false);
+	//			GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Green, FString::Printf(TEXT("%s to Player On"), *Participants.PlayerName));
+	//		}
+	//	}
+	//}
+
 
 }

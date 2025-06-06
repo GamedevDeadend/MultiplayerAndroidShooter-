@@ -15,6 +15,7 @@ class MULTIPLAYERTPP_API UPlayerOverlay : public UUserWidget
 	GENERATED_BODY()
 
 	virtual void NativeConstruct()override;
+	virtual void NativeDestruct()override;
 
 public:
 
@@ -65,8 +66,6 @@ public:
 		TObjectPtr<class UTextBlock> Ping_Count = nullptr;
 
 
-	void ShowHighPingWarning();
-	void ShowTeamStats();
 	/*
 	* Widgets for TDM
 	*/
@@ -81,7 +80,24 @@ public:
 	TObjectPtr<class UHorizontalBox>  TeamStats = nullptr;
 
 	
-		
+	void ShowHighPingWarning();
+	void ShowTeamStats();
+
+	UPROPERTY(meta = (BingWidget))
+	class UButton* All_Speaker = nullptr;
+
+	UPROPERTY(meta = (BingWidget))
+	class UButton* All_Mic = nullptr;
+
+	UFUNCTION()
+		void OnAllSpeakerClicked();
+
+	UFUNCTION()
+		void OnAllMicClicked();
+
+private : 
+
+	class AMPPlayerController* OwnerController = nullptr;
 
 
 	

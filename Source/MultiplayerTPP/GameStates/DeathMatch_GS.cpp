@@ -22,6 +22,7 @@ void ADeathMatch_GS::AddNewPlayer(AMPPlayerState* PlayerState)
 		CurrPlayer.CurrScore = PlayerState->GetScore();
 		CurrPlayer.PlayerName = PlayerState->GetPlayerName();
 		CurrPlayer.PlayerTeam = PlayerState->GetPlayerTeam();
+		CurrPlayer.PlayerEosId = PlayerState->GetPlayerId();
 
 		//UE_LOG(LogTemp, Warning, TEXT("New Player %s"), *PlayerState->GetPlayerName());
 		PlayersInfo.AddUnique(CurrPlayer);

@@ -4,6 +4,7 @@
 #include "MultiplayerTPP/Character/MPPlayer.h"
 #include "MultiplayerTPP/Controllers/MPPlayerController.h"
 #include "Net/UnrealNetwork.h"
+#include "EOS_Auth_Subsystem.h"
 #include "TimerManager.h"
 
 /// <summary>
@@ -16,6 +17,7 @@ void AMPPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 
 	DOREPLIFETIME(AMPPlayerState, DefeatsAmt);
 	DOREPLIFETIME(AMPPlayerState, Team);
+	DOREPLIFETIME(AMPPlayerState, PlayerEosId);
 }
 
 /// <summary>
@@ -136,6 +138,23 @@ void AMPPlayerState::DisplayLossingMessage()
 			// Auto-hide message after 0.5 seconds
 			FTimerHandle HideDelayTimerHandle;
 			GetWorldTimerManager().SetTimer(HideDelayTimerHandle, this, &ThisClass::HideLossingMessage, 0.5f, false);
+		}
+	}
+}
+
+void AMPPlayerState::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+
+	UGameInstance* GI = GetGameInstance();
+
+	if (GI != nullptr)
+	{
+		UEOS_VoiceAuth_Subsystem* VoiceSubsystem = GI->GetSubsystem<UEOS_VoiceAuth_Subsystem>();
+
+		if (VoiceSubsystem != nullptr)
+		{
+			PlayerEosId = VoiceSubsystem->GetPlayerId();
 		}
 	}
 }

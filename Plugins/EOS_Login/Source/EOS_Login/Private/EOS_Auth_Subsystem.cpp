@@ -3,7 +3,7 @@
 
 #include "EOS_Auth_Subsystem.h"
 #include "IOnlineSubsystemEOS.h"
-#include "VoiceChat.h"   
+#include "VoiceChat.h"
 #include "OnlineSubsystemTypes.h"
 #include "Interfaces/OnlineIdentityInterface.h"
 #include "OnlineSubsystem.h"
@@ -13,22 +13,12 @@ UEOS_VoiceAuth_Subsystem::UEOS_VoiceAuth_Subsystem()
 {
     Subsystem = Online::GetSubsystem(GetWorld());
     OnLoginCompleteDelegate = FOnLoginCompleteDelegate::CreateUObject(this, &ThisClass::HandleLoginComplete);
-    OnVoiceChatIntialization = FOnVoiceChatInitializeCompleteDelegate::CreateUObject(this, &ThisClass::OnVoiceInitalization);
-    OnVoiceChatConnect = FOnVoiceChatConnectCompleteDelegate::CreateUObject(this, &ThisClass::OnVoiceConnection);
-    OnVoiceChatLogin = FOnVoiceChatLoginCompleteDelegate::CreateUObject(this, &ThisClass::OnVoiceChatUserLogin);
+    OnVoiceChatIntializationDelegate = FOnVoiceChatInitializeCompleteDelegate::CreateUObject(this, &ThisClass::OnVoiceInitalization);
+    OnVoiceChatConnectDelegate = FOnVoiceChatConnectCompleteDelegate::CreateUObject(this, &ThisClass::OnVoiceConnection);
+    OnVoiceChatLoginDelegate = FOnVoiceChatLoginCompleteDelegate::CreateUObject(this, &ThisClass::OnVoiceChatUserLogin);
+	OnVoiceChatChannelJoinDelegate = FOnVoiceChatChannelJoinCompleteDelegate::CreateUObject(this, &ThisClass::OnVoiceChannelJoined);
 }
 
-void UEOS_VoiceAuth_Subsystem::VoiceSetup()
-{
-    if (GEngine == nullptr) return;
-
-     VoiceChat = IVoiceChat::Get();
-
-     if (VoiceChat != nullptr)
-     {
-         VoiceChat->Initialize(OnVoiceChatIntialization);
-     }
-}
 
 void UEOS_VoiceAuth_Subsystem::Login()
 {
@@ -118,6 +108,7 @@ void UEOS_VoiceAuth_Subsystem::HandleLoginComplete(int32 LocalUserNum, bool bWas
     if (bWasSuccessful)
     {
         PlayerName = Identity->GetPlayerNickname(UserId);
+        SetVoiceChatUserInterface(UserId);
         GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Green, FString::Printf(TEXT("%s Logging into EOS Successful"), *PlayerName));
     }
     else 
@@ -134,94 +125,33 @@ void UEOS_VoiceAuth_Subsystem::SetVoiceChatUserInterface(const FUniqueNetId& Use
 {
     if (Subsystem && Subsystem->GetSubsystemName() == TEXT("EOS"))
     {
-        //FOnlineSubsystemEOS* EOSSubsystem = static_cast<FOnlineSubsystemEOS*>(Subsystem);
-        //if (EOSSubsystem)
-        //{
-        //    VoiceChatUser = EOSSubsystem->GetVoiceChatUserInterface(UserId);
-        //}
+        IOnlineSubsystemEOS* EOSSubsystem = static_cast<IOnlineSubsystemEOS*>(Subsystem);
+        if (EOSSubsystem)
+        {
+            VoiceChatUser = EOSSubsystem->GetVoiceChatUserInterface(UserId);
+            PlayerId = VoiceChatUser->GetLoggedInPlayerName();
+			CurrentChannel = VoiceChatUser->GetTransmitChannel();
+        }
     }
  }
 
-void UEOS_VoiceAuth_Subsystem::OnVoiceInitalization(const FVoiceChatResult& ChatResult)
+FString UEOS_VoiceAuth_Subsystem::GetPlayerId()
 {
-    if (VoiceChat != nullptr && ChatResult.IsSuccess())
-    {
-        if (GEngine != nullptr)
-        {
-            GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Green, FString::Printf(TEXT("Intialization Completed")));
-        }
-        VoiceChat->Connect(OnVoiceChatConnect);
-    }
-    else
-    {
-        if (GEngine != nullptr)
-        {
-            GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Green, FString::Printf(TEXT("Intialization Failed")));
-        }
-    }
+    return PlayerId.IsEmpty() ? VoiceChatUser->GetLoggedInPlayerName() : PlayerId;
 }
 
-void UEOS_VoiceAuth_Subsystem::OnVoiceConnection(const FVoiceChatResult& ChatResult)
+FString UEOS_VoiceAuth_Subsystem::GetCurrentChannel() const
 {
-    if (VoiceChat != nullptr && ChatResult.IsSuccess())
+
+    for(auto Channel : VoiceChatUser->GetChannels())
     {
-        if (GEngine != nullptr)
-        {
-            GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Green, FString::Printf(TEXT("Connected to %d Server"), ChatResult.ResultCode));
-        }
+        return Channel;
+	}
 
-        VoiceChatUser = VoiceChat->CreateUser();
-        
-        if (VoiceChatUser != nullptr)
-        {
-            if (GEngine != nullptr)
-            {
-                GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Green, FString::Printf(TEXT("Valid User Created")));
-            }
-
-            IOnlineIdentityPtr Identity = Subsystem->GetIdentityInterface();
-
-            if (Identity == nullptr)
-            {
-                return;
-            }
-
-            Login();
-        }
-
-    }
-    else
-    {
-        if (GEngine != nullptr)
-        {
-            GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Green, FString::Printf(TEXT("Failedt to Connect to server")));
-        }
-    }
+    return CurrentChannel;
 }
 
-void UEOS_VoiceAuth_Subsystem::OnVoiceChatUserLogin(const FString& LoggedInPlayerName, const FVoiceChatResult& Result)
-{
-    if (Result.IsSuccess())
-    {
-        if (GEngine != nullptr)
-        {
-            GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Green, FString::Printf(TEXT("Player Is Logged In")));
-        }
-    }
-    else
-    {
-        if (GEngine != nullptr)
-        {
-            GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Green, FString::Printf(TEXT("Player Is LoggedIn Failed")));
-        }
-    }
-}
-
-void UEOS_VoiceAuth_Subsystem::BeginDestroy()
-{
-    UE_LOG(LogTemp, Warning, TEXT("Auth subsystem being destroyed!"));
-    Super::BeginDestroy();
-}
+/*############################## - Trusted Servers Voice Setup - ############################## */
 
 void UEOS_VoiceAuth_Subsystem::CheckChannels()
 {
@@ -257,10 +187,140 @@ void UEOS_VoiceAuth_Subsystem::CheckChannels()
     }
 }
 
+void UEOS_VoiceAuth_Subsystem::JoinVoiceChannel(const FString& NewChannel)
+{
+    if (VoiceChatUser != nullptr && VoiceChatUser->IsLoggedIn())
+    {
+        if (GEngine != nullptr)
+        {
+            GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Green, FString::Printf(TEXT("Joining Channel %s"), *NewChannel));
+        }
+
+        FString Token = VoiceChatUser->InsecureGetJoinToken(NewChannel, EVoiceChatChannelType::NonPositional);
+        //VoiceChatUser->JoinChannel(TEXT("Team_1"), Token, EVoiceChatChannelType::NonPositional, OnVoiceChatChannelJoinDelegate);
+        //VoiceSetup();
+        //VoiceChatUser->Connect();
+        VoiceChatUser->JoinChannel(NewChannel,Token, EVoiceChatChannelType::NonPositional, OnVoiceChatChannelJoinDelegate);
+    }
+    else
+    {
+        if (GEngine != nullptr)
+        {
+            GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Green, FString("Voice Chat User is not logged in or null."));
+        }
+	}
+}
+
+void UEOS_VoiceAuth_Subsystem::VoiceSetup()
+{
+    if (GEngine == nullptr) return;
+
+     if (VoiceChat != nullptr)
+     {
+         VoiceChat->Initialize(OnVoiceChatIntializationDelegate);
+     }
+}
+
+void UEOS_VoiceAuth_Subsystem::BeginDestroy()
+{
+    UE_LOG(LogTemp, Warning, TEXT("Auth subsystem being destroyed!"));
+    Super::BeginDestroy();
+}
+
 void UEOS_VoiceAuth_Subsystem::TestingUpdate(const FString& ChannelName, const FString& CurrPlayerName , bool bIsTalking)
 {
     if (GEngine != nullptr)
     {
         GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Green, FString::Printf(TEXT("%s Logging into EOS Successful"), *PlayerName));
     }
+}
+
+void UEOS_VoiceAuth_Subsystem::OnVoiceInitalization(const FVoiceChatResult& ChatResult)
+{
+    if (VoiceChat != nullptr && ChatResult.IsSuccess())
+    {
+        if (GEngine != nullptr)
+        {
+            GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Green, FString::Printf(TEXT("Intialization Completed")));
+        }
+
+        if(VoiceChat->IsConnected())
+        {
+            if (GEngine != nullptr)
+            {
+                GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Green, FString::Printf(TEXT("Already Connected to Voice Server")));
+            }
+            return;
+		}
+
+        VoiceChat->Connect(OnVoiceChatConnectDelegate);
+    }
+    else
+    {
+        if (GEngine != nullptr)
+        {
+            GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Green, FString::Printf(TEXT("Intialization Failed")));
+        }
+    }
+}
+
+void UEOS_VoiceAuth_Subsystem::OnVoiceConnection(const FVoiceChatResult& ChatResult)
+{
+    if (VoiceChat != nullptr && ChatResult.IsSuccess())
+    {
+        if (GEngine != nullptr)
+        {
+            GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Green, FString::Printf(TEXT("Connected to %d Server"), ChatResult.ResultCode));
+        }
+
+    }
+    else
+    {
+        if (GEngine != nullptr)
+        {
+            GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Green, FString::Printf(TEXT("Failedt to Connect to server")));
+        }
+    }
+}
+
+void UEOS_VoiceAuth_Subsystem::OnVoiceChatUserLogin(const FString& LoggedInPlayerName, const FVoiceChatResult& Result)
+{
+    if (Result.IsSuccess())
+    {
+        if (GEngine != nullptr)
+        {
+            GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Green, FString::Printf(TEXT("Player Is Logged In")));
+        }
+    }
+    else
+    {
+        if (GEngine != nullptr)
+        {
+            GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Green, FString::Printf(TEXT("Player Is LoggedIn Failed")));
+        }
+    }
+}
+
+void UEOS_VoiceAuth_Subsystem::OnVoiceChannelJoined(const FString& ChannelName, const FVoiceChatResult& Result)
+{
+    if (Result.IsSuccess())
+    {
+        if (GEngine != nullptr)
+        {
+            GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Green, FString::Printf(TEXT("Player Joined Channel %s"), *ChannelName));
+        }
+    }
+    else
+    {
+        if (GEngine != nullptr)
+        {
+            GEngine->AddOnScreenDebugMessage(
+                -1, 4.0f, FColor::Red,
+                FString::Printf(TEXT("Failed to Join Channel %s | Error: %s | Desc: %s"),
+                    *ChannelName,
+                    *Result.ErrorCode,
+                    *Result.ErrorDesc)
+            );
+        }
+	}
 }

@@ -36,6 +36,19 @@ public:
 
 	void ShowInGameMenu();
 
+	/*
+	* Voice Chat Functions
+	*/
+
+	UFUNCTION(BlueprintCallable)
+	void Toggle_Speaker_All();
+
+	UFUNCTION(BlueprintCallable)
+	void Toggle_Mic_All();
+
+	UFUNCTION(BlueprintCallable)
+	void ToggleVoiceMode();
+
 protected:
 
 	virtual void SetupInputComponent()override;
@@ -79,6 +92,25 @@ protected:
 
 private:
 
+
+	/*
+	* Reference for Voice Settings
+	*/
+	class UEOS_VoiceAuth_Subsystem* VoiceSubsystem = nullptr;
+	class IVoiceChatUser* VoiceChatUser = nullptr;
+
+	bool bIsAllSpeakerSwitchedOff = false;
+	bool bIsMicToAllSwitchedOff = false;
+	bool bIsTeamVoiceChat = false;
+
+	UFUNCTION(Server, Reliable)
+	void ServerToggleTeamVoiceChat(const FString& Name, bool bShouldMute, EPlayerTeam Team);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastToggleTeamVoiceChat(const FString& PlayerName, bool bShouldMute, EPlayerTeam Team);
+
+
+
 	bool bIsInGameMenu = false;
 
 	UPROPERTY()
@@ -104,6 +136,9 @@ private:
 
 	UPROPERTY()
 		class UPlayerOverlay* PlayerOverlay = nullptr;
+
+	UPROPERTY()
+		class ATeamDeathMatch_GS* TDM_GS = nullptr;
 
 	/*
 	* Cached Values

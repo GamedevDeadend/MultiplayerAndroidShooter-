@@ -23,6 +23,9 @@ public:
 	FString PlayerName;
 
 	UPROPERTY()
+	FString PlayerEosId;
+
+	UPROPERTY()
 	float CurrScore;
 
 	UPROPERTY()

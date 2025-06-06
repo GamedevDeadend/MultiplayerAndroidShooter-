@@ -24,54 +24,69 @@ public:
 	UEOS_VoiceAuth_Subsystem();
 
 	UFUNCTION(BlueprintCallable)
-		void VoiceSetup();
-
-	UFUNCTION(BlueprintCallable)
 		void Login();
-	virtual void BeginDestroy()override;
-	void CheckChannels();
+		
 
 private:
 
-	/*
-	* OnlyForTesting
-	*/
+		bool bIsLoginInProgress = false;
 
-	void TestingUpdate(const FString& ChannelName , const FString& CurrPlayerName, bool bIsTalking);
+		FUniqueNetIdPtr NetId;
+		FString PlayerName = "";
+		FString PlayerId = "";
+		FString CurrentChannel = "";
 
-	FUniqueNetIdPtr NetId;
-
-	class IOnlineSubsystem* Subsystem = nullptr;
-
-	FString PlayerName = "";
-	class IVoiceChatUser* VoiceChatUser = nullptr;
+		class IOnlineSubsystem* Subsystem = nullptr;
+		class IVoiceChatUser* VoiceChatUser = nullptr;
 
 
-	FOnLoginCompleteDelegate OnLoginCompleteDelegate;
-	FDelegateHandle LoginDelegateHandle;
-	bool bIsLoginInProgress = false;
-	IVoiceChat* VoiceChat = nullptr;
 
-	void HandleLoginComplete(int32 LocalUserNum, bool bWasSuccessful, const FUniqueNetId& UserId, const FString& Error);
-	void SetVoiceChatUserInterface(const FUniqueNetId& UserId);
+		FOnLoginCompleteDelegate OnLoginCompleteDelegate;
+		FDelegateHandle LoginDelegateHandle;
 
-	//UFUNCTION()
-
-	//UFUNCTION()
-		void OnVoiceInitalization(const FVoiceChatResult& ChatResult);
-		void OnVoiceConnection(const FVoiceChatResult& ChatResult);
-		void OnVoiceChatUserLogin(const FString& LoggedInPlayerName, const FVoiceChatResult& Result);
-
-	/*
-	* DELEGATES
-	*/
-	FOnVoiceChatInitializeCompleteDelegate OnVoiceChatIntialization;
-	FOnVoiceChatConnectCompleteDelegate OnVoiceChatConnect;
-	FOnVoiceChatLoginCompleteDelegate OnVoiceChatLogin;
+		void HandleLoginComplete(int32 LocalUserNum, bool bWasSuccessful, const FUniqueNetId& UserId, const FString& Error);
+		void SetVoiceChatUserInterface(const FUniqueNetId& UserId);
 
 public:
 
 	FORCEINLINE FString GetPlayerName()const { return PlayerName.IsEmpty() ?  "Player Not Logged In" : PlayerName; };
 	FORCEINLINE IVoiceChatUser* GetLocalPlayerChatInterface()const { return VoiceChatUser; };
+	FString GetPlayerId();
+	FString GetCurrentChannel()const;
+
+
+/*
+* CURRENT CLASS ENDS HERE <--XXXXXXXXXXXXXXXX-->
+*/
+
+
+
+//This is Setup for trusted servers, not used for now, but can be used later for more advanced features
+
+	IVoiceChat* VoiceChat = nullptr;
+
+	UFUNCTION(BlueprintCallable)
+	void JoinVoiceChannel(const FString& NewChannel);
+
+	UFUNCTION(BlueprintCallable)
+	void VoiceSetup();
+
+
+	virtual void BeginDestroy()override;
+	void TestingUpdate(const FString& ChannelName, const FString& CurrPlayerName, bool bIsTalking);
+
+	void OnVoiceInitalization(const FVoiceChatResult& ChatResult);
+	void OnVoiceConnection(const FVoiceChatResult& ChatResult);
+	void OnVoiceChatUserLogin(const FString& LoggedInPlayerName, const FVoiceChatResult& Result);
+	void OnVoiceChannelJoined(const FString& ChannelName, const FVoiceChatResult& Result);
+	void CheckChannels();
+
+
+	FOnVoiceChatInitializeCompleteDelegate OnVoiceChatIntializationDelegate;
+	FOnVoiceChatConnectCompleteDelegate OnVoiceChatConnectDelegate;
+	FOnVoiceChatLoginCompleteDelegate OnVoiceChatLoginDelegate;
+	FOnVoiceChatChannelJoinCompleteDelegate OnVoiceChatChannelJoinDelegate;
+
+	//-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX->
 
 };

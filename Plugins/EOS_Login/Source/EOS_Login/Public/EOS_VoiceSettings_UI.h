@@ -19,6 +19,9 @@ public :
 	UFUNCTION()
 		void MenuSetup();
 
+	//UFUNCTION(BlueprintCallable)
+	//	void SwitchToTeamVoiceChat();
+
 
 private:
 
