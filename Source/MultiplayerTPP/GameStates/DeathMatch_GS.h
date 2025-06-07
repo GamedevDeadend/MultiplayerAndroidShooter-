@@ -42,6 +42,23 @@ public:
 	}
 };
 
+USTRUCT(BlueprintType)
+struct FTextChatData
+{
+	GENERATED_BODY();
+
+public:
+
+	UPROPERTY()
+	FText PlayerName = FText::FromString("");
+
+	UPROPERTY()
+	FText PlayerMsg = FText::FromString("");
+
+	UPROPERTY()
+	EPlayerTeam SendingPlayerTeam = EPlayerTeam::EPT_NONE;
+};
+
 
 
 
@@ -58,6 +75,9 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps)const override;
 	void AddNewPlayer(class AMPPlayerState* PlayerState);
 
+	//UFUNCTION(Server, Reliable)
+	//void ServerSetChatMessage(const FText& PlayerName, const FText& PlayerMsg, const EPlayerTeam Team);
+
 
 	UPROPERTY(Replicated)
 		TArray<class AMPPlayerState*> TopScoringPlayers;
@@ -68,11 +88,20 @@ public:
 	UPROPERTY(Replicated)
 		TArray<FPlayerScoreInfo> PlayersInfo;
 
+	UPROPERTY(ReplicatedUsing = OnRep_ChatMsg)
+	FTextChatData ChatMessageToSend = FTextChatData();
+
 private:
+
+
+	UFUNCTION()
+	void OnRep_ChatMsg();
+
 
 	float TopScore = 0.0f;
 
 	void SortPlayerInfo();
 
+	class AMPPlayerController* GetLocalPlayerController() const;
 	
 };

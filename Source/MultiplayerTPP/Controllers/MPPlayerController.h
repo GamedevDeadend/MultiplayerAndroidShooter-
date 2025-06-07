@@ -26,6 +26,9 @@ public:
 
 	float SingleTripTime = 0.0f;
 
+	UFUNCTION(Server, Reliable)
+	void ServerSetChatMessage(const FText& PlayerName, const FText& PlayerMsg, const EPlayerTeam Team);
+
 	void HideAnnouncementOverlay();
 
 	void ShowDefeatMessage(FString DefeatMessage);
@@ -48,6 +51,12 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void ToggleVoiceMode();
+
+	/*
+* TextChat
+*/
+	void ToggleShowAllChat();
+	void ToggleShowTeamChat();
 
 protected:
 
@@ -92,6 +101,7 @@ protected:
 
 private:
 
+	FTimerHandle TimerHandle;
 
 	/*
 	* Reference for Voice Settings
@@ -194,6 +204,9 @@ private:
 	UFUNCTION(Server, Reliable)
 	void ServerCheckHighPing(bool bIsPingHigh);
 
+	bool bIsAllChatVisible = false;
+	bool bIsTeamChatVisible = false;
+
 public:
 
 
@@ -220,6 +233,8 @@ public:
 	void SetRedTeamScore(float NewScore);
 
 	void SetBlueTeamScore(float NewScore);
+
+	void SetChatMessage(const FText& ChatMessagePlayerName, const FText& ChatMessage, const EPlayerTeam& MsgSendingPlayerTeam);
 
 	/*
 	* Getters

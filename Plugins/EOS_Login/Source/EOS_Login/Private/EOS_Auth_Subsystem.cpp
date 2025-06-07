@@ -137,6 +137,21 @@ void UEOS_VoiceAuth_Subsystem::SetVoiceChatUserInterface(const FUniqueNetId& Use
 
 FString UEOS_VoiceAuth_Subsystem::GetPlayerId()
 {
+#if WITH_EDITOR
+
+    return FString();
+
+#endif // EDITOR
+
+    if(VoiceChatUser == nullptr )
+    {
+        if (GEngine != nullptr)
+        {
+            GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Red, FString("VoiceChatUser is null"));
+        }
+        return FString();
+	}
+
     return PlayerId.IsEmpty() ? VoiceChatUser->GetLoggedInPlayerName() : PlayerId;
 }
 

@@ -10,6 +10,7 @@
 #include "Components/TextBlock.h"
 #include "Components/Image.h"
 #include "Components/Border.h"
+#include "Components/EditableText.h"
 
 #include "MultiplayerTPP/PlayerState/MPPlayerState.h"
 #include "MultiplayerTPP/WidgetsHud/Hud/MPPlayerHUD.h"
@@ -90,6 +91,14 @@ void AMPPlayerController::SetupInputComponent()
 		InputComponent->BindAction("ShowMenu", IE_Pressed, this, &AMPPlayerController::ShowInGameMenu);
 		InputComponent->BindAction("ShowScoreBoard", IE_Pressed, this, &AMPPlayerController::ShowPlayersStats);
 		InputComponent->BindAction("ShowScoreBoard", IE_Released, this, &AMPPlayerController::HidePlayersStats);
+		InputComponent->BindAction("ShowAllChat", IE_Pressed, this, &AMPPlayerController::ToggleShowAllChat);
+
+		Curr_GI = Curr_GI == nullptr ? GetGameInstance<UMultiplayer_GI>() : Curr_GI;
+
+		if(Curr_GI->CurrentGameModeType == EGameModeType::EGM_TDM)
+		{
+			InputComponent->BindAction("ShowTeamChat", IE_Pressed, this, &AMPPlayerController::ToggleShowTeamChat);
+		}
 	}
 }
 
@@ -501,6 +510,84 @@ void AMPPlayerController::SetBlueTeamScore(float NewScore)
 		FString ScoreAmt = FString::Printf(TEXT("%02d"), FMath::FloorToInt(NewScore));
 		PlayerHUD->PlayerOverlay->BlueTeamScore->SetText(FText::FromString(ScoreAmt));
 	}
+}
+
+void AMPPlayerController::ServerSetChatMessage_Implementation(const FText& PlayerName, const FText& PlayerMsg, const EPlayerTeam Team)
+{
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, "InsideServerRPC ServerSetChatMessage_Implementation");
+
+	ADeathMatch_GS* GameState = Cast<ADeathMatch_GS>(UGameplayStatics::GetGameState(GetWorld()));
+
+
+	GameState->ChatMessageToSend.PlayerMsg = PlayerMsg;
+	GameState->ChatMessageToSend.PlayerName = PlayerName;
+	GameState->ChatMessageToSend.SendingPlayerTeam = Team;
+
+	if (GEngine->IsEditor() || GEngine->GetNetMode(GetWorld()) == NM_ListenServer)
+	{
+		if (IsLocalPlayerController())
+		{
+			AMPPlayerState* MPPlayerState = Cast<AMPPlayerState>(PlayerState);
+			if (!MPPlayerState) return;
+
+			if (GameState->ChatMessageToSend.SendingPlayerTeam == EPlayerTeam::EPT_NONE ||
+				GameState->ChatMessageToSend.SendingPlayerTeam == MPPlayerState->GetPlayerTeam())
+			{
+				SetChatMessage(GameState->ChatMessageToSend.PlayerName, GameState->ChatMessageToSend.PlayerMsg, GameState->ChatMessageToSend.SendingPlayerTeam);
+			}
+		}
+	}
+}
+
+void AMPPlayerController::SetChatMessage(const FText& ChatMessagePlayerName, const FText& ChatMessage, const EPlayerTeam& MsgSendingPlayerTeam)
+{
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, "Setting chat msg on widget");
+
+	AMPPlayerState* MPPlayerState = GetPlayerState<AMPPlayerState>();
+
+	if (MsgSendingPlayerTeam != MPPlayerState->GetPlayerTeam()) {return;}
+
+	PlayerHUD = PlayerHUD == nullptr ? Cast<AMPPlayerHUD>(GetHUD()) : PlayerHUD;
+	bool bIsValidPlayerOverlay =
+		PlayerHUD != nullptr &&
+		PlayerHUD->PlayerOverlay != nullptr &&
+		PlayerHUD->PlayerOverlay->MsgPlayerName != nullptr &&
+		PlayerHUD->PlayerOverlay->Msg_Txt != nullptr;
+
+
+
+	if (bIsValidPlayerOverlay == true)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Msg is set"));
+
+		PlayerHUD->PlayerOverlay->MsgPlayerName->SetText(ChatMessagePlayerName);
+		PlayerHUD->PlayerOverlay->Msg_Txt->SetText(ChatMessage);
+	}
+
+
+    GetWorldTimerManager().SetTimer
+	(
+		TimerHandle, 
+		[this]() 
+		{
+			PlayerHUD = PlayerHUD == nullptr ? Cast<AMPPlayerHUD>(GetHUD()) : PlayerHUD;
+			bool bIsValidPlayerOverlay
+				= PlayerHUD != nullptr &&
+				PlayerHUD->PlayerOverlay != nullptr &&
+				PlayerHUD->PlayerOverlay->MsgPlayerName &&
+				PlayerHUD->PlayerOverlay->Msg_Txt != nullptr;
+
+			if (bIsValidPlayerOverlay == true)
+			{
+				PlayerHUD->PlayerOverlay->MsgPlayerName->SetText(FText::FromString(""));
+				PlayerHUD->PlayerOverlay->Msg_Txt->SetText(FText::FromString(""));
+			}
+
+			GetWorldTimerManager().ClearTimer(TimerHandle);
+		},
+		5.0f,
+		false
+	);
 }
 
 /// <summary>
@@ -988,6 +1075,67 @@ void AMPPlayerController::OnDestroySession(bool bWasSuccess)
 	}
 }
 
+void AMPPlayerController::ToggleShowAllChat()
+{
+	PlayerHUD = PlayerHUD == nullptr ? Cast<AMPPlayerHUD>(GetHUD()) : PlayerHUD;
+
+	bool bIsValidPlayerOverlay =
+		PlayerHUD != nullptr &&
+		PlayerHUD->PlayerOverlay != nullptr &&
+		PlayerHUD->PlayerOverlay->Chat_Box != nullptr;
+
+	if (bIsAllChatVisible)
+	{
+		FInputModeGameOnly InputModeData;
+		SetInputMode(InputModeData);
+		//SetShowMouseCursor(false);
+
+		PlayerHUD->PlayerOverlay->Chat_Box->SetVisibility(ESlateVisibility::Hidden);
+	}
+	else
+	{
+		PlayerHUD->PlayerOverlay->Chat_Box->SetVisibility(ESlateVisibility::Visible);
+
+		FInputModeGameAndUI InputModeData;
+		InputModeData.SetWidgetToFocus(PlayerHUD->PlayerOverlay->Chat_Box->TakeWidget());
+		//SetShowMouseCursor(true);
+		SetInputMode(InputModeData);
+	}
+	bIsAllChatVisible = !bIsAllChatVisible;
+}
+
+void AMPPlayerController::ToggleShowTeamChat()
+{
+	PlayerHUD = PlayerHUD == nullptr ? Cast<AMPPlayerHUD>(GetHUD()) : PlayerHUD;
+
+	bool bIsValidPlayerOverlay =
+		PlayerHUD != nullptr &&
+		PlayerHUD->PlayerOverlay != nullptr&&
+		PlayerHUD->PlayerOverlay->Chat_Box != nullptr;
+
+
+	if (bIsTeamChatVisible)
+	{
+		FInputModeGameOnly InputModeData;
+		SetInputMode(InputModeData);
+
+		PlayerHUD->PlayerOverlay->bIsTeamModeChat = false;
+		PlayerHUD->PlayerOverlay->Chat_Box->SetVisibility(ESlateVisibility::Hidden);
+
+	}
+	else
+	{
+		PlayerHUD->PlayerOverlay->bIsTeamModeChat = true;
+		PlayerHUD->PlayerOverlay->Chat_Box->SetVisibility(ESlateVisibility::Visible);
+
+		FInputModeUIOnly InputModeData;
+		InputModeData.SetWidgetToFocus(PlayerHUD->PlayerOverlay->Chat_Box->TakeWidget());
+		SetInputMode(InputModeData);
+	}
+
+	bIsTeamChatVisible = !bIsTeamChatVisible;
+}
+
 void AMPPlayerController::ShowInGameMenu()
 {
 	//GEngine->AddOnScreenDebugMessage(-1, 0.1f, FColor::Green, TEXT("On Show In  Game Menu"));
@@ -1020,6 +1168,11 @@ void AMPPlayerController::Toggle_Speaker_All()
 	Curr_GI = Curr_GI == nullptr ? GetGameInstance<UMultiplayer_GI>() : Curr_GI;
 	VoiceSubsystem = VoiceSubsystem == nullptr ? Curr_GI->GetSubsystem<UEOS_VoiceAuth_Subsystem>() : VoiceSubsystem;
 	VoiceChatUser = VoiceChatUser == nullptr ? VoiceSubsystem->GetLocalPlayerChatInterface() : VoiceChatUser;
+
+	if(VoiceChatUser == nullptr || VoiceSubsystem == nullptr || Curr_GI == nullptr)
+	{
+		return;
+	}
 
 	if( bIsAllSpeakerSwitchedOff == true)
 	{

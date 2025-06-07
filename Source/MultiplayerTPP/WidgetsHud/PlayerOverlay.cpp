@@ -6,8 +6,12 @@
 #include "Components/HorizontalBox.h"
 #include "Components/Button.h"
 #include "Components/Image.h"
+#include "Components/EditableText.h"
 #include "Animation/WidgetAnimation.h"
+#include "MultiplayerTPP/GameStates/DeathMatch_GS.h"
 #include "MultiplayerTPP/Controllers/MPPlayerController.h"
+#include "MultiplayerTPP/PlayerState/MPPlayerState.h"
+#include "Input/Events.h"
 
 void UPlayerOverlay::NativeConstruct()
 {
@@ -28,12 +32,11 @@ void UPlayerOverlay::NativeConstruct()
 	{
 		All_Mic->OnClicked.AddDynamic(this, &ThisClass::OnAllMicClicked);
 	}
-}
 
-void UPlayerOverlay::NativeDestruct()
-{
-
-	Super::NativeDestruct();
+	if(Chat_Box != nullptr)
+	{
+		Chat_Box->OnTextCommitted.AddDynamic(this, &ThisClass::OnChatBoxTextCommitted);
+	}
 }
 
 void UPlayerOverlay::ShowHighPingWarning()
@@ -80,4 +83,47 @@ void UPlayerOverlay::OnAllMicClicked()
 
 	OwnerController = OwnerController == nullptr ? Cast<AMPPlayerController>(GetOwningPlayer()) : OwnerController;
 	OwnerController->Toggle_Mic_All();
+}
+
+void UPlayerOverlay::OnChatBoxTextCommitted(const FText& Text, ETextCommit::Type CommitMethod)
+{
+	if (GEngine == nullptr) return;
+
+	if (CommitMethod == ETextCommit::OnEnter && !Text.IsEmpty())
+	{
+		GameState = GameState == nullptr ? Cast<ADeathMatch_GS>(GetWorld()->GetGameState()) : GameState;
+		MPPlayerState = MPPlayerState == nullptr ? Cast<AMPPlayerState>(GetOwningPlayer()->PlayerState) : MPPlayerState;
+		OwnerController = OwnerController == nullptr ? Cast<AMPPlayerController>(GetOwningPlayer()) : OwnerController;
+
+		if (bIsTeamModeChat == true)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, "Team Chat: " + Text.ToString());
+			OwnerController->ServerSetChatMessage(FText::FromString(MPPlayerState->GetPlayerName()), Text, MPPlayerState->GetPlayerTeam());
+			OwnerController->ToggleShowTeamChat();
+		}
+		else
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, "All Chat: " + Text.ToString());
+			OwnerController->ServerSetChatMessage(FText::FromString(MPPlayerState->GetPlayerName()), Text, EPlayerTeam::EPT_NONE);
+			OwnerController->ToggleShowAllChat();
+		}
+
+		Chat_Box->SetText(FText::FromString(""));
+	}
+}
+
+void UPlayerOverlay::NativeDestruct()
+{
+
+	if (All_Speaker != nullptr && All_Speaker->OnClicked.IsBound() == true)
+	{
+		All_Speaker->OnClicked.RemoveDynamic(this, &ThisClass::OnAllSpeakerClicked);
+	}
+
+	if (All_Mic != nullptr && All_Mic->OnClicked.IsBound() == true)
+	{
+		All_Mic->OnClicked.RemoveDynamic(this, &ThisClass::OnAllMicClicked);
+	}
+
+	Super::NativeDestruct();
 }

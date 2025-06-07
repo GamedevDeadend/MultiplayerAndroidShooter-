@@ -19,6 +19,8 @@ class MULTIPLAYERTPP_API UPlayerOverlay : public UUserWidget
 
 public:
 
+	bool bIsTeamModeChat = false;
+
 	UPROPERTY(meta = (BindWidget))
 		TObjectPtr<class UProgressBar> HealthBar;
 
@@ -89,15 +91,32 @@ public:
 	UPROPERTY(meta = (BingWidget))
 	class UButton* All_Mic = nullptr;
 
+	UPROPERTY(meta = (BingWidget))
+	class UEditableText* Chat_Box = nullptr;
+
+	UPROPERTY(meta = (BingWidget))
+	class UTextBlock* MsgPlayerName = nullptr;
+
+	UPROPERTY(meta = (BingWidget))
+	class UTextBlock* Msg_Txt = nullptr;
+
+	private:
+
 	UFUNCTION()
 		void OnAllSpeakerClicked();
 
 	UFUNCTION()
 		void OnAllMicClicked();
 
-private : 
 
+
+private : 
 	class AMPPlayerController* OwnerController = nullptr;
+	class ADeathMatch_GS* GameState = nullptr;
+	class AMPPlayerState* MPPlayerState = nullptr;
+
+	UFUNCTION()
+	void OnChatBoxTextCommitted(const FText& Text, ETextCommit::Type CommitMethod);
 
 
 	

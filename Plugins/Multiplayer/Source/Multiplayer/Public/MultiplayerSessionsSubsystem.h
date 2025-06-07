@@ -30,6 +30,8 @@ public:
 	FString MatchType = "FreeForAll";
 
 	UMultiplayerSessionsSubsystem();
+	virtual ~UMultiplayerSessionsSubsystem();
+
 
 	//To Be Called With Menu class
 	void CreateSession();

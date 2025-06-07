@@ -4,6 +4,7 @@
 #include "DeathMatch_GS.h"
 #include "MultiplayerTPP/PlayerState/MPPlayerState.h"
 #include "Net/UnrealNetwork.h"
+#include "MultiplayerTPP/Controllers/MPPlayerController.h"
 
 void ADeathMatch_GS::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -11,6 +12,7 @@ void ADeathMatch_GS::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 
 	DOREPLIFETIME(ADeathMatch_GS, TopScoringPlayers);
 	DOREPLIFETIME(ADeathMatch_GS, PlayersInfo);
+	DOREPLIFETIME(ADeathMatch_GS, ChatMessageToSend);
 }
 
 void ADeathMatch_GS::AddNewPlayer(AMPPlayerState* PlayerState)
@@ -28,6 +30,24 @@ void ADeathMatch_GS::AddNewPlayer(AMPPlayerState* PlayerState)
 		PlayersInfo.AddUnique(CurrPlayer);
 
 	}
+}
+
+void ADeathMatch_GS::OnRep_ChatMsg()
+{
+
+	 AMPPlayerController* PlayerController = GetLocalPlayerController();
+	 AMPPlayerState* MPPlayerState = Cast<AMPPlayerState>(PlayerController->PlayerState);
+	 GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, "Sending to widget on Client");
+
+
+	 if (PlayerController != nullptr && PlayerController->IsLocalController())
+	 {
+		 if (ChatMessageToSend.SendingPlayerTeam == EPlayerTeam::EPT_NONE || ChatMessageToSend.SendingPlayerTeam == MPPlayerState->GetPlayerTeam())
+		 {
+			 GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, "Sending to widget on client player controller");
+			 PlayerController->SetChatMessage(ChatMessageToSend.PlayerName, ChatMessageToSend.PlayerMsg, ChatMessageToSend.SendingPlayerTeam);
+		 }
+	 }
 }
 
 void ADeathMatch_GS::UpdateTopScore(AMPPlayerState* ScoringPlayerState)
@@ -94,4 +114,18 @@ void ADeathMatch_GS::SortPlayerInfo()
 			}
 		);
 	}
+}
+
+AMPPlayerController* ADeathMatch_GS::GetLocalPlayerController() const
+{
+	UWorld* World = GetWorld();
+	for (FConstPlayerControllerIterator Iterator = World->GetPlayerControllerIterator(); Iterator; ++Iterator)
+	{
+		AMPPlayerController* PC = Cast<AMPPlayerController>(*Iterator);
+		if (PC && PC->IsLocalController())
+		{
+			return PC;
+		}
+	}
+	return nullptr;
 }
