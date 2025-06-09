@@ -17,6 +17,9 @@ public:
 
 	bool bUseSSR = false;
 
+	FTimerHandle TraceDelayHandle;
+
+
 	FVector_NetQuantize TraceStart;
 	FVector_NetQuantize100 InitialVelocity;
 
@@ -26,6 +29,9 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Bullet Deatils")
 	float HeadDamage = 20.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Bullet Deatils")
+	float TracerDelay = 0.1f;
 
 	UPROPERTY(EditAnywhere)
 	float InitialSpeed = 20000.0f;

@@ -82,6 +82,9 @@ void UCombatComponent::InitPlayeCarriedAmmoMap()
 	CarriedAmmoMap.Emplace(EWeaponType::EWT_AR_Auto, DeafaultAvailableAmmo);
 	CarriedAmmoMap.Emplace(EWeaponType::EWT_AR_Burst, DeafaultAvailableAmmo);
 	CarriedAmmoMap.Emplace(EWeaponType::EWT_AR_Single, DeafaultAvailableAmmo);
+	CarriedAmmoMap.Emplace(EWeaponType::EWT_Pistol, DeafaultAvailableAmmo);
+	CarriedAmmoMap.Emplace(EWeaponType::EWT_SniperRifle, 0);
+	CarriedAmmoMap.Emplace(EWeaponType::EWT_ROCKET, 0);
 }
 
 /// <summary>
@@ -284,6 +287,9 @@ void UCombatComponent::FirePressed(bool bPressed)
 			case EWeaponType::EWT_AR_Single:
 				Fire();
 				break;
+			case EWeaponType::EWT_ROCKET:
+				Fire();
+				break;
 
 			case EWeaponType::EWT_AR_Auto:
 				MPPlayer->GetWorldTimerManager().SetTimer(AutoFireTimerHandle, this, &UCombatComponent::Fire, 0.1f, true);
@@ -292,6 +298,15 @@ void UCombatComponent::FirePressed(bool bPressed)
 			case EWeaponType::EWT_AR_Burst:
 				MPPlayer->GetWorldTimerManager().SetTimer(BurstFireTimerHandle, this, &UCombatComponent::BurstFire, 0.1f, true);
 				break;
+
+			case EWeaponType::EWT_Pistol:
+				Fire();
+				break;
+
+			case EWeaponType::EWT_SniperRifle:
+				Fire();
+				break;	
+
 		}
 	}
 	else

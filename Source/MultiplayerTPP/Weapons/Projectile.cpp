@@ -60,19 +60,30 @@ void AProjectile::PostEditChangeProperty(FPropertyChangedEvent& Event)
 void AProjectile::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	if (Tracer)
-	{
-		TracerComponent = UGameplayStatics::SpawnEmitterAttached(
-			Tracer,
-			CollisionBox,
-			FName(),
-			GetActorLocation(),
-			GetActorRotation(),
-			EAttachLocation::KeepWorldPosition
-		);
-	}
 
+	FTimerDelegate TraceDelegate;
+	TraceDelegate.BindLambda([this]()
+		{
+			if (Tracer)
+			{
+				TracerComponent = UGameplayStatics::SpawnEmitterAttached(
+					Tracer,
+					CollisionBox,
+					FName(),
+					GetActorLocation(),
+					GetActorRotation(),
+					EAttachLocation::KeepWorldPosition
+				);
+			}
+
+		});
+
+	GetWorldTimerManager().SetTimer(
+		TraceDelayHandle,
+		TraceDelegate,
+		TracerDelay,
+		false
+	);
 }
 
 void AProjectile::Tick(float DeltaTime)

@@ -536,6 +536,17 @@ void AMPPlayer::PlayReloadMontage()
 		case EWeaponType::EWT_AR_Single:
 			SectionName = FName("Rifle");
 			break;
+
+		case EWeaponType::EWT_ROCKET:
+			SectionName = FName("Rifle");
+
+		case EWeaponType::EWT_Pistol:
+			SectionName = FName("Rifle");
+
+		case EWeaponType::EWT_SniperRifle:
+			SectionName = FName("Rifle");
+
+			break;
 		}
 
 		PlayerAnimInstance->Montage_JumpToSection(SectionName);

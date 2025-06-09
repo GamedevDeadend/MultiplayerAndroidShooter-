@@ -10,11 +10,16 @@ void UMultiplayer_GI::Init()
 {
 	Super::Init();
 
+#if !WITH_EDITOR
+
 	UEOS_VoiceAuth_Subsystem* EOS_Subsystem = GetSubsystem<UEOS_VoiceAuth_Subsystem>();
 	if (EOS_Subsystem != nullptr)
 	{
 		EOS_Subsystem->Login();
 	}
+
+#endif
+
 }
 
 void UMultiplayer_GI::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

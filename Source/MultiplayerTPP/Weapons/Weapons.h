@@ -106,7 +106,7 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Zoom")
 		float ZoomInterpSpeed = 20.0f;
 
-	UPROPERTY()
+	UPROPERTY(EditAnywhere)
 		int32 Ammo;
 
 	/// <summary>
@@ -116,7 +116,7 @@ private:
 	int32 Sequence = 0;
 
 	UPROPERTY(EditAnywhere)
-		int32 MagCapacity = 30;
+		int32 MagCapacity  = 30;
 
 	UPROPERTY()
 		class AMPPlayer* OwnerCharacter;
