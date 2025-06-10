@@ -37,6 +37,9 @@ public:
 	void PlayElimMontage();
 	void Elim(bool bIsLeaving = false);
 
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnScopingSniper(bool isAiming);
+
 	UFUNCTION(Netmulticast, Reliable)
 	void Mulitcast_GainLead();
 

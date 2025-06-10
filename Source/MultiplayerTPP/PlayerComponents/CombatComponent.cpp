@@ -79,10 +79,10 @@ void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 
 void UCombatComponent::InitPlayeCarriedAmmoMap()
 {
-	CarriedAmmoMap.Emplace(EWeaponType::EWT_AR_Auto, DeafaultAvailableAmmo);
-	CarriedAmmoMap.Emplace(EWeaponType::EWT_AR_Burst, DeafaultAvailableAmmo);
-	CarriedAmmoMap.Emplace(EWeaponType::EWT_AR_Single, DeafaultAvailableAmmo);
-	CarriedAmmoMap.Emplace(EWeaponType::EWT_Pistol, DeafaultAvailableAmmo);
+	CarriedAmmoMap.Emplace(EWeaponType::EWT_AR_Auto, 0);
+	CarriedAmmoMap.Emplace(EWeaponType::EWT_AR_Burst, 0);
+	CarriedAmmoMap.Emplace(EWeaponType::EWT_AR_Single, 0);
+	CarriedAmmoMap.Emplace(EWeaponType::EWT_Pistol, 0);
 	CarriedAmmoMap.Emplace(EWeaponType::EWT_SniperRifle, 0);
 	CarriedAmmoMap.Emplace(EWeaponType::EWT_ROCKET, 0);
 }
@@ -148,6 +148,15 @@ void UCombatComponent::FinishReloading()
 				UpdateCarriedAmmo();
 			}
 		}
+	}
+}
+
+void UCombatComponent::PickupAmmo(EWeaponType WeaponType, int32 AmmoAmount)
+{
+	if (CarriedAmmoMap.Contains(WeaponType))
+	{
+		CarriedAmmoMap[WeaponType] = FMath::Clamp(CarriedAmmoMap[WeaponType] + AmmoAmount, 0, 500);
+		UpdateCarriedAmmo();
 	}
 }
 
@@ -463,7 +472,7 @@ void UCombatComponent::UpdateCarriedAmmo()
 
 	if (CarriedAmmoMap.Contains(EquippedWeapon->GetWeaponType()))
 	{
-		CarriedAmmoMap[EquippedWeapon->GetWeaponType()] = CarriedAmmo;
+		CarriedAmmo = CarriedAmmoMap[EquippedWeapon->GetWeaponType()];
 	}
 
 	if (MPPlayerController != nullptr)
@@ -508,8 +517,14 @@ void UCombatComponent::SetAiming(bool bIsAiming)
 	if (MPPlayer != nullptr && MPPlayer->IsLocallyControlled())
 	{
 		bIsAimPressed = bAim;
-	}
 
+
+		if (EquippedWeapon != nullptr && EquippedWeapon->GetWeaponType() == EWeaponType::EWT_SniperRifle)
+		{
+			MPPlayer->OnScopingSniper(bIsAiming);
+		}
+
+	}
 }
 
 

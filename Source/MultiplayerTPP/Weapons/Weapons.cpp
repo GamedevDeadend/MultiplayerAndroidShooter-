@@ -259,6 +259,8 @@ void AWeapons::SetWeaponState(EWeaponState State)
 			Mesh->SetSimulatePhysics(false);
 			Mesh->SetEnableGravity(false);
 			Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			OutlineMaterial = Mesh->GetOverlayMaterial();
+			Mesh->SetOverlayMaterial(nullptr);
 			ShowPickupWidget(false);
 			OverlapAreaSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 			BindHighPingDelegate();
@@ -269,6 +271,7 @@ void AWeapons::SetWeaponState(EWeaponState State)
 			{
 				OverlapAreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 			}
+			Mesh->SetOverlayMaterial(OutlineMaterial);
 			Mesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
 			Mesh->SetSimulatePhysics(true);
 			Mesh->SetEnableGravity(true);
@@ -322,6 +325,8 @@ void AWeapons::OnRep_WeaponState()
 		case EWeaponState::EWS_Equipped:
 			ShowPickupWidget(false);
 			Mesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Block);
+			OutlineMaterial = Mesh->GetOverlayMaterial();
+			Mesh->SetOverlayMaterial(nullptr);
 			Mesh->SetSimulatePhysics(false);
 			Mesh->SetEnableGravity(false);
 			Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -330,6 +335,7 @@ void AWeapons::OnRep_WeaponState()
 			//OverlapAreaSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		case EWeaponState::EWS_Dropped:
 			Mesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
+			Mesh->SetOverlayMaterial(OutlineMaterial);
 			Mesh->SetSimulatePhysics(true);
 			Mesh->SetEnableGravity(true);
 			Mesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);

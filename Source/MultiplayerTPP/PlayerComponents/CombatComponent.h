@@ -34,6 +34,7 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void FinishReloading();
+	void PickupAmmo(EWeaponType WeaponType, int32 AmmoAmount);
 
 protected:
 

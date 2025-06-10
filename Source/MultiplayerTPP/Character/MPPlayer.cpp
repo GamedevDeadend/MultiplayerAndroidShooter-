@@ -409,7 +409,9 @@ void AMPPlayer::AimPressed()
 	if (bIsGameplayDisabled) { return; }
 
 	if (CombatComponent)
+	{
 		CombatComponent->SetAiming(true);
+	}
 }
 
 void AMPPlayer::AimReleased()
@@ -417,7 +419,9 @@ void AMPPlayer::AimReleased()
 	if (bIsGameplayDisabled) { return; }
 
 	if (CombatComponent)
+	{
 		CombatComponent->SetAiming(false);
+	}
 }
 
 bool AMPPlayer::IsWeaponEquipped()
@@ -427,7 +431,7 @@ bool AMPPlayer::IsWeaponEquipped()
 
 bool AMPPlayer::IsAiming()
 {
-	return CombatComponent->bAim;
+	return CombatComponent == nullptr ? false : CombatComponent->bAim;
 }
 
 AWeapons* AMPPlayer::GetEquippedWeapon()
@@ -629,6 +633,20 @@ void AMPPlayer::MulticastElim_Implementation(bool bIsLeaving)
 	if (MPPlayerController != nullptr)
 	{
 		MPPlayerController->SetHUDAmmoCount(0);
+
+		if (IsLocallyControlled())
+		{
+			if (CombatComponent != nullptr && CombatComponent->EquippedWeapon != nullptr && CombatComponent->EquippedWeapon->GetWeaponType() == EWeaponType::EWT_SniperRifle)
+			{
+				if (IsAiming())
+				{
+					OnScopingSniper(false);
+				}
+			}
+
+		}
+
+
 	}
 
 	if (DissolveMaterialInstance == nullptr) return;

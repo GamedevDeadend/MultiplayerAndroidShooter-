@@ -33,6 +33,9 @@ public:
 	void SetHUDAmmo();
 	void AmmoSpend();
 
+	UPROPERTY()
+		class UMaterialInterface* OutlineMaterial = nullptr;
+
 	UFUNCTION()
 	void OnHighPing(bool bIsHighPing);
 
