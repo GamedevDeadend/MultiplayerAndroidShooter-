@@ -38,7 +38,7 @@ bool UMenuSystem::Initialize()
 
     if (Close_MatchSettings != nullptr)
     {
-        Close_MatchSettings->OnClicked.AddDynamic(this, &ThisClass::CloseMatchSettings);
+		Close_MatchSettings->OnClicked.AddDynamic(this, &ThisClass::CloseMatchSettings);
     }
 
     if (CreateButton != nullptr)
@@ -170,9 +170,11 @@ void UMenuSystem::CloseMatchSettings()
 {
     if (MatchSettings != nullptr && MatchSettings->GetVisibility() == ESlateVisibility::SelfHitTestInvisible)
     {
-        MatchSettings->SetVisibility(ESlateVisibility::Hidden);
         Host->SetIsEnabled(true);
         Join->SetIsEnabled(true);
+		FindButton->SetIsEnabled(true);
+		CreateButton->SetIsEnabled(true);
+        MatchSettings->SetVisibility(ESlateVisibility::Hidden);
     }
 }
 

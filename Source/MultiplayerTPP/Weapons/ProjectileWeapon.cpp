@@ -31,7 +31,7 @@ void AProjectileWeapon:: Fire(const FVector& HitTarget)
 		if (bIsUsingSSR == true)
 		{
 
-			if (ProjectileInstigator->HasAuthority())
+			if (ProjectileInstigator && ProjectileInstigator->HasAuthority())
 			{
 				if (ProjectileInstigator->IsLocallyControlled())
 				{

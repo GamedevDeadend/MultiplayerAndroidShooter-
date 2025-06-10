@@ -369,6 +369,12 @@ FHitResult_SSR ULagCompensationComponent::ConfirmHit_Projectile_SSR(const FFrame
 		//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Cyan, TEXT("Is Blocking Hit True") );
 		FString HitBoxName = "";
 		UBoxComponent* HitBox = Cast<UBoxComponent>(PathResult.HitResult.GetComponent());
+
+		if (HitBox == nullptr)
+		{
+			return FHitResult_SSR();
+		}
+
 		HitBox->GetName(HitBoxName);
 
 		FColor Color = FColor::Red;

@@ -79,15 +79,34 @@ void UEOS_VoiceAuth_Subsystem::Login()
     }
     else
     {
-        FOnlineAccountCredentials Credentials("accountportal", "", "");
+		FString SavedToken;
 
-        GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Green, FString("Logging into EOS Dev Auth Too;"));
-
-        if (!Identity->Login(0, Credentials))
+        if (LoadTokenFromDisk(SavedToken) && !SavedToken.IsEmpty())
         {
-            GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Green, FString("Failed to Log in EOS"));
-            Identity->ClearOnLoginCompleteDelegate_Handle(0, LoginDelegateHandle);
-            LoginDelegateHandle.Reset();
+            GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Green, TEXT("Attempting token-based login"));
+
+            if (Identity->Login( 0, FOnlineAccountCredentials( TEXT("persistentauth"), TEXT(""), TEXT("") )  ) )
+            {
+                return; // We're done if it starts logging in
+            }
+            else
+            {
+                GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Yellow, TEXT("Saved token login failed, using fallback"));
+            }
+        }
+        else
+        {
+            FOnlineAccountCredentials Credentials("accountportal", "", "");
+
+            GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Green, FString("Logging into EOS Dev Auth Too;"));
+
+            if (!Identity->Login(0, Credentials))
+            {
+                GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Green, FString("Failed to Log in EOS"));
+                Identity->ClearOnLoginCompleteDelegate_Handle(0, LoginDelegateHandle);
+                LoginDelegateHandle.Reset();
+            }
+
         }
     }
 
@@ -107,6 +126,13 @@ void UEOS_VoiceAuth_Subsystem::HandleLoginComplete(int32 LocalUserNum, bool bWas
 
     if (bWasSuccessful)
     {
+        FString AuthTokenIdentity = Identity->GetAuthToken(LocalUserNum);
+        if (AuthTokenIdentity.IsEmpty() == false)
+        {
+            SaveTokenToDisk(AuthTokenIdentity);
+        }
+
+
         PlayerName = Identity->GetPlayerNickname(UserId);
         SetVoiceChatUserInterface(UserId);
         GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Green, FString::Printf(TEXT("%s Logging into EOS Successful"), *PlayerName));
@@ -114,7 +140,7 @@ void UEOS_VoiceAuth_Subsystem::HandleLoginComplete(int32 LocalUserNum, bool bWas
     else 
     {
        
-        GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Green, FString("Logging into EOS Failed"));
+        GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Green, FString::Printf(TEXT("Logging into EOS Failed %s"), *Error));
     }
 
     Identity->ClearOnLoginCompleteDelegate_Handle(LocalUserNum, LoginDelegateHandle);
@@ -338,4 +364,19 @@ void UEOS_VoiceAuth_Subsystem::OnVoiceChannelJoined(const FString& ChannelName, 
             );
         }
 	}
+}
+
+void UEOS_VoiceAuth_Subsystem::SaveTokenToDisk(const FString& Token)
+{
+    FFileHelper::SaveStringToFile(Token, *(FPaths::ProjectSavedDir() + "EOSAuthToken.txt"));
+}
+
+bool UEOS_VoiceAuth_Subsystem::LoadTokenFromDisk(FString& OutToken)
+{
+    return FFileHelper::LoadFileToString(OutToken, *(FPaths::ProjectSavedDir() + "EOSAuthToken.txt"));
+}
+
+void UEOS_VoiceAuth_Subsystem::DeleteSavedToken()
+{
+    IFileManager::Get().Delete(*(FPaths::ProjectSavedDir() + "EOSAuthToken.txt"));
 }

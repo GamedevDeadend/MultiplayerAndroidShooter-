@@ -47,6 +47,11 @@ private:
 		void HandleLoginComplete(int32 LocalUserNum, bool bWasSuccessful, const FUniqueNetId& UserId, const FString& Error);
 		void SetVoiceChatUserInterface(const FUniqueNetId& UserId);
 
+		//HELPER FUNCTIONS
+		void SaveTokenToDisk(const FString& Token);
+		bool LoadTokenFromDisk(FString& OutToken);
+		void DeleteSavedToken();
+
 public:
 
 	FORCEINLINE FString GetPlayerName()const { return PlayerName.IsEmpty() ?  "Player Not Logged In" : PlayerName; };
