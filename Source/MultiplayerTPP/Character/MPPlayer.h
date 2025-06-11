@@ -35,6 +35,11 @@ public:
 	void PlayReloadMontage();
 	void PlayHitReactMontage();
 	void PlayElimMontage();
+
+	UFUNCTION(BlueprintCallable, Server, Reliable)
+	void ServerElim();
+
+	UFUNCTION(BlueprintCallable)
 	void Elim(bool bIsLeaving = false);
 
 	UFUNCTION(BlueprintImplementableEvent)

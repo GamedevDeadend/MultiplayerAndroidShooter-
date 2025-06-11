@@ -458,7 +458,7 @@ void AMPPlayerController::SetHUDScore(float Score)
 		//	PlayerHUD->PlayerOverlay->DisplayMessage->SetVisibility(ESlateVisibility::Visible);
 		//}
 
-		FString ScoreAmt = FString::Printf(TEXT("%d"), FMath::FloorToInt(Score));
+		FString ScoreAmt = FString::Printf(TEXT("%02d"), FMath::FloorToInt(Score));
 		PlayerHUD->PlayerOverlay->ScoreAmt->SetText(FText::FromString(ScoreAmt));
 	}
 	else
@@ -604,7 +604,7 @@ void AMPPlayerController::SetHUDDefeats(int32 Defeats)
 	if (bIsValidPlayerOverlay)
 	{
 		//UE_LOG(LogTemp, Warning, TEXT("Inside Final Call"));
-		FString DefeatAmt = FString::Printf(TEXT("%d"), Defeats);
+		FString DefeatAmt = FString::Printf(TEXT("%02d"), Defeats);
 		PlayerHUD->PlayerOverlay->DefeatAmt->SetText(FText::FromString(DefeatAmt));
 	}
 	else
@@ -630,7 +630,7 @@ void AMPPlayerController::SetHUDAmmoCount(int32 Ammo)
 		//{
 		//	GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Yellow, FString("Valid Overlay Ammo Count"));
 		//}
-		FString AmmoTxt = FString::Printf(TEXT("%d"), Ammo);
+		FString AmmoTxt = FString::Printf(TEXT("%02d"), Ammo);
 		PlayerHUD->PlayerOverlay->AmmoCount->SetText(FText::FromString(AmmoTxt));
 	}
 
@@ -652,7 +652,7 @@ void AMPPlayerController::SetHUDCarriedAmmo(int32 Ammo)
 		//{
 		//	GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Yellow, FString("Valid Overlay Ammo Count"));
 		//}
-		FString AmmoTxt = FString::Printf(TEXT("%d"), Ammo);
+		FString AmmoTxt = FString::Printf(TEXT("%02d"), Ammo);
 		PlayerHUD->PlayerOverlay->CarriedAmmoCount->SetText(FText::FromString(AmmoTxt));
 	}
 }

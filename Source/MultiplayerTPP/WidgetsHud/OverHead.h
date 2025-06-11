@@ -21,11 +21,12 @@ public:
 
 protected:
 
-	void SetDisplayText(FString TextValue);
 
 	UFUNCTION(BlueprintCallable)
 		void ShowPlayerNetRole(APawn* PlayerPawn);
 
+	UFUNCTION(BlueprintCallable)
+	void SetDisplayText(FString TextValue);
 	//Getters And Setters
 public:
 

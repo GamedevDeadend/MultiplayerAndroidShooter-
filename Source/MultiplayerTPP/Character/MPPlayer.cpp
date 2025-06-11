@@ -26,6 +26,7 @@
 #include "MultiplayerTPP/PlayerComponents/LagCompensationComponent.h"
 #include "NiagaraComponent.h"
 #include "MultiplayerTPP/GameStates/TeamDeathMatch_GS.h"
+#include "MultiplayerTPP/WidgetsHud/OverHead.h"
 #include "NiagaraFunctionLibrary.h"
 
 
@@ -205,6 +206,8 @@ void AMPPlayer::PostInitializeComponents()
 			LagCompensationComponent->CharacterController = Cast<AMPPlayerController>(Controller);
 		}
 	}
+
+
 }
 
 //This function is used to register replicated variable
@@ -576,6 +579,11 @@ void AMPPlayer::PlayElimMontage()
 	{
 		AnimInstance->Montage_Play(EliminationMontage);
 	}
+}
+
+void AMPPlayer::ServerElim_Implementation()
+{
+	Elim(false);
 }
 
 void AMPPlayer::HidePlayerIfCameraTooClose()
