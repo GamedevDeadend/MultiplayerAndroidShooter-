@@ -106,10 +106,10 @@ void AProjectile::OnHit
 		bIsHittingPlayer = true;
 	}
 
-	if (Tracer != nullptr)
-	{
-		Tracer->BeginDestroy();
-	}
+	//if (Tracer != nullptr)
+	//{
+	//	Tracer->BeginDestroy();
+	//}
 
 	Destroy();
 }

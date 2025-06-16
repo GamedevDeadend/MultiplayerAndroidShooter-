@@ -51,7 +51,7 @@ void AProjectileWeapon:: Fire(const FVector& HitTarget)
 			}
 			else
 			{
-				if (ProjectileInstigator->IsLocallyControlled()) // client, locally controlled - spawn non-replicated projectile, use SSR
+				if (ProjectileInstigator && ProjectileInstigator->IsLocallyControlled()) // client, locally controlled - spawn non-replicated projectile, use SSR
 				{
 					//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, TEXT("On Client and Locally Controlled"));
 					SpawnedProjectile = World->SpawnActor<AProjectile>(SSR_ProjectileClass, MFSocketTransform.GetLocation(), ProjectileOrientation, ProjectileSpawnParams);
@@ -69,7 +69,7 @@ void AProjectileWeapon:: Fire(const FVector& HitTarget)
 		}
 		else
 		{
-			if (ProjectileInstigator->HasAuthority())
+			if (ProjectileInstigator && ProjectileInstigator->HasAuthority())
 			{
 				//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, TEXT("On Server and SSR OFF"));
 				SpawnedProjectile = World->SpawnActor<AProjectile>(ProjectileClass, MFSocketTransform.GetLocation(), ProjectileOrientation, ProjectileSpawnParams);

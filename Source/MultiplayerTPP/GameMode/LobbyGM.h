@@ -18,6 +18,12 @@ private:
 		FTimerHandle LoadDelayHandler;
 
 	UPROPERTY(EditAnywhere)
+	TArray<FString> DeathMatchMaps;
+
+	UPROPERTY(EditAnywhere)
+	TArray<FString> TeamDeathMatchMaps;
+
+	UPROPERTY(EditAnywhere)
 	FString MapName = "SoloDeathMatch";
 
 	UPROPERTY(EditAnywhere)

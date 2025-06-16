@@ -181,7 +181,11 @@ void UMenuSystem::CloseMatchSettings()
 void UMenuSystem::GameModeSelected(FString SelectedItem, ESelectInfo::Type SelectionType)
 {
     MatchType = SelectedItem;
-    MultiplayerSessionsSubsystem->MatchType = MatchType;
+
+    if (MultiplayerSessionsSubsystem != nullptr)
+    {
+        MultiplayerSessionsSubsystem->MatchType = MatchType;
+    }
 }
 
 void UMenuSystem::CreateSessions()

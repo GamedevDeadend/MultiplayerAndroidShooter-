@@ -100,7 +100,7 @@ public:
 	UPROPERTY(meta = (BingWidget))
 	class UTextBlock* Msg_Txt = nullptr;
 
-	private:
+	public:
 
 	UFUNCTION()
 		void OnAllSpeakerClicked();

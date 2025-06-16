@@ -52,6 +52,7 @@ void UPlayerOverlay::ShowTeamStats()
 	if (TeamStats != nullptr)
 	{
 		TeamStats->SetVisibility(ESlateVisibility::Visible);
+		bIsTeamModeChat = true;
 	}
 }
 
@@ -67,6 +68,7 @@ void UPlayerOverlay::OnAllSpeakerClicked()
 	}
 
 	OwnerController = OwnerController == nullptr ? Cast<AMPPlayerController>(GetOwningPlayer()) : OwnerController;
+	if (OwnerController == nullptr) return;
 	OwnerController->Toggle_Speaker_All();
 }
 
@@ -82,6 +84,7 @@ void UPlayerOverlay::OnAllMicClicked()
 	}
 
 	OwnerController = OwnerController == nullptr ? Cast<AMPPlayerController>(GetOwningPlayer()) : OwnerController;
+	if (OwnerController == nullptr) return;
 	OwnerController->Toggle_Mic_All();
 }
 

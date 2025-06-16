@@ -21,12 +21,18 @@ void ALobbyGM::PostLogin(APlayerController* NewPlayer)
 
 		if (MultiplayerSession->MatchType == "FreeForAll")
 		{
-			MapName = "SoloDeathMatch";
+			if(DeathMatchMaps.Num() > 0)
+			{
+				MapName = DeathMatchMaps[FMath::RandRange(0, DeathMatchMaps.Num() - 1)];
+			}
 			Multiplayer_GI->CurrentGameModeType = EGameModeType::EGM_SDM;
 		}
 		else if (MultiplayerSession->MatchType == "TeamDeathMatch")
 		{
-			MapName = "TeamDeathMatch";
+			if (TeamDeathMatchMaps.Num() > 0)
+			{
+				MapName = TeamDeathMatchMaps[FMath::RandRange(0, TeamDeathMatchMaps.Num() - 1)];
+			}
 			Multiplayer_GI->CurrentGameModeType = EGameModeType::EGM_TDM;
 		}
 
@@ -40,7 +46,7 @@ void ALobbyGM::PostLogin(APlayerController* NewPlayer)
 			if (World != nullptr)
 			{
 				bUseSeamlessTravel = true;
-				World->ServerTravel(FString::Printf(TEXT("/Game/Maps/%s?listen"), *MapName));
+				World->ServerTravel(FString::Printf(TEXT("/Game/Maps/NewMaps/%s?listen"), *MapName));
 			}
 
 		}

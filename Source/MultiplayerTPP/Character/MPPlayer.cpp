@@ -481,6 +481,7 @@ void AMPPlayer::SetOverlappingWeapon(AWeapons* Weapon)
 	if (!Weapon)
 	{
 		OverlappedWeapon->ShowPickupWidget(false);
+		return;
 	}
 
 	OverlappedWeapon = Weapon;
