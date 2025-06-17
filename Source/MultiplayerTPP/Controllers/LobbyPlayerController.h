@@ -17,5 +17,6 @@ class MULTIPLAYERTPP_API ALobbyPlayerController : public APlayerController
 protected : 
 
 	virtual void OnPossess(APawn* InPawn);
+	virtual void BeginPlay() override;
 	
 };

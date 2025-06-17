@@ -53,6 +53,9 @@ public:
 		TObjectPtr<class UTextBlock> WeaponName = nullptr;
 
 	UPROPERTY(meta = (BingWidget))
+		TObjectPtr<class UOverlay> Weapon_Pannel = nullptr;
+
+	UPROPERTY(meta = (BingWidget))
 		TObjectPtr<class UImage> WeaponIcon = nullptr;
 
 	UPROPERTY(meta = (BingWidget))
@@ -107,6 +110,8 @@ public:
 
 	UFUNCTION()
 		void OnAllMicClicked();
+
+protected:
 
 
 

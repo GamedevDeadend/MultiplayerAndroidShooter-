@@ -11,6 +11,8 @@
 #include "Components/Image.h"
 #include "Components/Border.h"
 #include "Components/EditableText.h"
+#include "Components/Overlay.h"
+#include "Components/Button.h"
 
 #include "MultiplayerTPP/PlayerState/MPPlayerState.h"
 #include "MultiplayerTPP/WidgetsHud/Hud/MPPlayerHUD.h"
@@ -92,8 +94,8 @@ void AMPPlayerController::SetupInputComponent()
 		InputComponent->BindAction("ShowScoreBoard", IE_Pressed, this, &AMPPlayerController::ShowPlayersStats);
 		InputComponent->BindAction("ShowScoreBoard", IE_Released, this, &AMPPlayerController::HidePlayersStats);
 		InputComponent->BindAction("ShowAllChat", IE_Pressed, this, &AMPPlayerController::ToggleShowAllChat);
-		InputComponent->BindAction("Speaker", IE_Released, this, &AMPPlayerController::Toggle_Speaker_All);
-		InputComponent->BindAction("Mic", IE_Released, this, &AMPPlayerController::Toggle_Mic_All);
+		InputComponent->BindAction("Speaker", IE_Released, this, &AMPPlayerController::On_Speaker_All);
+		InputComponent->BindAction("Mic", IE_Released, this, &AMPPlayerController::On_Mic_All);
 
 		Curr_GI = Curr_GI == nullptr ? GetGameInstance<UMultiplayer_GI>() : Curr_GI;
 
@@ -460,6 +462,8 @@ void AMPPlayerController::SetHUDScore(float Score)
 		//	PlayerHUD->PlayerOverlay->DisplayMessage->SetVisibility(ESlateVisibility::Visible);
 		//}
 
+		SetHUDWeaponInfo(nullptr); // Reset Weapon Info when Score is set
+
 		FString ScoreAmt = FString::Printf(TEXT("%02d"), FMath::FloorToInt(Score));
 		PlayerHUD->PlayerOverlay->ScoreAmt->SetText(FText::FromString(ScoreAmt));
 	}
@@ -665,12 +669,26 @@ void AMPPlayerController::SetHUDCarriedAmmo(int32 Ammo)
 /// <param name="WeaponDataAsset"></param>
 void AMPPlayerController::SetHUDWeaponInfo(UWeaponDataAsset* WeaponDataAsset)
 {
-	if (WeaponDataAsset == nullptr) { return; }
+	bool bIsValidWeaponPannel = PlayerHUD && PlayerHUD->PlayerOverlay && PlayerHUD->PlayerOverlay->Weapon_Pannel;
+
+	if (WeaponDataAsset == nullptr)
+	{ 
+		if (bIsValidWeaponPannel == true)
+		{
+			PlayerHUD->PlayerOverlay->Weapon_Pannel->SetVisibility(ESlateVisibility::Hidden);
+			return;
+		}
+	}
 
 	PlayerHUD = PlayerHUD == nullptr ? Cast<AMPPlayerHUD>(GetHUD()) : PlayerHUD;
 
 	bool bIsValidWeaponName = PlayerHUD && PlayerHUD->PlayerOverlay && PlayerHUD->PlayerOverlay->WeaponName;
 	bool bIsValidWeaponIcon = PlayerHUD && PlayerHUD->PlayerOverlay && PlayerHUD->PlayerOverlay->WeaponIcon;
+
+	if (bIsValidWeaponPannel == true)
+	{
+		PlayerHUD->PlayerOverlay->Weapon_Pannel->SetVisibility(ESlateVisibility::Visible);
+	}
 
 	if (bIsValidWeaponName && bIsValidWeaponIcon)
 	{
@@ -774,24 +792,25 @@ void AMPPlayerController::HandleMatchHasStarted()
 
 		if (PlayerHUD != nullptr)
 		{
+
 			HideAnnouncementOverlay();
 			PlayerHUD->AddPlayerOverlay();
 
 			Curr_GI = GetGameInstance<UMultiplayer_GI>();
 
 
-			FString MapName = GetWorld()->GetMapName();
-			if (MapName.Compare("SoloDeathMatch") == 0)
-			{
-				Curr_GI->CurrentGameModeType = EGameModeType::EGM_SDM;
-			}
-			else if (MapName.Compare("TeamDeathMatch") == 0)
-			{
-				if (Curr_GI != nullptr)
-				{
-					Curr_GI->CurrentGameModeType = EGameModeType::EGM_TDM;
-				}
-			}
+			//FString MapName = GetWorld()->GetMapName();
+			//if (MapName.Compare("SoloDeathMatch") == 0)
+			//{
+			//	Curr_GI->CurrentGameModeType = EGameModeType::EGM_SDM;
+			//}
+			//else if (MapName.Compare("TeamDeathMatch") == 0)
+			//{
+			//	if (Curr_GI != nullptr)
+			//	{
+			//		Curr_GI->CurrentGameModeType = EGameModeType::EGM_TDM;
+			//	}
+			//}
 
 
 
@@ -1165,80 +1184,108 @@ void AMPPlayerController::ShowInGameMenu()
 
 }
 
-void AMPPlayerController::Toggle_Speaker_All()
+void AMPPlayerController::ToggleSpeaker()
 {
-	//Curr_GI = Curr_GI == nullptr ? GetGameInstance<UMultiplayer_GI>() : Curr_GI;
-	//VoiceSubsystem = VoiceSubsystem == nullptr ? Curr_GI->GetSubsystem<UEOS_VoiceAuth_Subsystem>() : VoiceSubsystem;
-	//VoiceChatUser = VoiceChatUser == nullptr ? VoiceSubsystem->GetLocalPlayerChatInterface() : VoiceChatUser;
-
-	//if(VoiceChatUser == nullptr || VoiceSubsystem == nullptr || Curr_GI == nullptr)
-	//{
-	//	return;
-	//}
-
-	//if( bIsAllSpeakerSwitchedOff == true)
-	//{
-	//	for (auto& Participants : VoiceChatUser->GetPlayersInChannel(VoiceSubsystem->GetCurrentChannel()))
-	//	{
-	//		if (Participants != VoiceChatUser->GetLoggedInPlayerName())
-	//		{
-	//			VoiceChatUser->SetPlayerMuted(Participants, false);
-	//			GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Green, FString::Printf(TEXT("Player %s is Unmuted"), *Participants));
-	//		}
-	//		else
-	//		{
-	//			GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Green, FString::Printf(TEXT("Player %s is not Unmuted"), *Participants));
-	//		}
-	//	}
-
-	//	bIsAllSpeakerSwitchedOff = false;
-	//	
-	//}
-	//else
-	//{
-
-	//	for (auto& Participants : VoiceChatUser->GetPlayersInChannel(VoiceSubsystem->GetCurrentChannel()))
-	//	{
-	//		if (Participants != VoiceChatUser->GetLoggedInPlayerName())
-	//		{
-	//			VoiceChatUser->SetPlayerMuted(Participants, true);
-	//			GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Green, FString::Printf(TEXT("Player %s is muted"), *Participants));
-	//		}
-	//		else
-	//		{
-	//			GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Green, FString::Printf(TEXT("Player %s is not muted"), *Participants));
-	//		}
-	//	}
-
-	//	bIsAllSpeakerSwitchedOff = true;
-	//}
-
-
 	PlayerHUD = PlayerHUD == nullptr ? Cast<AMPPlayerHUD>(GetHUD()) : PlayerHUD;
 
 	bool bIsValidPlayerOverlay =
 		PlayerHUD != nullptr &&
-		PlayerHUD->PlayerOverlay != nullptr;
+		PlayerHUD->PlayerOverlay != nullptr &&
+		PlayerHUD->PlayerOverlay->All_Speaker != nullptr;
 
-	if (bIsValidPlayerOverlay == false) { return; }
-
-	PlayerHUD->PlayerOverlay->OnAllSpeakerClicked();
-
-	
+	if (bIsValidPlayerOverlay == true)
+	{
+		PlayerHUD->PlayerOverlay->OnAllSpeakerClicked();
+	}
 
 }
 
-void AMPPlayerController::Toggle_Mic_All()
+void AMPPlayerController::ToggleMic()
 {
 	PlayerHUD = PlayerHUD == nullptr ? Cast<AMPPlayerHUD>(GetHUD()) : PlayerHUD;
 
 	bool bIsValidPlayerOverlay =
 		PlayerHUD != nullptr &&
-		PlayerHUD->PlayerOverlay != nullptr;
+		PlayerHUD->PlayerOverlay != nullptr &&
+		PlayerHUD->PlayerOverlay->All_Mic != nullptr;
 
-	if (bIsValidPlayerOverlay == false) { return; }
+	if (bIsValidPlayerOverlay == true)
+	{
+		PlayerHUD->PlayerOverlay->OnAllMicClicked();
+	}
+}
 
-	PlayerHUD->PlayerOverlay->OnAllMicClicked();
+void AMPPlayerController::On_Speaker_All()
+{
+	Curr_GI = Curr_GI == nullptr ? GetGameInstance<UMultiplayer_GI>() : Curr_GI;
+	VoiceSubsystem = VoiceSubsystem == nullptr ? Curr_GI->GetSubsystem<UEOS_VoiceAuth_Subsystem>() : VoiceSubsystem;
+	VoiceChatUser = VoiceChatUser == nullptr ? VoiceSubsystem->GetLocalPlayerChatInterface() : VoiceChatUser;
+
+	if (VoiceChatUser == nullptr || VoiceSubsystem == nullptr || Curr_GI == nullptr)
+	{
+		return;
+	}
+
+	if (bIsAllSpeakerSwitchedOff == true)
+	{
+		for (auto& Participants : VoiceChatUser->GetPlayersInChannel(VoiceSubsystem->GetCurrentChannel()))
+		{
+			if (Participants != VoiceChatUser->GetLoggedInPlayerName())
+			{
+				VoiceChatUser->SetPlayerMuted(Participants, false);
+				GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Green, FString::Printf(TEXT("Player %s is Unmuted"), *Participants));
+			}
+			else
+			{
+				GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Green, FString::Printf(TEXT("Player %s is not Unmuted"), *Participants));
+			}
+		}
+
+		bIsAllSpeakerSwitchedOff = false;
+	}
+	else
+	{
+
+		for (auto& Participants : VoiceChatUser->GetPlayersInChannel(VoiceSubsystem->GetCurrentChannel()))
+		{
+			if (Participants != VoiceChatUser->GetLoggedInPlayerName())
+			{
+				VoiceChatUser->SetPlayerMuted(Participants, true);
+				GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Green, FString::Printf(TEXT("Player %s is muted"), *Participants));
+			}
+			else
+			{
+				GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Green, FString::Printf(TEXT("Player %s is not muted"), *Participants));
+			}
+		}
+
+		bIsAllSpeakerSwitchedOff = true;
+	}
+}
+
+void AMPPlayerController::On_Mic_All()
+{
+	Curr_GI = Curr_GI == nullptr ? GetGameInstance<UMultiplayer_GI>() : Curr_GI;
+	VoiceSubsystem = VoiceSubsystem == nullptr ? Curr_GI->GetSubsystem<UEOS_VoiceAuth_Subsystem>() : VoiceSubsystem;
+	VoiceChatUser = VoiceChatUser == nullptr ? VoiceSubsystem->GetLocalPlayerChatInterface() : VoiceChatUser;
+
+	if (VoiceChatUser == nullptr || VoiceSubsystem == nullptr || Curr_GI == nullptr)
+	{
+		return;
+	}
+
+	if (bIsMicToAllSwitchedOff == true)
+	{
+		VoiceChatUser->TransmitToAllChannels();
+		bIsMicToAllSwitchedOff = false;
+		GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Green, FString::Printf(TEXT("Mic is Unmuted")));
+	}
+	else
+	{
+		VoiceChatUser->TransmitToNoChannels();
+		bIsMicToAllSwitchedOff = true;
+		GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Green, FString::Printf(TEXT("Mic is Muted")));
+	}
 }
 
 void AMPPlayerController::ToggleVoiceMode()

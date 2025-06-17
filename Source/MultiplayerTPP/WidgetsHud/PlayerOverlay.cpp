@@ -69,7 +69,7 @@ void UPlayerOverlay::OnAllSpeakerClicked()
 
 	OwnerController = OwnerController == nullptr ? Cast<AMPPlayerController>(GetOwningPlayer()) : OwnerController;
 	if (OwnerController == nullptr) return;
-	OwnerController->Toggle_Speaker_All();
+	OwnerController->On_Speaker_All();
 }
 
 void UPlayerOverlay::OnAllMicClicked()
@@ -85,7 +85,7 @@ void UPlayerOverlay::OnAllMicClicked()
 
 	OwnerController = OwnerController == nullptr ? Cast<AMPPlayerController>(GetOwningPlayer()) : OwnerController;
 	if (OwnerController == nullptr) return;
-	OwnerController->Toggle_Mic_All();
+	OwnerController->On_Mic_All();
 }
 
 void UPlayerOverlay::OnChatBoxTextCommitted(const FText& Text, ETextCommit::Type CommitMethod)

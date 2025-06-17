@@ -39,15 +39,18 @@ public:
 
 	void ShowInGameMenu();
 
+	void ToggleSpeaker();
+	void ToggleMic();
+
 	/*
 	* Voice Chat Functions
 	*/
 
 	UFUNCTION(BlueprintCallable)
-	void Toggle_Speaker_All();
+	void On_Speaker_All();
 
 	UFUNCTION(BlueprintCallable)
-	void Toggle_Mic_All();
+	void On_Mic_All();
 
 	UFUNCTION(BlueprintCallable)
 	void ToggleVoiceMode();
