@@ -37,7 +37,7 @@ void ADeathMatch_GS::OnRep_ChatMsg()
 
 	 AMPPlayerController* PlayerController = GetLocalPlayerController();
 	 AMPPlayerState* MPPlayerState = Cast<AMPPlayerState>(PlayerController->PlayerState);
-	 GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, "Sending to widget on Client");
+	 //GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, "Sending to widget on Client");
 
 
 	 if (PlayerController != nullptr && PlayerController->IsLocalController())

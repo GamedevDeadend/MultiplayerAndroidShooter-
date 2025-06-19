@@ -18,7 +18,7 @@ class MULTIPLAYERTPP_API UMultiplayer_GI : public UGameInstance
 public : 
 
 	//UPROPERTY(Replicated)
-	EGameModeType CurrentGameModeType = EGameModeType::EGM_TDM;
+	EGameModeType CurrentGameModeType = EGameModeType::EGM_SDM;
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void Init()override;

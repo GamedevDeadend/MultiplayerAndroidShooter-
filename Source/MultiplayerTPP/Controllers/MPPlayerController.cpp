@@ -69,6 +69,7 @@ void AMPPlayerController::PollInit()
 
 			if (PlayerOverlay != nullptr)
 			{
+				SetHUDWeaponInfo(nullptr); // Reset Weapon Info when Score is set
 				SetHUDHealth(Cached_MaxHealth, Cached_Health);
 				SetHUDScore(Cached_Score);
 				SetHUDDefeats(Cached_Defeats);
@@ -462,8 +463,6 @@ void AMPPlayerController::SetHUDScore(float Score)
 		//	PlayerHUD->PlayerOverlay->DisplayMessage->SetVisibility(ESlateVisibility::Visible);
 		//}
 
-		SetHUDWeaponInfo(nullptr); // Reset Weapon Info when Score is set
-
 		FString ScoreAmt = FString::Printf(TEXT("%02d"), FMath::FloorToInt(Score));
 		PlayerHUD->PlayerOverlay->ScoreAmt->SetText(FText::FromString(ScoreAmt));
 	}
@@ -531,27 +530,62 @@ void AMPPlayerController::ServerSetChatMessage_Implementation(const FText& Playe
 
 	if (GEngine->IsEditor() || GEngine->GetNetMode(GetWorld()) == NM_ListenServer)
 	{
-		if (IsLocalPlayerController())
+
+		UWorld* World = GetWorld();
+		AMPPlayerController* ServerController = nullptr;
+
+
+		if (World != nullptr)
 		{
+			ServerController = Cast<AMPPlayerController>(World->GetFirstPlayerController());
+		}
+
+
+		//if (IsLocalPlayerController())
+		
 			AMPPlayerState* MPPlayerState = Cast<AMPPlayerState>(PlayerState);
 			if (!MPPlayerState) return;
 
 			if (GameState->ChatMessageToSend.SendingPlayerTeam == EPlayerTeam::EPT_NONE ||
 				GameState->ChatMessageToSend.SendingPlayerTeam == MPPlayerState->GetPlayerTeam())
 			{
-				SetChatMessage(GameState->ChatMessageToSend.PlayerName, GameState->ChatMessageToSend.PlayerMsg, GameState->ChatMessageToSend.SendingPlayerTeam);
+
+				//Checking for Player Team Condition
+				if (World != nullptr && ServerController != nullptr)
+				{
+					MPPlayerState = ServerController->GetPlayerState<AMPPlayerState>();
+
+					if (Team != EPlayerTeam::EPT_NONE && Team != MPPlayerState->GetPlayerTeam())
+					{
+						return;
+					}
+				}
+
+
+				bool IsTeamChat = Team == EPlayerTeam::EPT_NONE ? false : true;
+				if(ServerController == nullptr){return;}
+
+				if (IsTeamChat == true)
+				{
+						GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, "Calling From Team Chat");
+						ServerController->SetChatMessage(GameState->ChatMessageToSend.PlayerName, GameState->ChatMessageToSend.PlayerMsg, GameState->ChatMessageToSend.SendingPlayerTeam);
+						return;
+				}
+				else
+				{
+						GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, "Calling From All Chat");
+						ServerController->SetChatMessage(GameState->ChatMessageToSend.PlayerName, GameState->ChatMessageToSend.PlayerMsg, GameState->ChatMessageToSend.SendingPlayerTeam);
+				}
 			}
-		}
+		
 	}
 }
 
 void AMPPlayerController::SetChatMessage(const FText& ChatMessagePlayerName, const FText& ChatMessage, const EPlayerTeam& MsgSendingPlayerTeam)
 {
+
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, "Setting chat msg on widget");
 
-	AMPPlayerState* MPPlayerState = GetPlayerState<AMPPlayerState>();
-
-	if (MsgSendingPlayerTeam != MPPlayerState->GetPlayerTeam()) {return;}
 
 	PlayerHUD = PlayerHUD == nullptr ? Cast<AMPPlayerHUD>(GetHUD()) : PlayerHUD;
 	bool bIsValidPlayerOverlay =
@@ -1127,6 +1161,8 @@ void AMPPlayerController::ToggleShowAllChat()
 
 void AMPPlayerController::ToggleShowTeamChat()
 {
+	if (IsLocalController() == false) return;
+
 	PlayerHUD = PlayerHUD == nullptr ? Cast<AMPPlayerHUD>(GetHUD()) : PlayerHUD;
 
 	bool bIsValidPlayerOverlay =
@@ -1135,7 +1171,7 @@ void AMPPlayerController::ToggleShowTeamChat()
 		PlayerHUD->PlayerOverlay->Chat_Box != nullptr;
 
 
-	if (bIsTeamChatVisible)
+	if (bIsTeamChatVisible == true)
 	{
 		FInputModeGameOnly InputModeData;
 		SetInputMode(InputModeData);

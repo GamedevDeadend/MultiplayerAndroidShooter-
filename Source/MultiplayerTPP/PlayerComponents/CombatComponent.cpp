@@ -156,6 +156,11 @@ void UCombatComponent::PickupAmmo(EWeaponType WeaponType, int32 AmmoAmount)
 	if (CarriedAmmoMap.Contains(WeaponType))
 	{
 		CarriedAmmoMap[WeaponType] = FMath::Clamp(CarriedAmmoMap[WeaponType] + AmmoAmount, 0, 500);
+
+		if(EquippedWeapon != nullptr && EquippedWeapon->GetWeaponType() == WeaponType)
+		{
+			CarriedAmmo = CarriedAmmoMap[WeaponType];
+		}
 		UpdateCarriedAmmo();
 	}
 }
@@ -472,7 +477,7 @@ void UCombatComponent::UpdateCarriedAmmo()
 
 	if (CarriedAmmoMap.Contains(EquippedWeapon->GetWeaponType()))
 	{
-		CarriedAmmo = CarriedAmmoMap[EquippedWeapon->GetWeaponType()];
+		CarriedAmmoMap[EquippedWeapon->GetWeaponType()] = CarriedAmmo;
 	}
 
 	if (MPPlayerController != nullptr)

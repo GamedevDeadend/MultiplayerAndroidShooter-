@@ -234,6 +234,7 @@ void AWeapons::OnSphereEndOverlap
 	if (Player)
 	{
 		Player->SetOverlappingWeapon(nullptr);
+		ShowPickupWidget(false);
 	}
 }
 
@@ -348,7 +349,7 @@ void AWeapons::ShowPickupWidget(bool bShowWidget)
 {
 	if (this && PickUpWidget != nullptr)
 	{
-		PickUpWidget->SetVisibility(false);
+		PickUpWidget->SetVisibility(bShowWidget);
 	}
 }
 

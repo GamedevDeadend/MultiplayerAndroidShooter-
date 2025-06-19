@@ -18,6 +18,8 @@ void UInGameMenu::MenuSetup()
 	bIsFocusable = true;
 
 
+
+
 	if (World != nullptr)
 	{
 		PlayerController = PlayerController == nullptr ? Cast<APlayerController>(World->GetFirstPlayerController()) : PlayerController;
@@ -27,6 +29,7 @@ void UInGameMenu::MenuSetup()
 	{
 		FInputModeGameAndUI InputModeGameAndUI;
 		InputModeGameAndUI.SetWidgetToFocus(TakeWidget());
+		PlayerController->bShowMouseCursor = true;
 		PlayerController->SetInputMode(InputModeGameAndUI);
 	}
 
@@ -144,6 +147,7 @@ void UInGameMenu::MenuTeardown()
 	{
 		FInputModeGameOnly InputModeGameOnly;
 		PlayerController->SetInputMode(InputModeGameOnly);
+		PlayerController->bShowMouseCursor = false;
 	}
 
 	if (MenuButton != nullptr && MenuButton->OnClicked.IsBound() == true)

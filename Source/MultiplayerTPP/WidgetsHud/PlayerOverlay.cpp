@@ -52,7 +52,6 @@ void UPlayerOverlay::ShowTeamStats()
 	if (TeamStats != nullptr)
 	{
 		TeamStats->SetVisibility(ESlateVisibility::Visible);
-		bIsTeamModeChat = true;
 	}
 }
 

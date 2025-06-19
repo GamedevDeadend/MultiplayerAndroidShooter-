@@ -641,7 +641,6 @@ void AMPPlayer::MulticastElim_Implementation(bool bIsLeaving)
 	this->bIsPlayerLeaving = bIsLeaving;
 	if (MPPlayerController != nullptr)
 	{
-		MPPlayerController->SetHUDAmmoCount(0);
 
 		if (IsLocallyControlled())
 		{
@@ -653,9 +652,10 @@ void AMPPlayer::MulticastElim_Implementation(bool bIsLeaving)
 				}
 			}
 
+			MPPlayerController->SetHUDAmmoCount(0);
+			MPPlayerController->SetHUDWeaponInfo(nullptr);
+
 		}
-
-
 	}
 
 	if (DissolveMaterialInstance == nullptr) return;
