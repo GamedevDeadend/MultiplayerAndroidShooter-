@@ -1,2 +1,2 @@
 # MultiplayerAndroidShooter-
-// Multiplayer shooting game using self made multiplayer online subssystem plugin
+// Multiplayer shooting game using self made multiplayer online subsystem plugin
